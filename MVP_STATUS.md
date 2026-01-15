@@ -15,7 +15,11 @@
 - ✅ **Circular Gauge** for confidence score visualization
 - ✅ **Results Display** with forensic data breakdown
 - ✅ **Pricing Component** (Basic $39 / Pro $99)
-- ✅ **Value Proposition Section** (NEW - just completed)
+- ✅ **Value Proposition Section**
+- ✅ **Trust Signals**
+  - ✅ Footer with legal links
+  - ✅ Liability Disclaimer
+  - ✅ Data Authority Strip (FAA, NTSB, FlightAware)
 - ✅ **Logo Component**
 - ✅ All Shadcn UI components (Button, Card, Badge, Input, Table, Tabs)
 
@@ -203,10 +207,9 @@ Create a new edge function: `scrapeAircraftData(tailNumber)` that:
    - [ ] Add input validation/sanitization
 
 3. **Hosting:**
-   - [ ] Deploy frontend (Vercel/Netlify recommended)
+   - ✅ Deploy frontend (Vercel/Netlify recommended)
+   - ✅ Configure redirects (SPA Routing fixed)
    - [ ] Configure custom domain
-   - [ ] Set up SSL certificates
-   - [ ] Configure redirects
 
 4. **Testing:**
    - [ ] Test full user journey (search → pricing → payment → report)
