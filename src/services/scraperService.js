@@ -19,10 +19,9 @@ export const scraperService = {
         } catch (err) {
             console.error('[Scraper] Orchestration error:', err);
 
-            // If the error is a 404 from the Edge Function, it means the aircraft doesn't exist.
-            // We should NOT provide a fallback, but instead let the UI handle the "Not Found" state.
-            if (err.context?.status === 404 || err.message?.includes('404')) {
-                throw new Error(err.message || 'Aircraft not found in official registries.');
+            // Handle the specific "Not Found" case from the Edge Function
+            if (err.context?.status === 404 || err.message?.includes('non-2xx')) {
+                throw new Error(`Aircraft ${nNumber} not found in official registries (FAA/Transport Canada).`);
             }
 
             // Fallback only for genuine network/timeout failures
