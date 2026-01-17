@@ -5,7 +5,7 @@ import { scraperService } from '../services/scraperService';
 import CircularGauge from './CircularGauge';
 import ValidationSection from './ValidationSection';
 import Logo from './Logo';
-import { Shield, AlertTriangle, Activity, Globe, Plane } from 'lucide-react';
+import { Shield, AlertTriangle, Activity, Globe, Plane, Mic } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +25,8 @@ const Hero = () => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isInputFocused, setIsInputFocused] = useState(false);
     const [notFoundResult, setNotFoundResult] = useState(null);
+    const [scrolled, setScrolled] = useState(false);
+    const [isListening, setIsListening] = useState(false);
 
     // Check if report is paid via URL parameter (Supports /success?paid=true)
     useEffect(() => {
@@ -32,6 +34,8 @@ const Hero = () => {
         const paid = params.get('paid');
         const selectedTier = params.get('tier');
         const urlTail = params.get('nNumber');
+        const tailParam = params.get('tail');
+        const modeParam = params.get('mode');
 
         if (paid === 'true') {
             setTier(selectedTier || 'pro');
@@ -41,7 +45,56 @@ const Hero = () => {
                 triggerAutoScan(urlTail, selectedTier || 'pro');
             }
         }
-    }, []);
+
+        // Initial search on load if URL param exists
+        if (modeParam === 'ai') {
+            setSearchMode('ai');
+        }
+
+        if (tailParam) {
+            setNNumber(tailParam);
+            setTimeout(() => {
+                handleSearch(tailParam);
+            }, 500);
+        }
+    }, [tier]); // Re-run if tier upgrades (user returns from strip)
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Voice dictation is not supported in this browser. Please use Chrome or Edge.");
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+            setSearchMode('ai'); // Auto-switch to AI mode for voice
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            let finalVal = transcript;
+            if (finalVal.endsWith('.')) finalVal = finalVal.slice(0, -1);
+            setNNumber(finalVal);
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+
+        recognition.start();
+    };
 
     const triggerAutoScan = async (tail, paidTier) => {
         setSearching(true);
@@ -299,6 +352,17 @@ const Hero = () => {
                                 }}
                                 className="w-full h-16 bg-transparent border-none text-white font-black text-2xl md:text-3xl placeholder:text-white/10 text-center focus:outline-none uppercase tracking-tighter"
                             />
+
+                            {/* Voice Dictation Button */}
+                            <button
+                                onClick={startListening}
+                                className={`absolute right-4 p-2 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'text-white/20 hover:text-white hover:bg-white/10'}`}
+                                title="Dictate to AI"
+                            >
+                                <Mic className={`w-5 h-5 ${isListening ? 'animate-bounce' : ''}`} />
+                            </button>
+
+
                             {searching && (
                                 <div className="pr-8 flex items-center gap-3">
                                     {searchMode === 'ai' && (
