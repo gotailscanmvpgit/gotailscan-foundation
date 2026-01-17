@@ -70,43 +70,45 @@ serve(async (req) => {
                 city: realData.city,
                 state: realData.state || realData.province // Handle CA province
             };
-        } else if (tail_number.startsWith('C-')) {
-            // CANADIAN FALLBACK: LAZY LOAD SCRAPER
-            console.log(`[Orchestrator] Canadian tail ${tail_number} not in DB. Invoking Scraper...`);
+        } else {
+            // LIVE-DISCOVERY FALLBACK
+            const isCanadian = normalizedTail.startsWith('C-');
+            const functionName = isCanadian ? 'scrape-tc' : 'scrape-faa';
+
+            console.log(`[Orchestrator] Tail ${normalizedTail} not in DB. Invoking Live-Discovery (${functionName})...`);
 
             try {
-                // Call our internal scrape-tc function
-                const { data: scrapedData, error: scrapeError } = await supabase.functions.invoke('scrape-tc', {
-                    body: { tail_number }
+                const { data: scrapedData, error: scrapeError } = await supabase.functions.invoke(functionName, {
+                    body: { tail_number: normalizedTail }
                 });
 
                 if (scrapedData && scrapedData.found) {
-                    console.log(`[Orchestrator] Scraper found data. Caching...`);
+                    console.log(`[Orchestrator] Live-Discovery successful. Caching...`);
                     isRealData = true;
                     const d = scrapedData.data;
 
-                    // Cache to DB
+                    // Cache to DB for subsequent searches
                     await supabase.from('aircraft_registry').insert(d);
 
                     aircraft = {
                         year: parseInt(d.year_mfr) || 2000,
-                        make_model: `${d.mfr_mdl_code} ${d.eng_mfr_mdl}`,
+                        make_model: (d.mfr_mdl_code || '') + ' ' + (d.eng_mfr_mdl || ''),
                         serial: d.serial_number,
                         owner: d.name,
                         city: d.city,
-                        state: d.state
+                        state: d.state || d.province
                     };
                 }
             } catch (err) {
-                console.error("Scraper failed:", err);
+                console.error("Discovery failed:", err);
             }
         }
 
         // If still no aircraft, return Error (No Hallucinations)
         if (!aircraft) {
-            console.log(`[Orchestrator] No real data found for ${tail_number}. Aborting.`);
+            console.log(`[Orchestrator] No registry record found for ${normalizedTail}. Aborting.`);
             return new Response(JSON.stringify({
-                error: `Aircraft ${tail_number} not found in official registries (FAA/Transport Canada).`,
+                error: `Aircraft ${normalizedTail} not found in official registries (FAA/Transport Canada).`,
                 details: "We only provide forensics for registered aircraft to ensure 100% data integrity."
             }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },

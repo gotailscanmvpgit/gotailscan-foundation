@@ -47,10 +47,56 @@ async function seedFriend() {
         .from('forensic_sdr')
         .insert(sdr);
 
-    if (sdrError) {
-        console.error("❌ Error seeding SDR:", sdrError);
+    // Seed N669DB (Cessna T206H)
+    const aircraft2 = {
+        n_number: '669DB',
+        serial_number: 'T20608921',
+        mfr_mdl_code: 'CESSNA',
+        eng_mfr_mdl: 'T206H',
+        year_mfr: '2009',
+        name: 'VAN BORTEL AIRCRAFT INC',
+        city: 'ARLINGTON',
+        state: 'TX',
+        country: 'US',
+        type_aircraft: '4', // Fixed wing single engine
+        type_engine: '5',   // Reciprocating
+        status_code: 'N'
+    };
+
+    const { error: regError2 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft2, { onConflict: 'n_number' });
+
+    if (regError2) {
+        console.error("❌ Error seeding N669DB:", regError2);
     } else {
-        console.log("🛠️ Maintenance Intelligence record added for N904GS.");
+        console.log("✅ N669DB successfully integrated into the registry.");
+    }
+
+    // Seed N865JP (Cessna T182T)
+    const aircraft3 = {
+        n_number: '865JP',
+        serial_number: 'T18209065',
+        mfr_mdl_code: 'CESSNA',
+        eng_mfr_mdl: 'T182T',
+        year_mfr: '2012',
+        name: 'VAN BORTEL AIRCRAFT INC',
+        city: 'ARLINGTON',
+        state: 'TX',
+        country: 'US',
+        type_aircraft: '4',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError3 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft3, { onConflict: 'n_number' });
+
+    if (regError3) {
+        console.error("❌ Error seeding N865JP:", regError3);
+    } else {
+        console.log("✅ N865JP successfully integrated into the registry.");
     }
 }
 
