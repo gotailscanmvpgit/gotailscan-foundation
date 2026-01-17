@@ -5,7 +5,7 @@ import { scraperService } from '../services/scraperService';
 import CircularGauge from './CircularGauge';
 import ValidationSection from './ValidationSection';
 import Logo from './Logo';
-import { Shield, AlertTriangle, Activity, Globe, Plane, Mic } from 'lucide-react';
+import { Shield, AlertTriangle, Activity, Globe, Plane, Mic, Radar, Scan } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -292,11 +292,25 @@ const Hero = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     className="flex flex-col items-center justify-center mb-12 w-full"
                 >
-                    <div className="relative group flex items-center justify-center">
-                        <h1 className="text-4xl md:text-5xl font-avionics font-bold text-white tracking-[0.2em] uppercase leading-none select-none w-full max-w-xl text-center pr-[-0.2em] flex items-center justify-center gap-4">
-                            <Plane className="w-8 h-8 md:w-10 md:h-10 text-accent rotate-[-45deg] drop-shadow-[0_0_15px_rgba(255,95,31,0.5)]" />
-                            <span>GO<span className="text-accent">TAIL</span>SCAN</span>
+                    <div className="relative group flex items-center justify-center gap-3 md:gap-4">
+                        {/* Icon Group */}
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full"></div>
+                            <Scan className="w-10 h-10 md:w-12 md:h-12 text-white/80 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                            <Radar className="w-6 h-6 md:w-8 md:h-8 text-orange-500 relative z-10 animate-pulse" />
+                        </div>
+
+                        {/* Text Logo */}
+                        <h1 className="text-4xl md:text-5xl font-avionics font-bold text-white tracking-[0.15em] uppercase leading-none select-none flex items-center">
+                            <span>GO</span>
+                            <span className="text-orange-500 relative mx-1">
+                                TAIL
+                                {/* Data underline */}
+                                <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-orange-500/50"></span>
+                            </span>
+                            <span>SCAN</span>
                         </h1>
+
 
                         {/* Subtle Scanner Sweep */}
                         <motion.div
