@@ -490,9 +490,18 @@ const Hero = () => {
                                         <div>
                                             <div className="text-[10px] text-accent font-black tracking-widest uppercase mb-1">Audit Verdict</div>
                                             <h3 className="text-4xl font-black text-white uppercase flex items-center gap-3">
-                                                {nNumber}
-                                                {nNumber.startsWith('C-') && <span className="text-3xl" title="Canadian Aircraft">🇨🇦</span>}
+                                                {result.tail_number}
+                                                {result.tail_number.startsWith('C-') && <span className="text-3xl" title="Canadian Aircraft">🇨🇦</span>}
                                             </h3>
+                                            <div className="mt-1 flex items-center gap-2">
+                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                    {result.aircraft_details.year} {result.aircraft_details.make_model}
+                                                </span>
+                                                <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
+                                                <span className="text-[10px] font-mono text-gray-500 uppercase">
+                                                    S/N: {result.aircraft_details.serial}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="text-right flex flex-col items-end">
                                             <div className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2">Status</div>
