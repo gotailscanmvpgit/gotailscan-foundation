@@ -18,10 +18,18 @@ export const scraperService = {
             orchestrationData = data;
         } catch (err) {
             console.error('[Scraper] Orchestration error:', err);
-            // Fallback if backend fails (redundancy)
+
+            // If the error is a 404 from the Edge Function, it means the aircraft doesn't exist.
+            // We should NOT provide a fallback, but instead let the UI handle the "Not Found" state.
+            if (err.context?.status === 404 || err.message?.includes('404')) {
+                throw new Error(err.message || 'Aircraft not found in official registries.');
+            }
+
+            // Fallback only for genuine network/timeout failures
             orchestrationData = {
                 valuation: { estimated_value: 0, currency: 'USD' },
-                forensic_records: { ntsb_count: 0, sdr_count: 0, liens_found: false }
+                forensic_records: { ntsb_count: 0, sdr_count: 0, liens_found: false },
+                ai_intelligence: { audit_verdict: "SYSTEM ERROR", risk_profile: "CAUTION", technical_advisory: "Network connectivity issue. Showing baseline data." }
             };
         }
 
