@@ -5,11 +5,37 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const Pricing = ({ onSelect }) => {
+    const features = [
+        { text: 'Comprehensive N-Number Scan', basic: true, pro: true },
+        { text: 'Confidence Score Readout', basic: true, pro: true },
+        { text: 'Aggregated Registry Match', basic: true, pro: true },
+        { text: 'Basic Summary PDF', basic: true, pro: true },
+        { text: 'Full NTSB Docket Access', basic: false, pro: true },
+        { text: 'ADS-B Utilization Analysis', basic: false, pro: true },
+        { text: 'Detailed Ownership Churn', basic: false, pro: true },
+        { text: 'Structural Damage Assessment', basic: false, pro: true },
+        { text: 'Airworthiness Directives Check', basic: false, pro: true },
+        { text: 'Real-Time Market Value Appraisal', basic: false, pro: true },
+    ];
+
+    const CheckIcon = () => (
+        <svg className="w-4 h-4 text-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+        </svg>
+    );
+
+    const XIcon = () => (
+        <svg className="w-4 h-4 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    );
+
     return (
-        <div className="w-full max-w-5xl mx-auto mt-20 mb-32 px-4">
-            <div className="flex flex-col items-center mb-12">
-                <h2 className="text-3xl font-black text-white tracking-widest uppercase mb-2">Forensic Pricing</h2>
-                <div className="w-20 h-1 bg-accent rounded-full mb-8"></div>
+        <div className="w-full max-w-5xl mx-auto mt-12 mb-32 px-4">
+            <div className="flex flex-col items-center mb-16">
+                <Badge variant="outline" className="mb-4 border-accent/30 bg-accent/5 text-accent uppercase tracking-[0.2em] text-[10px]">Registry Access Tiers</Badge>
+                <h2 className="text-4xl font-black text-white tracking-tight uppercase mb-4">Unlock Forensic Data</h2>
+                <div className="w-12 h-1 bg-accent rounded-full"></div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -34,17 +60,10 @@ const Pricing = ({ onSelect }) => {
                             </div>
 
                             <ul className="space-y-4">
-                                {[
-                                    'Comprehensive N-Number Scan',
-                                    'Confidence Score Readout',
-                                    'Aggregated Registry Match',
-                                    'Basic Summary PDF'
-                                ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-xs text-gray-400">
-                                        <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        {feature}
+                                {features.map((feature, i) => (
+                                    <li key={i} className={`flex items-start gap-3 text-xs ${feature.basic ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        {feature.basic ? <CheckIcon /> : <XIcon />}
+                                        <span className={feature.basic ? '' : 'line-through decoration-gray-800'}>{feature.text}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -84,7 +103,7 @@ const Pricing = ({ onSelect }) => {
 
                         <CardHeader className="pb-4">
                             <span className="text-xs text-accent font-black tracking-[0.2em] uppercase mb-2">Tier 02</span>
-                            <CardTitle className="text-3xl font-black text-white uppercase italic tracking-tight">Pro Forensic</CardTitle>
+                            <CardTitle className="text-3xl font-black text-white uppercase italic tracking-tight">Pro Analysis</CardTitle>
                         </CardHeader>
 
                         <CardContent className="flex-grow">
@@ -95,21 +114,12 @@ const Pricing = ({ onSelect }) => {
                             <div className="w-full h-px bg-white/10 mb-8"></div>
 
                             <ul className="space-y-5 mb-8">
-                                {[
-                                    'Everything in Basic',
-                                    'Full NTSB Docket Access',
-                                    'ADS-B Utilization Analysis',
-                                    'Detailed Ownership Churn Analysis',
-                                    'Structural Damage Assessment',
-                                    'Airworthiness Directives Check'
-                                ].map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-sm text-white font-medium">
-                                        <div className="p-1 rounded-full bg-accent/20">
-                                            <svg className="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                                            </svg>
+                                {features.map((feature, i) => (
+                                    <li key={i} className={`flex items-start gap-3 text-sm ${feature.pro ? 'text-white font-medium' : 'text-gray-500'}`}>
+                                        <div className={`p-1 rounded-full ${feature.pro ? 'bg-accent/20' : 'bg-gray-800'}`}>
+                                            {feature.pro ? <CheckIcon /> : <XIcon />}
                                         </div>
-                                        {feature}
+                                        {feature.text}
                                     </li>
                                 ))}
                             </ul>
@@ -120,7 +130,7 @@ const Pricing = ({ onSelect }) => {
                                         <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
                                 </div>
-                                <span className="tracking-wide">IA-CERTIFIED FORENSIC VERDICT</span>
+                                <span className="tracking-wide">IA-CERTIFIED ASSET VERDICT</span>
                             </div>
                         </CardContent>
 
@@ -129,7 +139,7 @@ const Pricing = ({ onSelect }) => {
                                 onClick={() => onSelect('pro')}
                                 className="w-full py-7 bg-accent hover:bg-[#ff7b45] text-white text-sm font-black uppercase tracking-widest shadow-[0_4px_20px_rgba(255,95,31,0.3)] hover:shadow-[0_4px_30px_rgba(255,95,31,0.5)] transition-all border border-white/20 transform hover:-translate-y-1"
                             >
-                                Order Pro Forensic
+                                Order Pro Analysis
                             </Button>
                         </CardFooter>
                     </Card>

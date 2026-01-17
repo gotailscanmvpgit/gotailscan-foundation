@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generatePDFReport } from '../services/pdfGenerator';
 import { scraperService } from '../services/scraperService';
 import CircularGauge from './CircularGauge';
-import Pricing from './Pricing';
-import ValueProposition from './ValueProposition';
+import ValidationSection from './ValidationSection';
 import Logo from './Logo';
+import { Shield, AlertTriangle, Activity, Globe, Plane } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,37 +13,128 @@ import { Badge } from "@/components/ui/badge";
 
 const Hero = () => {
     const [searching, setSearching] = useState(false);
+    const [searchMode, setSearchMode] = useState('standard'); // 'standard' or 'ai'
     const [nNumber, setNNumber] = useState('');
     const [result, setResult] = useState(null);
+    const [aiResult, setAiResult] = useState(null);
     const [tier, setTier] = useState(null); // 'basic', 'pro' or null
+    const [error, setError] = useState(null);
+    const [generatingPdf, setGeneratingPdf] = useState(false);
+    const [leadIntent, setLeadIntent] = useState('buying'); // 'buying' or 'selling'
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
 
     // Check if report is paid via URL parameter (Supports /success?paid=true)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const paid = params.get('paid');
         const selectedTier = params.get('tier');
-        if (paid === 'true') setTier(selectedTier || 'pro');
+        const urlTail = params.get('nNumber');
+
+        if (paid === 'true') {
+            setTier(selectedTier || 'pro');
+            if (urlTail) {
+                setNNumber(urlTail);
+                // Trigger auto-scan
+                triggerAutoScan(urlTail, selectedTier || 'pro');
+            }
+        }
     }, []);
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        if (!nNumber) return;
-
+    const triggerAutoScan = async (tail, paidTier) => {
         setSearching(true);
         setResult(null);
-
-        // Determine payment status based on current tier state
-        const paymentStatus = tier ? 'paid' : 'unpaid';
-
         try {
-            const data = await scraperService.scanTailNumber(nNumber, paymentStatus, tier);
+            const data = await scraperService.scanTailNumber(tail, 'paid', paidTier);
             setResult(data);
         } catch (error) {
-            console.error("Scan failed:", error);
+            console.error("Auto-scan failed:", error);
+            setError("Auto-scan failed. Please try searching manually.");
         } finally {
             setSearching(false);
         }
     };
+
+    // Auto-scroll to results when they load
+    useEffect(() => {
+        if (result) {
+            const resultsElement = document.getElementById('results-view');
+            if (resultsElement) {
+                setTimeout(() => {
+                    resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+    }, [result]);
+
+    const handleSearch = async (forcedValue = null) => {
+        let val = (forcedValue || nNumber).trim();
+
+        // Auto-detect mode
+        const isTail = val.length >= 3 && (val.toUpperCase().startsWith('N') || val.toUpperCase().startsWith('C'));
+        const mode = isTail ? 'standard' : 'ai';
+        setSearchMode(mode);
+
+        if (mode === 'standard') {
+            val = val.toUpperCase();
+            if (val.startsWith('C') && val.length > 1 && val[1] !== '-') {
+                val = 'C-' + val.substring(1);
+            }
+            if (!forcedValue) setNNumber(val);
+        }
+
+        setError(null);
+        setSuggestions([]);
+        setShowSuggestions(false);
+        setAiResult(null);
+
+        if (!val) return;
+
+        setSearching(true);
+        setResult(null);
+
+        try {
+            if (mode === 'ai') {
+                const aiResponse = await scraperService.aiIntelSearch(val);
+                if (aiResponse.type === 'forensic') {
+                    setNNumber(aiResponse.target);
+                    await new Promise(r => setTimeout(r, 800));
+                    setSearchMode('standard');
+                    const forensicData = await scraperService.scanTailNumber(aiResponse.target, tier ? 'paid' : 'unpaid', tier);
+                    setResult(forensicData);
+                } else {
+                    await new Promise(r => setTimeout(r, 1500));
+                    setAiResult(aiResponse);
+                }
+            } else {
+                const data = await scraperService.scanTailNumber(val, tier ? 'paid' : 'unpaid', tier);
+                setResult(data);
+            }
+        } catch (error) {
+            console.error("Search failed:", error);
+            setError("Unable to connect to intelligence network. Please try again.");
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    // Live suggestion fetcher
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (nNumber.length >= 2) {
+                const results = await scraperService.getSuggestions(nNumber);
+                setSuggestions(results);
+                setShowSuggestions(results.length > 0);
+            } else {
+                setSuggestions([]);
+                setShowSuggestions(false);
+            }
+        };
+
+        const timeoutId = setTimeout(fetchSuggestions, 150);
+        return () => clearTimeout(timeoutId);
+    }, [nNumber]);
 
     const handleUnlock = async (selectedTier) => {
         if (!nNumber) {
@@ -122,7 +214,7 @@ const Hero = () => {
                     className="fixed top-6 left-1/2 -translate-x-1/2 px-8 py-3 bg-accent text-white font-black rounded-full shadow-2xl z-50 flex items-center gap-3 border border-white/20"
                 >
                     <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    PAYMENT SUCCESSFUL - FORENSIC ACCESS GRANTED
+                    PAYMENT SUCCESSFUL - DILIGENCE ACCESS GRANTED
                 </motion.div>
             )}
 
@@ -131,99 +223,203 @@ const Hero = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-4xl w-full flex flex-col items-center relative z-10"
             >
-                <div className="inline-block px-3 py-1 mb-6 border border-accent/30 bg-accent/5 rounded-full">
-                    <span className="text-accent text-[10px] font-black tracking-[0.2em] uppercase">Mission Control • Live Database Access</span>
-                </div>
-
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="flex items-center justify-center gap-4 mb-8"
+                    className="flex flex-col items-center justify-center mb-12 w-full"
                 >
-                    <Logo className="w-12 h-12 md:w-16 md:h-16" />
-                    <h1 className="text-5xl md:text-7xl font-mono font-black text-white tracking-tighter uppercase leading-none">
-                        GOTAIL<span className="text-accent">SCAN</span>
-                    </h1>
+                    <div className="relative group flex items-center justify-center">
+                        <h1 className="text-4xl md:text-5xl font-avionics font-bold text-white tracking-[0.2em] uppercase leading-none select-none w-full max-w-xl text-center pr-[-0.2em] flex items-center justify-center gap-4">
+                            <Plane className="w-8 h-8 md:w-10 md:h-10 text-accent rotate-[-45deg] drop-shadow-[0_0_15px_rgba(255,95,31,0.5)]" />
+                            <span>GOTAIL<span className="text-accent">SCAN</span></span>
+                        </h1>
+
+                        {/* Subtle Scanner Sweep */}
+                        <motion.div
+                            initial={{ left: "-20%", opacity: 0 }}
+                            animate={{
+                                left: ["-20%", "120%"],
+                                opacity: [0, 0.5, 0]
+                            }}
+                            transition={{
+                                duration: 4,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                repeatDelay: 2
+                            }}
+                            className="absolute top-0 bottom-0 w-24 bg-gradient-to-r from-transparent via-accent/20 to-transparent skew-x-[-20deg] pointer-events-none blur-sm"
+                        />
+                    </div>
                 </motion.div>
 
-                <p className="text-gray-400 text-lg md:text-xl font-medium mb-3 max-w-2xl mx-auto leading-relaxed">
-                    Before you <span className="text-white font-bold">sign</span>, before you <span className="text-white font-bold">wire</span>, before you <span className="text-white font-bold">fly</span> — know the truth.
-                </p>
-                <p className="text-accent text-base md:text-lg font-black mb-12 max-w-2xl mx-auto">
-                    One hidden NTSB or Transport Canada incident can cost you $50,000.
+                <p className="text-gray-400 text-lg md:text-xl font-medium mb-12 max-w-2xl mx-auto leading-relaxed opacity-90">
+                    Trusted by <span className="text-white font-black italic">Buyers & Sellers</span> to instantly find the <span className="text-white font-black">secret history</span> of any plane.
+                    <br />
+                    <span className="text-xs uppercase tracking-[0.5em] text-accent font-bold mt-4 block">Type a tail number. We find the truth.</span>
                 </p>
 
 
-                <form id="hero-search" onSubmit={handleSearch} className="relative max-w-xl mx-auto mb-20">
-                    <div className="flex gap-2 mb-2">
-                        <div className="relative flex-grow">
-                            <Input
+                <div id="hero-search" className="relative w-full max-w-xl mx-auto mb-20 z-40">
+                    <div className="relative group">
+                        {/* Search Input - Refined, More Compact, Google-style */}
+                        <div className={`flex items-center backdrop-blur-md border-[1.5px] transition-all duration-500 rounded-xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8)] ${searching ? (searchMode === 'ai' ? 'border-violet-500 animate-pulse shadow-[0_0_50px_rgba(124,58,237,0.3)] bg-black' : 'border-accent animate-pulse shadow-[0_0_50px_rgba(255,95,31,0.3)] bg-black') : isInputFocused ? (searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_40px_rgba(124,58,237,0.15)] bg-black' : 'border-accent shadow-[0_0_40px_rgba(255,95,31,0.15)] bg-black') : 'border-white/10 bg-white/[0.03]'}`}>
+                            <input
                                 type="text"
-                                placeholder="US/CANADA TAIL NUMBER"
+                                placeholder={searchMode === 'ai' ? "DESCRIBE THE AIRCRAFT OR INCIDENT..." : "SEARCH A TAIL NUMBER"}
                                 value={nNumber}
-                                onChange={(e) => setNNumber(e.target.value.toUpperCase())}
-                                className="h-14 bg-[#0a0a0a] border-white/10 text-white font-bold text-xl placeholder:text-white/20 uppercase tracking-widest text-center focus-visible:ring-accent focus-visible:border-accent rounded-xl"
+                                onFocus={() => setIsInputFocused(true)}
+                                onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
+                                onChange={(e) => setNNumber(searchMode === 'ai' ? e.target.value : e.target.value.toUpperCase())}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSearch();
+                                }}
+                                className="w-full h-16 bg-transparent border-none text-white font-black text-2xl md:text-3xl placeholder:text-white/10 text-center focus:outline-none uppercase tracking-tighter"
                             />
+                            {searching && (
+                                <div className="pr-8 flex items-center gap-3">
+                                    {searchMode === 'ai' && (
+                                        <div className="text-[10px] font-black text-violet-500 uppercase tracking-widest animate-pulse">Neural Processing...</div>
+                                    )}
+                                    <div className={`w-6 h-6 border-2 ${searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_10px_#7C3AED]' : 'border-accent shadow-[0_0_10px_#FF5F1F]'} border-t-transparent rounded-full animate-spin`}></div>
+                                </div>
+                            )}
                         </div>
-                        <Button
-                            disabled={searching}
-                            className="h-14 px-8 bg-accent hover:bg-[#e04f14] disabled:bg-gray-800 text-white font-black rounded-xl uppercase text-sm shadow-[0_0_20px_rgba(255,95,31,0.3)] transition-all hover:shadow-[0_0_30px_rgba(255,95,31,0.5)]"
-                        >
-                            {searching ? 'Scanning...' : 'Scan'}
-                        </Button>
+
+                        {/* Suggestions Dropdown */}
+                        <AnimatePresence>
+                            {(showSuggestions && isInputFocused) && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="absolute top-[88px] left-0 right-0 bg-[#0f0f0f] border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 py-2"
+                                >
+                                    {suggestions.map((s, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => {
+                                                setNNumber(s.n_number);
+                                                handleSearch(s.n_number);
+                                            }}
+                                            className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors group text-left"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-2 h-2 bg-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <div>
+                                                    <div className="text-white font-black text-lg tracking-tight uppercase group-hover:text-accent transition-colors">{s.n_number}</div>
+                                                    <div className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{s.name?.substring(0, 30)}</div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-white/20 uppercase font-black tracking-widest group-hover:text-white/40">{s.mfr_mdl_code}</div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                    <div className="text-center text-xs text-gray-500 font-medium">
-                        Examples: <span className="text-gray-400">N123AB (US)</span> • <span className="text-gray-400">C-GABC (Canada)</span>
-                    </div>
-                </form>
+
+                    {error && (
+                        <div className="absolute -bottom-12 left-0 w-full text-center animate-shake">
+                            <span className="text-[#FF5F1F] font-bold bg-black/90 px-6 py-2 rounded-full border border-[#FF5F1F] text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(255,95,31,0.4)]">
+                                ⚠️ {error}
+                            </span>
+                        </div>
+                    )}
+                </div>
 
                 {/* LEGAL DISCLAIMER - LIABILITY PROTECTION */}
-                <div className="max-w-2xl mx-auto mt-8 p-4 border border-white/5 rounded-lg bg-black/40 backdrop-blur-sm">
-                    <p className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-wide font-medium">
-                        <span className="text-red-500 font-bold block mb-1">⚠️ IMPORTANT DISCLAIMER</span>
-                        GoTailScan aggregates public government data for informational purposes only. This report is <span className="text-gray-300">NOT an airworthiness certificate</span> and does not replace a physical pre-buy inspection by a certified A&P mechanic. Do not operate an aircraft based solely on this data.
-                    </p>
-                </div>
 
-                <div className="mt-12 pt-8 border-t border-white/5 w-full max-w-4xl mx-auto">
-                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em] mb-6">Intelligence Aggregated From</p>
-                    <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
-                        {/* FAA Logo Mock */}
-                        <div className="flex items-center gap-2">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/US-FederalAviationAdmin-Seal.svg/1024px-US-FederalAviationAdmin-Seal.svg.png" className="h-10 w-auto" alt="FAA" />
-                            <span className="text-sm font-black hidden md:block">FAA</span>
-                        </div>
-                        {/* NTSB Logo Mock */}
-                        <div className="flex items-center gap-2">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Seal_of_the_National_Transportation_Safety_Board.svg/1200px-Seal_of_the_National_Transportation_Safety_Board.svg.png" className="h-10 w-auto" alt="NTSB" />
-                            <span className="text-sm font-black hidden md:block">NTSB</span>
-                        </div>
-                        {/* FlightAware Logo Mock (Text) */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-lg font-black tracking-tighter">FlightAware</span>
-                            <span className="text-[10px] bg-white text-black px-1 rounded font-bold">DATA</span>
-                        </div>
-                        {/* Transport Canada Logo Mock */}
-                        <div className="flex items-center gap-2">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Transport_Canada_logo.svg/2560px-Transport_Canada_logo.svg.png" className="h-8 w-auto" alt="Transport Canada" />
-                        </div>
-                    </div>
-                </div>
             </motion.div>
 
             <AnimatePresence>
+                {aiResult && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full max-w-4xl mx-auto mb-32"
+                    >
+                        <div className="glass-card border-violet-500/30 p-12 text-left relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Globe className="w-32 h-32 text-violet-500" />
+                            </div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="px-3 py-1 bg-violet-500/20 rounded border border-violet-500/30 text-[10px] text-violet-400 font-black tracking-widest uppercase">
+                                        Synthesized Intelligence Result
+                                    </div>
+                                    <div className="px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] text-gray-500 font-black tracking-widest uppercase italic">
+                                        Intent: {aiResult.intent}
+                                    </div>
+                                </div>
+
+                                <h2 className="text-3xl font-avionics font-bold text-white mb-8 tracking-widest uppercase">Intel Summary</h2>
+                                <p className="text-xl text-gray-300 leading-relaxed mb-10 italic">
+                                    "{aiResult.message}"
+                                </p>
+
+                                {aiResult.type === 'general' && (
+                                    <div className="space-y-6">
+                                        <div className="p-6 bg-white/5 border border-white/10 rounded-xl">
+                                            <h4 className="text-xs text-violet-400 font-black uppercase tracking-[0.3em] mb-4">Command Suggestions</h4>
+                                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <li onClick={() => { setNNumber('N123AB'); setSearchMode('standard'); }} className="cursor-pointer p-4 bg-black/40 border border-white/5 rounded-lg hover:border-accent transition-all">
+                                                    <div className="text-[10px] text-gray-500 mb-1">AUDIT SPECIFIC TAIL</div>
+                                                    <div className="text-sm font-bold text-white">"N123AB forensic history"</div>
+                                                </li>
+                                                <li onClick={() => { setNNumber('Incident history Cessna 172'); }} className="cursor-pointer p-4 bg-black/40 border border-white/5 rounded-lg hover:border-violet-500 transition-all">
+                                                    <div className="text-[10px] text-gray-500 mb-1">FLEET SAFETY ANALYSIS</div>
+                                                    <div className="text-sm font-bold text-white">"Show Cessna 172 incidents"</div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {aiResult.type === 'fleet' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="p-6 bg-white/5 border border-white/10 rounded-xl">
+                                            <h4 className="text-[10px] text-violet-400 font-black uppercase tracking-widest mb-4 italic leading-none">Security Clearance Level 1 Required</h4>
+                                            <p className="text-sm text-gray-500 leading-relaxed">Cross-fleet forensic indexing requires an active Brokerage Subscription. Please register to unlock the Intel Index.</p>
+                                            <button className="mt-6 px-6 py-3 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-violet-500 transition-all">Upgrade to Fleet Access</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
                 {result && (
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
+                        id="results-view"
                         className="w-full max-w-6xl mx-auto space-y-8 pb-32"
                     >
                         {/* Summary Header */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <Card className="lg:col-span-1 border-white/10 bg-white/5 backdrop-blur-md">
-                                <CardContent className="p-8 flex flex-col items-center justify-center h-full">
+                                <CardContent className="p-8 flex flex-col items-center justify-center h-full text-center">
                                     <CircularGauge score={result.confidence_score} />
+                                    <div className="mt-8 space-y-2">
+                                        <div className={`text-xs font-black uppercase tracking-[0.2em] ${result.confidence_score >= 85 ? 'text-green-500' : result.confidence_score >= 70 ? 'text-warning' : 'text-red-500'}`}>
+                                            {result.confidence_score >= 85 ? 'Blue Chip Asset' : result.confidence_score >= 70 ? 'Standard Utility' : result.confidence_score >= 40 ? 'High Friction' : 'Critical Red Flag'}
+                                        </div>
+                                        <p className="text-[11px] text-gray-400 leading-relaxed max-w-[200px] font-medium mx-auto">
+                                            {result.confidence_score >= 85
+                                                ? "High Asset Liquidity. Pristine history with zero detectable registry or safety friction."
+                                                : result.confidence_score >= 70
+                                                    ? "Standard Profile. Routine maintenance cycles detected; baseline diligent audit required."
+                                                    : result.confidence_score >= 40
+                                                        ? "Diligence Critical. Significant safety or mechanical anomalies flagged in public records."
+                                                        : "Severe Risk. Critical damage history or title encumbrances confirmed in the database."
+                                            }
+                                        </p>
+                                    </div>
                                 </CardContent>
                             </Card>
 
@@ -231,8 +427,11 @@ const Hero = () => {
                                 <CardContent className="p-8 text-left">
                                     <div className="flex justify-between items-start mb-8">
                                         <div>
-                                            <div className="text-[10px] text-accent font-black tracking-widest uppercase mb-1">Forensic Verdict</div>
-                                            <h3 className="text-4xl font-black text-white uppercase">{nNumber}</h3>
+                                            <div className="text-[10px] text-accent font-black tracking-widest uppercase mb-1">Audit Verdict</div>
+                                            <h3 className="text-4xl font-black text-white uppercase flex items-center gap-3">
+                                                {nNumber}
+                                                {nNumber.startsWith('C-') && <span className="text-3xl" title="Canadian Aircraft">🇨🇦</span>}
+                                            </h3>
                                         </div>
                                         <div className="text-right flex flex-col items-end">
                                             <div className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2">Status</div>
@@ -246,15 +445,20 @@ const Hero = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h4 className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Forensic Deductions</h4>
+                                        <h4 className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Historical Audit Trail</h4>
                                         <div className="space-y-3">
-                                            {result.deductions.map((d, i) => (
+                                            {result.audit_results.map((d, i) => (
                                                 <div key={i} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-lg">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></div>
-                                                        <span className="text-sm text-gray-300 font-medium">{d.reason}</span>
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${d.status === 'positive' ? 'bg-green-500' : d.status === 'negative' ? 'bg-red-500' : 'bg-warning'} ${d.status !== 'positive' ? 'animate-pulse' : ''}`}></div>
+                                                        <div>
+                                                            <div className="text-sm text-gray-300 font-medium">{d.reason}</div>
+                                                            {d.significance && (
+                                                                <div className="text-[10px] text-gray-500 italic mt-0.5">{d.significance}</div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <Badge variant="secondary" className="bg-black/40 text-accent border border-accent/20 font-mono">
+                                                    <Badge variant="secondary" className={`bg-black/40 border font-mono ${d.status === 'positive' ? 'text-green-500 border-green-500/20' : d.status === 'negative' ? 'text-red-500 border-red-500/20' : 'text-warning border-warning/20'}`}>
                                                         {d.points}
                                                     </Badge>
                                                 </div>
@@ -265,28 +469,78 @@ const Hero = () => {
                             </Card>
                         </div>
 
+                        {/* CORROSION RISK ALERT */}
+                        {isPaid && (result.flight_data?.total_hours_12m || 0) < 10 && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 flex flex-row items-center gap-6 animate-pulse">
+                                <div className="p-3 bg-red-500/20 rounded-full">
+                                    <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 className="text-red-500 font-bold uppercase tracking-widest text-sm mb-1">Dormancy & Corrosion Risk Detected</h4>
+                                    <p className="text-gray-400 text-xs">This aircraft has minimal recent activity in our tracking feed. Note: Many General Aviation (GA) aircraft are blocked via LADD/PIA privacy programs. If truly dormant, long-term inactivity can lead to engine seal degradation and airframe corrosion. A comprehensive pre-buy borescope inspection is highly recommended.</p>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Bento Grid - DATA SOURCES */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                            {/* Blur Overlay for Paywall */}
+                        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16 ${!isPaid ? 'min-h-[800px]' : ''}`}>
+                            {/* Blur Overlay for Paywall - Mission Control Redesign */}
                             {!isPaid && (
-                                <div className="absolute inset-0 z-10 backdrop-blur-md bg-black/40 rounded-xl flex flex-col items-center justify-center border border-white/10 h-full w-full">
-                                    <div className="p-10 max-w-md text-center">
-                                        <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-accent/20">
-                                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                            </svg>
+                                <div className="absolute inset-0 z-10 backdrop-blur-[12px] bg-black/60 rounded-xl flex flex-col items-center justify-center border border-white/10 h-full w-full">
+                                    <div className="p-8 max-w-2xl text-center">
+                                        <div className="mb-6">
+                                            <h3 className="text-2xl md:text-3xl font-avionics font-bold text-white tracking-widest mb-2 uppercase">Unstoppable Diligence</h3>
+                                            <div className="h-1 w-16 bg-accent mx-auto"></div>
                                         </div>
-                                        <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Full History Locked</h3>
-                                        <p className="text-gray-400 text-sm mb-8">Purchase a Basic or Pro report to unlock the full forensic breakdown, NTSB documents, and certification.</p>
-                                        <Button
-                                            onClick={() => {
-                                                const pricingEl = document.getElementById('pricing-grid');
-                                                pricingEl?.scrollIntoView({ behavior: 'smooth' });
-                                            }}
-                                            className="px-8 py-6 bg-accent text-white font-black rounded-xl uppercase text-xs tracking-widest hover:bg-[#e04f14]"
-                                        >
-                                            View Pricing
-                                        </Button>
+
+                                        <p className="text-gray-300 text-lg mb-10 italic max-w-lg mx-auto leading-relaxed">We found {result.source_data.ntsb.length + result.source_data.sdr.length + result.source_data.cadors.length} government intelligence records for {nNumber}. Interpreting this data requires expert advisory.</p>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-left">
+                                            <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
+                                                <div className="text-[10px] font-black text-accent uppercase mb-2 tracking-widest">Global Audit</div>
+                                                <div className="text-[11px] text-gray-400 leading-tight">Indexing 2.1M+ records from NTSB, FAA, and Transport Canada.</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
+                                                <div className="text-[10px] font-black text-accent uppercase mb-2 tracking-widest">Equity Protection</div>
+                                                <div className="text-[11px] text-gray-400 leading-tight">One hidden incident can devalue an aircraft by up to $250,000.</div>
+                                            </div>
+                                            <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
+                                                <div className="text-[10px] font-black text-accent uppercase mb-2 tracking-widest">Official Access</div>
+                                                <div className="text-[11px] text-gray-400 leading-tight">Direct real-time links to official 2024 government database vaults.</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-4 max-w-md mx-auto">
+                                            <div className="flex bg-white/5 p-1 rounded-lg border border-white/10 items-center justify-center">
+                                                <button
+                                                    onClick={() => setLeadIntent('buying')}
+                                                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${leadIntent === 'buying' ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'}`}
+                                                >
+                                                    I am Buying
+                                                </button>
+                                                <button
+                                                    onClick={() => setLeadIntent('selling')}
+                                                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${leadIntent === 'selling' ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'}`}
+                                                >
+                                                    I own this Tail
+                                                </button>
+                                            </div>
+
+                                            <input
+                                                type="email"
+                                                placeholder={leadIntent === 'buying' ? "ENTER EMAIL FOR BROKER RISK SHEET" : "ENTER EMAIL FOR ASSET AUDIT PREVIEW"}
+                                                className="bg-black/40 border border-white/20 text-white text-center h-14 rounded-xl font-bold text-sm tracking-widest placeholder:text-gray-600 outline-none focus:border-accent transition-colors"
+                                            />
+                                            <Button
+                                                onClick={() => {
+                                                    alert(leadIntent === 'buying' ? "Brokerage Risk Summary has been sent! A consultant will follow up on the specific findings for " + nNumber : "Asset Audit Preview requested! We'll send the pre-listing brief for " + nNumber + " to your inbox shortly.");
+                                                }}
+                                                className="px-8 py-7 bg-accent text-white font-black rounded-xl uppercase text-xs tracking-[0.2em] hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(255,95,31,0.2)]"
+                                            >
+                                                {leadIntent === 'buying' ? "Request Broker Data Sheet" : "Get Asset Listing Brief"}
+                                            </Button>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-4">Standard Brokerage Fee Applied Upon Delivery</p>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -303,7 +557,23 @@ const Hero = () => {
                                         <div className="text-2xl font-black text-white mb-4">
                                             {result.source_data.ntsb.length} <span className="text-gray-500 text-sm">FOUND</span>
                                         </div>
-                                        <div className="h-20 bg-gradient-to-r from-accent/10 to-transparent rounded-lg border border-white/5 border-dashed"></div>
+
+                                        {result.source_data.ntsb.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {result.source_data.ntsb.map((item, idx) => (
+                                                    <div key={idx} className="p-3 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-gray-300 font-mono leading-relaxed">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-red-500 font-bold uppercase">Case Date: {item.date}</span>
+                                                            <Badge variant="outline" className="text-[8px] border-red-500/30 text-red-400 py-0 h-4">NTSB</Badge>
+                                                        </div>
+                                                        <div className="text-white font-bold mb-1 uppercase tracking-tight">Category: {item.reason}</div>
+                                                        <div className="text-gray-400 italic">"{item.description}"</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="h-20 bg-gradient-to-r from-accent/10 to-transparent rounded-lg border border-white/5 border-dashed"></div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -320,7 +590,23 @@ const Hero = () => {
                                         <div className="text-2xl font-black text-white mb-4">
                                             {result.source_data.cadors.length} <span className="text-gray-500 text-sm">FOUND</span>
                                         </div>
-                                        <div className="h-20 bg-gradient-to-r from-warning/10 to-transparent rounded-lg border border-white/5 border-dashed"></div>
+
+                                        {result.source_data.cadors.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {result.source_data.cadors.map((item, idx) => (
+                                                    <div key={idx} className="p-3 bg-warning/10 border border-warning/20 rounded text-[10px] text-gray-300 font-mono leading-relaxed">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-warning font-bold uppercase">Event Date: {item.date}</span>
+                                                            <Badge variant="outline" className="text-[8px] border-warning/30 text-warning py-0 h-4">CADORS</Badge>
+                                                        </div>
+                                                        <div className="text-white font-bold mb-1 uppercase tracking-tight">Event: {item.reason}</div>
+                                                        <div className="text-gray-400 italic">"{item.description}"</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="h-20 bg-gradient-to-r from-warning/10 to-transparent rounded-lg border border-white/5 border-dashed"></div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -337,7 +623,23 @@ const Hero = () => {
                                         <div className="text-2xl font-black text-white mb-4">
                                             {result.source_data.sdr.length} <span className="text-gray-500 text-sm">FOUND</span>
                                         </div>
-                                        <div className="h-20 bg-gradient-to-r from-blue-500/10 to-transparent rounded-lg border border-white/5 border-dashed"></div>
+
+                                        {result.source_data.sdr.length > 0 ? (
+                                            <div className="space-y-3">
+                                                {result.source_data.sdr.map((item, idx) => (
+                                                    <div key={idx} className="p-3 bg-blue-500/10 border border-blue-500/20 rounded text-[10px] text-gray-300 font-mono leading-relaxed">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-blue-500 font-bold uppercase">Report Date: {item.date}</span>
+                                                            <Badge variant="outline" className="text-[8px] border-blue-500/30 text-blue-400 py-0 h-4">SDR</Badge>
+                                                        </div>
+                                                        <div className="text-white font-bold mb-1 uppercase tracking-tight">Component: {item.part}</div>
+                                                        <div className="text-gray-400 italic">"{item.description}"</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="h-20 bg-gradient-to-r from-blue-500/10 to-transparent rounded-lg border border-white/5 border-dashed"></div>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -347,7 +649,7 @@ const Hero = () => {
                                 <Card className="md:col-span-3 border-white/10 bg-white/5 flex flex-col md:flex-row relative overflow-hidden">
                                     {/* BASIC TIER LOCK OVERLAY */}
                                     {tier === 'basic' && (
-                                        <div className="absolute inset-0 z-20 backdrop-blur-lg bg-black/60 flex flex-col items-center justify-center text-center p-8">
+                                        <div className="absolute inset-0 z-20 backdrop-blur-[6px] bg-black/40 flex flex-col items-center justify-center text-center p-8">
                                             <div className="bg-accent/10 p-4 rounded-full mb-4">
                                                 <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -370,14 +672,28 @@ const Hero = () => {
                                     {/* Map Visualization (Mock) */}
                                     <div className="md:w-1/2 h-64 md:h-auto bg-[#0f0f0f] relative border-b md:border-b-0 md:border-r border-white/10">
                                         <div className="absolute inset-0 opacity-40 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/World_map_blank_without_borders.svg/2000px-World_map_blank_without_borders.svg.png')] bg-cover bg-center filter grayscale contrast-125"></div>
-                                        <div className="relative z-10 w-full h-full flex items-center justify-center">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="w-3 h-3 bg-accent rounded-full animate-ping absolute"></div>
-                                                <div className="w-3 h-3 bg-accent rounded-full relative shadow-[0_0_15px_#FF5F1F]"></div>
-                                                <Badge variant="secondary" className="bg-black/80 text-white font-mono text-[10px] border border-white/10 backdrop-blur-sm">
-                                                    LAST TRACKED: {result.flight_data?.last_tracked ? new Date(result.flight_data.last_tracked).toLocaleDateString() : 'N/A'}
-                                                </Badge>
-                                            </div>
+                                        <div className="relative z-10 w-full h-full">
+                                            {/* Deterministic Dot Placement (Shift from Africa to North America + Jitter) */}
+                                            {(() => {
+                                                const seed = (nNumber || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                                                const jitter = (offset) => (Math.sin(seed + offset) * 10); // +/- 10%
+                                                // North America Bias: Left 20-35%, Top 25-45%
+                                                const left = 25 + jitter(1);
+                                                const top = 35 + jitter(2);
+
+                                                return (
+                                                    <div
+                                                        className="absolute flex flex-col items-center gap-2"
+                                                        style={{ left: `${left}%`, top: `${top}%` }}
+                                                    >
+                                                        <div className="w-3 h-3 bg-accent rounded-full animate-ping absolute"></div>
+                                                        <div className="w-3 h-3 bg-accent rounded-full relative shadow-[0_0_15px_#FF5F1F]"></div>
+                                                        <Badge variant="secondary" className="bg-black/80 text-white font-mono text-[10px] border border-white/10 backdrop-blur-sm whitespace-nowrap">
+                                                            LAST TRACKED: {result.flight_data?.last_tracked ? new Date(result.flight_data.last_tracked).toLocaleDateString() : 'N/A'}
+                                                        </Badge>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
 
@@ -431,35 +747,59 @@ const Hero = () => {
                                         </svg>
                                     </div>
                                     <div className="max-w-2xl text-left">
-                                        <div className="text-gold font-black tracking-widest text-xs uppercase mb-2">IA-Certified Forensic Verdict</div>
-                                        <h3 className="text-3xl font-black text-white mb-6 uppercase italic">Full Forensic Summary</h3>
+                                        <div className="text-gold font-black tracking-widest text-xs uppercase mb-2">IA-Certified Diligence Verdict</div>
+                                        <h3 className="text-3xl font-black text-white mb-6 uppercase italic">Full Historical Summary</h3>
                                         <p className="text-gray-400 leading-relaxed mb-8">
-                                            Analysis complete. {tier === 'pro' ? 'Detailed wreckage analysis and ownership churn data' : 'Basic safety scan'} reveals no critical outstanding structural AD compliance issues, however the historical incident {result.source_data.ntsb.length > 0 ? 'referenced in NTSB' : 'records'} should be audited by a qualified A&P mechanic.
+                                            {(() => {
+                                                const hasMajorIssues = result.forensic_records?.ntsb_count > 0 || result.forensic_records?.liens_found;
+                                                const hasMechanical = result.forensic_records?.sdr_count > 0;
+                                                const isClean = !hasMajorIssues && !hasMechanical;
+
+                                                if (isClean) {
+                                                    return `Initial scan of aircraft ${nNumber} reveals a remarkably stable forensic profile. No major NTSB damage history or active liens were detected in the federal registries. Mechanical records (SDRs) indicate a routine service lifecycle. This aircraft represents a high-confidence asset for acquisition.`;
+                                                } else if (hasMajorIssues) {
+                                                    return `Diligence audit of ${nNumber} identifies critical intelligence points. ${result.forensic_records?.ntsb_count > 0 ? 'Documentation suggests a historical NTSB occurrence that requires structural inspection.' : ''} ${result.forensic_records?.liens_found ? 'Furthermore, an active financial lien has been detected.' : ''} We recommend a comprehensive title search and logbook audit before proceeding.`;
+                                                } else {
+                                                    return `Scan of ${nNumber} shows a stable safety history with no major accidents, however, ${result.forensic_records?.sdr_count} mechanical service reports (SDRs) were found. While not necessarily disqualifying, these indicate specific component wear cycles that should be reviewed against current airworthiness directives.`;
+                                                }
+                                            })()}
                                         </p>
-                                        <button className="px-10 py-5 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all flex items-center gap-4">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                            Download Forensic PDF
+                                        <button
+                                            onClick={async () => {
+                                                setGeneratingPdf(true);
+                                                await generatePDFReport(nNumber, result);
+                                                setGeneratingPdf(false);
+                                            }}
+                                            disabled={generatingPdf}
+                                            className={`px-10 py-5 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all flex items-center gap-4 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 ${generatingPdf ? 'cursor-wait' : ''}`}
+                                        >
+                                            {generatingPdf ? (
+                                                <>
+                                                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                                                    Assembling Historical Records...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    Download Historical PDF
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
                             </motion.div>
                         )}
 
-                        {/* Pricing Section */}
-                        {!isPaid && (
-                            <div id="pricing-grid">
-                                <Pricing onSelect={handleUnlock} />
-                            </div>
-                        )}
+                        {/* Lead captured via paywall overlay - no redundancy needed here */}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Value Proposition Section - Always visible */}
-            {!result && <ValueProposition />}
-        </section>
+            {/* Validation Section - Below the Fold */}
+            {!result && <ValidationSection />}
+        </section >
     );
 };
 

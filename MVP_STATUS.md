@@ -21,6 +21,9 @@
   - ✅ Liability Disclaimer
   - ✅ Data Authority Strip (FAA, NTSB, FlightAware)
 - ✅ **Logo Component**
+- ✅ **Logo Refresh** (Minimalist Constellation Tail)
+- ✅ **Beta Badge** (v1.0 BETA)
+- ✅ **Real-Time Market Value Appraisal** Feature
 - ✅ All Shadcn UI components (Button, Card, Badge, Input, Table, Tabs)
 
 ### 3. **Backend Integration**

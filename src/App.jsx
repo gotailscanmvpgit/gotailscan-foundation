@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import Footer from './components/Footer';
 import '@fontsource/roboto-mono/400.css';
 import '@fontsource/roboto-mono/700.css';
+import '@fontsource/michroma';
 import './index.css';
 
 function App() {

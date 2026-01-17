@@ -43,7 +43,7 @@ const ValueProposition = () => {
                         <div className="p-8 flex justify-center bg-[#0f0f0f]">
                             <img
                                 src="/sample-report.png"
-                                alt="Sample Forensic Report"
+                                alt="Sample Historical Audit"
                                 className="max-h-[70vh] w-auto shadow-xl rounded-sm border border-white/20"
                             />
                         </div>
@@ -72,7 +72,7 @@ const ValueProposition = () => {
                     The Value Proposition
                 </h2>
                 <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
-                    One forensic scan can save you from a catastrophic purchase decision.
+                    One historical deep scan can save you from a catastrophic purchase decision.
                 </p>
             </motion.div>
 
@@ -165,7 +165,7 @@ const ValueProposition = () => {
                                 </Badge>
                             </div>
                             <CardTitle className="text-3xl font-black text-white uppercase tracking-tight">
-                                The Forensic Audit
+                                The Historical Audit
                             </CardTitle>
                             <p className="text-gray-300 text-sm mt-2">
                                 AI-powered intelligence from FAA, NTSB, CADORS & FlightAware
@@ -234,7 +234,7 @@ const ValueProposition = () => {
                         <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 mb-8">
                             <div className="text-center">
                                 <div className="text-5xl md:text-7xl font-black text-accent mb-2">$99</div>
-                                <div className="text-gray-400 text-sm uppercase tracking-widest">Forensic Scan</div>
+                                <div className="text-gray-400 text-sm uppercase tracking-widest">Historical Scan</div>
                             </div>
                             <div className="text-4xl md:text-6xl font-black text-white">→</div>
                             <div className="text-center">
@@ -246,7 +246,7 @@ const ValueProposition = () => {
                             One hidden NTSB incident. One undisclosed AD compliance issue. One ownership churn red flag.
                             <span className="text-white font-bold"> That's all it takes to turn your dream aircraft into a financial nightmare.</span>
                         </p>
-                        <div className="mt-12 pt-8 border-t border-white/5 grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                        <div className="mt-12 pt-8 border-t border-white/5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
                             <div className="flex items-center gap-3 text-gray-300">
                                 <CheckCircle2 className="w-5 h-5 text-accent" />
                                 <span className="font-bold">3-Page PDF Dossier</span>
@@ -258,6 +258,10 @@ const ValueProposition = () => {
                             <div className="flex items-center gap-3 text-gray-300">
                                 <CheckCircle2 className="w-5 h-5 text-accent" />
                                 <span className="font-bold">Shareable Mechanic Link</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-gray-300">
+                                <CheckCircle2 className="w-5 h-5 text-accent" />
+                                <span className="font-bold">Real-Time Market Value</span>
                             </div>
                         </div>
 

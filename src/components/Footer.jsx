@@ -1,4 +1,5 @@
 import React from 'react';
+import { Plane } from 'lucide-react';
 
 const Footer = () => {
     return (
@@ -7,11 +8,14 @@ const Footer = () => {
 
                 {/* Brand & Copyright */}
                 <div className="text-center md:text-left">
-                    <div className="text-white font-black tracking-tighter uppercase mb-1">
-                        GOTAIL<span className="text-accent">SCAN</span>
+                    <div className="flex items-center justify-center md:justify-start mb-2 gap-2">
+                        <Plane className="w-4 h-4 text-accent rotate-[-45deg]" />
+                        <div className="text-white font-avionics font-bold tracking-[0.2em] uppercase text-sm">
+                            GOTAIL<span className="text-accent">SCAN</span>
+                        </div>
                     </div>
-                    <div className="text-[10px] text-gray-500 font-medium tracking-wide">
-                        © {new Date().getFullYear()} FORENSIC AVIATION DATA LLC. ALL RIGHTS RESERVED.
+                    <div className="text-[10px] text-gray-500 font-medium tracking-wide italic">
+                        © {new Date().getFullYear()} POWERED BY FORENSIC AVIATION DATA INC. ALL RIGHTS RESERVED.
                     </div>
                 </div>
 
@@ -28,6 +32,14 @@ const Footer = () => {
                     <br />
                     support@gotailscan.com
                 </div>
+            </div>
+
+            {/* Compliance Disclaimer - Moved to Bottom */}
+            <div className="mt-12 pt-8 border-t border-white/5 text-center px-4 relative z-10 bg-black">
+                <p className="text-[10px] text-gray-600 leading-relaxed max-w-4xl mx-auto uppercase tracking-wide font-medium">
+                    <span className="text-red-900/50 font-bold mr-2">⚠️ DISCLAIMER:</span>
+                    GoTailScan aggregates public government data for informational purposes only. This report is NOT an airworthiness certificate and does not replace a physical pre-buy inspection by a certified A&P mechanic. Do not operate an aircraft based solely on this data.
+                </p>
             </div>
         </footer>
     );
