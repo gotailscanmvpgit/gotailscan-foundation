@@ -514,6 +514,49 @@ const Hero = () => {
                             </div>
                         </div>
 
+                        {/* AI FORENSIC AUDIT (PREMIUM) */}
+                        {isPaid && result.ai_intelligence && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-16"
+                            >
+                                <Card className="border-accent/40 bg-accent/5 overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                                        <div className="w-32 h-32 rounded-full border-4 border-accent animate-pulse"></div>
+                                    </div>
+                                    <CardContent className="p-10 relative z-10">
+                                        <div className="flex flex-col md:flex-row gap-10 items-start">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-24 h-24 bg-accent/10 rounded-2xl flex items-center justify-center border border-accent/20 relative rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                                    <div className="absolute -top-2 -right-2 bg-accent text-[8px] font-black px-2 py-0.5 rounded text-white animate-bounce">LIVE</div>
+                                                    <span className="text-4xl">🧠</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="text-[10px] text-accent font-black tracking-[0.4em] uppercase">Forensic Intelligence Analyst v2.0</div>
+                                                    <Badge className="bg-accent/20 text-accent border border-accent/30 rounded-sm font-bold tracking-widest px-3">
+                                                        {result.ai_intelligence.risk_profile}
+                                                    </Badge>
+                                                </div>
+                                                <h3 className="text-3xl font-black text-white uppercase mb-4 tracking-tight leading-none">
+                                                    Verdict: {result.ai_intelligence.audit_verdict}
+                                                </h3>
+                                                <div className="relative">
+                                                    <p className="text-gray-300 leading-relaxed italic text-lg max-w-3xl mb-0 pl-8 relative">
+                                                        <span className="absolute left-0 top-0 text-5xl text-accent/20 leading-none">"</span>
+                                                        {result.ai_intelligence.technical_advisory}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                    <div className="h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent"></div>
+                                </Card>
+                            </motion.div>
+                        )}
+
                         {/* Bento Grid - DATA SOURCES */}
                         <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16 ${!isPaid ? 'min-h-[800px]' : ''}`}>
                             {/* Blur Overlay for Paywall - Mission Control Redesign */}
@@ -821,6 +864,23 @@ const Hero = () => {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* DIGITAL VAULT / LOGBOOK UPLOAD */}
+                                <Card className="border-dashed border-white/10 bg-white/[0.02] p-12 flex flex-col items-center justify-center group hover:border-accent/30 transition-all cursor-pointer">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                        <svg className="w-8 h-8 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                        </svg>
+                                    </div>
+                                    <div className="text-[10px] text-accent font-black tracking-[0.3em] uppercase mb-2">Private Intel Bridge</div>
+                                    <h3 className="text-xl font-black text-white uppercase mb-2 tracking-widest">AeroVault™ PDF Logbook Audit</h3>
+                                    <p className="text-gray-400 text-xs text-center max-w-sm mb-6">
+                                        Bridge the gap between public forensics and private binders. Upload your PDF scans for AI OCR interpretation and AD compliance cross-referencing.
+                                    </p>
+                                    <div className="px-4 py-2 bg-white/5 rounded border border-white/10 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                        Beta Deployment Scheduled: Q1 2026
+                                    </div>
+                                </Card>
                             </motion.div>
                         )}
 

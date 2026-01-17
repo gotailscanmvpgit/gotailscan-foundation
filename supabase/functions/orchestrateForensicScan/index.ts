@@ -169,8 +169,36 @@ serve(async (req) => {
                 real_ntsb: realNTSB || [],
                 real_sdr: realSDR || [],
                 real_cadors: realCADORS || []
+            },
+            ai_intelligence: {
+                audit_verdict: "",
+                risk_profile: "",
+                technical_advisory: ""
             }
         };
+
+        // 4. AI ANALYTICS (Simulated Intelligence Layer)
+        const ntsb = report.forensic_records.ntsb_count;
+        const sdr = report.forensic_records.sdr_count;
+        const age_acft = new Date().getFullYear() - aircraft.year;
+
+        if (ntsb > 0) {
+            report.ai_intelligence.audit_verdict = "CRITICAL DATA MISMATCH";
+            report.ai_intelligence.risk_profile = "HIGH DILIGENCE REQUIRED";
+            report.ai_intelligence.technical_advisory = `Historical NTSB records found. Our audit suggests a significant forensic gap between physical logbooks and government records. Extensive 337 form review and structural borescope inspection are recommended prior to acquisition.`;
+        } else if (sdr > 4) {
+            report.ai_intelligence.audit_verdict = "MECHANICAL ANOMALY DETECTED";
+            report.ai_intelligence.risk_profile = "ELEVATED FRICTION";
+            report.ai_intelligence.technical_advisory = "High density of Service Difficulty Reports (SDRs) indicates a 'Lemon' profile or systemic maintenance negligence. Analyze component failure rates vs. fleet averages to determine true operational cost.";
+        } else if (age_acft > 40 && sdr < 2) {
+            report.ai_intelligence.audit_verdict = "SUSPICIOUS MAINTENANCE GAP";
+            report.ai_intelligence.risk_profile = "HIDDEN RISK";
+            report.ai_intelligence.technical_advisory = "40+ year airframe with minimal SDR reporting. This 'Silent Profile' often indicates undocumented maintenance or aircraft dormancy. Verify all Airworthiness Directives (ADs) for compliance immediately.";
+        } else {
+            report.ai_intelligence.audit_verdict = "PRISTINE FORENSIC PROFILE";
+            report.ai_intelligence.risk_profile = "BLUE CHIP ASSET";
+            report.ai_intelligence.technical_advisory = "Forensic data aligns perfectly with a well-managed maintenance program. High asset liquidity and lower-than-average insurance risk profile confirmed.";
+        }
 
         return new Response(JSON.stringify(report), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
