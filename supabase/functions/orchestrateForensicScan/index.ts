@@ -25,38 +25,42 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        console.log(`[Orchestrator] Scanning ${tail_number}...`)
-
-        // ---------------------------------------------------------
-        // 1. DATA AGGREGATION (Real Mode with Fallback)
-        // ---------------------------------------------------------
-
         let aircraft = null;
         let isRealData = false;
 
-        // Deterministic Random Generator (Used for Valuation & Sim fallback)
-        const seed = tail_number.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        // Normalize Input (Handle case where user misses the 'N')
+        let normalizedTail = tail_number.toUpperCase().trim();
+        if (!normalizedTail.startsWith('N') && !normalizedTail.startsWith('C-') && normalizedTail.length <= 6) {
+            // Check if it looks like a US tail number (Alpha-numeric, 3-5 chars)
+            if (/^[0-9A-Z]{3,6}$/.test(normalizedTail)) {
+                normalizedTail = 'N' + normalizedTail;
+                console.log(`[Orchestrator] Auto-prefixed US tail: ${normalizedTail}`);
+            }
+        }
+
+        const seed = normalizedTail.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const random = (offset = 0) => {
             const x = Math.sin(seed + offset) * 10000;
             return x - Math.floor(x);
         };
 
-        // Normalize Search Key
-        let dbSearchKey = tail_number;
-        if (tail_number.startsWith('N')) {
-            dbSearchKey = tail_number.substring(1); // Remove 'N' for US queries
+        console.log(`[Orchestrator] Scanning ${normalizedTail}...`)
+
+        // Normalize Registry Key (FAA Master is prefix-less)
+        let registryKey = normalizedTail;
+        if (normalizedTail.startsWith('N')) {
+            registryKey = normalizedTail.substring(1);
         }
-        // For 'C-', we keep it as is, matching our TC import strategy.
 
         // Try to fetch from Real DB
         const { data: realData } = await supabase
             .from('aircraft_registry')
             .select('*')
-            .eq('n_number', dbSearchKey)
+            .eq('n_number', registryKey)
             .maybeSingle();
 
         if (realData) {
-            console.log(`[Orchestrator] Real data found for ${tail_number}`);
+            console.log(`[Orchestrator] Real data found for ${normalizedTail}`);
             isRealData = true;
             aircraft = {
                 year: parseInt(realData.year_mfr) || 1980,
@@ -149,9 +153,9 @@ serve(async (req) => {
         // ---------------------------------------------------------
 
         // Try to fetch real forensic records if they exist in our mirrored tables
-        const { data: realNTSB } = await supabase.from('forensic_ntsb').select('*').eq('n_number', tail_number);
-        const { data: realSDR } = await supabase.from('forensic_sdr').select('*').eq('n_number', tail_number);
-        const { data: realCADORS } = await supabase.from('forensic_cadors').select('*').eq('n_number', tail_number);
+        const { data: realNTSB } = await supabase.from('forensic_ntsb').select('*').eq('n_number', normalizedTail);
+        const { data: realSDR } = await supabase.from('forensic_sdr').select('*').eq('n_number', normalizedTail);
+        const { data: realCADORS } = await supabase.from('forensic_cadors').select('*').eq('n_number', normalizedTail);
 
         const report = {
             tail_number,
