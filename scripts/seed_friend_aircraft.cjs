@@ -355,6 +355,32 @@ async function seedFriend() {
     } else {
         console.log("✅ N99JF (2009 Cessna 182T) successfully corrected in the registry.");
     }
+
+    // Seed N212FA (Resolved Mismatch: 2021 Cirrus SR20)
+    const aircraft13 = {
+        n_number: '212FA',
+        serial_number: '2736',
+        mfr_mdl_code: 'CIRRUS',
+        eng_mfr_mdl: 'SR20 G6',
+        year_mfr: '2021',
+        name: 'FLY LIKE A G6 LLC',
+        city: 'GRANADA HILLS',
+        state: 'CA',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError13 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft13, { onConflict: 'n_number' });
+
+    if (regError13) {
+        console.error("❌ Error seeding N212FA:", regError13);
+    } else {
+        console.log("✅ N212FA (2021 Cirrus SR20 G6) successfully corrected in the registry.");
+    }
 }
 
 seedFriend();
