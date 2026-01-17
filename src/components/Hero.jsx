@@ -301,12 +301,11 @@ const Hero = () => {
                         </div>
 
                         {/* Text Logo */}
-                        <h1 className="text-4xl md:text-5xl font-avionics font-bold text-white tracking-[0.15em] uppercase leading-none select-none flex items-center">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-avionics font-bold text-white tracking-[0.1em] md:tracking-[0.15em] uppercase leading-none select-none flex items-center transition-all duration-300">
                             <span>GO</span>
-                            <span className="text-orange-500 relative mx-1">
+                            <span className="text-orange-500 relative mx-0.5 md:mx-1">
                                 TAIL
-                                {/* Data underline */}
-                                <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-orange-500/50"></span>
+                                <span className="absolute -bottom-1 left-0 w-full h-[1.5px] md:h-[2px] bg-orange-500/50"></span>
                             </span>
                             <span>SCAN</span>
                         </h1>
