@@ -237,7 +237,7 @@ const Hero = () => {
                     <div className="relative group flex items-center justify-center">
                         <h1 className="text-4xl md:text-5xl font-avionics font-bold text-white tracking-[0.2em] uppercase leading-none select-none w-full max-w-xl text-center pr-[-0.2em] flex items-center justify-center gap-4">
                             <Plane className="w-8 h-8 md:w-10 md:h-10 text-accent rotate-[-45deg] drop-shadow-[0_0_15px_rgba(255,95,31,0.5)]" />
-                            <span>GOTAIL<span className="text-accent">SCAN</span></span>
+                            <span>GO<span className="text-accent">TAIL</span>SCAN</span>
                         </h1>
 
                         {/* Subtle Scanner Sweep */}
