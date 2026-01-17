@@ -1,3 +1,4 @@
+/* eslint-env node */
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // This is your Stripe CLI webhook secret for testing your endpoint locally.

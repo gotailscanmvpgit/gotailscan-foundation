@@ -14,21 +14,9 @@ serve(async (req) => {
     try {
         const { tail_number, payment_status, plan_id } = await req.json()
 
-        // 1. Guardrail: Check Stripe Status & Plan Access
-        if (payment_status !== 'paid') {
-            return new Response(JSON.stringify({ error: 'Payment required' }), { status: 402, headers: corsHeaders })
-        }
 
-        // Access Control: Tiered Logic
-        if (plan_id === 'BASIC_39') {
-            return new Response(JSON.stringify({
-                status: 'locked',
-                message: 'FlightAware data is available on PRO plans only.'
-            }), {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 200 // Return 200 but with locked status so UI can handle it gracefully
-            })
-        }
+
+
 
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',

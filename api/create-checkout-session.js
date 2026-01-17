@@ -1,3 +1,4 @@
+/* eslint-env node */
 import Stripe from 'stripe';
 
 export default async (req, res) => {

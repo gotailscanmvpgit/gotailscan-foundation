@@ -20,12 +20,12 @@ const Hero = () => {
     const [tier, setTier] = useState(null); // 'basic', 'pro' or null
     const [error, setError] = useState(null);
     const [generatingPdf, setGeneratingPdf] = useState(false);
-    const [leadIntent, setLeadIntent] = useState('buying'); // 'buying' or 'selling'
+
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isInputFocused, setIsInputFocused] = useState(false);
     const [notFoundResult, setNotFoundResult] = useState(null);
-    const [scrolled, setScrolled] = useState(false);
+
     const [isListening, setIsListening] = useState(false);
 
     // Broker Lead Capture State
@@ -33,10 +33,7 @@ const Hero = () => {
     const [isBrokerSubmitting, setIsBrokerSubmitting] = useState(false);
     const [brokerSuccess, setBrokerSuccess] = useState(false);
 
-    // Lead Gen / Paywall State
-    const [isUnlocked, setIsUnlocked] = useState(false);
-    const [leadEmail, setLeadEmail] = useState('');
-    const [leadSubmitting, setLeadSubmitting] = useState(false);
+
 
     // Check if report is paid via URL parameter (Supports /success?paid=true)
     useEffect(() => {
@@ -67,6 +64,7 @@ const Hero = () => {
                 handleSearch(tailParam);
             }, 500);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tier]); // Re-run if tier upgrades (user returns from strip)
 
     const startListening = () => {
@@ -166,14 +164,14 @@ const Hero = () => {
                     setNNumber(aiResponse.target);
                     await new Promise(r => setTimeout(r, 800));
                     setSearchMode('standard');
-                    const forensicData = await scraperService.scanTailNumber(aiResponse.target, tier ? 'paid' : 'unpaid', tier);
+                    const forensicData = await scraperService.scanTailNumber(aiResponse.target, 'paid', 'pro');
                     setResult(forensicData);
                 } else {
                     await new Promise(r => setTimeout(r, 1500));
                     setAiResult(aiResponse);
                 }
             } else {
-                const data = await scraperService.scanTailNumber(val, tier ? 'paid' : 'unpaid', tier);
+                const data = await scraperService.scanTailNumber(val, 'paid', 'pro');
                 setResult(data);
             }
         } catch (error) {
@@ -205,39 +203,7 @@ const Hero = () => {
         return () => clearTimeout(timeoutId);
     }, [nNumber]);
 
-    const handleUnlock = async (selectedTier) => {
-        if (!nNumber) {
-            alert("Please enter a tail number first.");
-            return;
-        }
 
-        try {
-            // Call our backend API to create a Stripe session
-            const response = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    tier: selectedTier, // 'basic' or 'pro'
-                    nNumber: nNumber,
-                    successUrl: `${window.location.origin}/success?paid=true&tier=${selectedTier}&nNumber=${nNumber}`,
-                    cancelUrl: window.location.href,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.url) {
-                // Redirect to Stripe hosted checkout page
-                window.location.href = data.url;
-            } else {
-                console.error("Stripe session creation failed:", data);
-                alert("Payment system is currently initializing. Please try again in a moment.");
-            }
-        } catch (error) {
-            console.error("Payment error:", error);
-            alert("Unable to connect to payment server.");
-        }
-    };
 
     const isPaid = tier !== null;
 
@@ -718,97 +684,6 @@ const Hero = () => {
                             </Card>
                         </div>
 
-                        {/* CORROSION RISK ALERT */}
-                        {isPaid && (result.flight_data?.total_hours_12m || 0) < 10 && (
-                            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 flex flex-row items-center gap-6 animate-pulse">
-                                <div className="p-3 bg-red-500/20 rounded-full">
-                                    <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                </div>
-                                <div>
-                                    <h4 className="text-red-500 font-bold uppercase tracking-widest text-sm mb-1">Dormancy & Corrosion Risk Detected</h4>
-                                    <p className="text-gray-400 text-xs">This aircraft has minimal recent activity in our tracking feed. Note: Many General Aviation (GA) aircraft are blocked via LADD/PIA privacy programs. If truly dormant, long-term inactivity can lead to engine seal degradation and airframe corrosion. A comprehensive pre-buy borescope inspection is highly recommended.</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* AI FORENSIC AUDIT (PREMIUM PREVIEW) */}
-                        {result.ai_intelligence && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-16"
-                            >
-                                <Card className="border-accent/40 bg-accent/5 overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                                        <div className="w-32 h-32 rounded-full border-4 border-accent animate-pulse"></div>
-                                    </div>
-                                    <CardContent className="p-10 relative z-10">
-                                        <div className="flex flex-col md:flex-row gap-10 items-start">
-                                            <div className="flex-shrink-0">
-                                                <div className="w-24 h-24 bg-accent/10 rounded-2xl flex items-center justify-center border border-accent/20 relative rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                                                    <div className="absolute -top-2 -right-2 bg-accent text-[8px] font-black px-2 py-0.5 rounded text-white animate-bounce">LIVE</div>
-                                                    <span className="text-4xl">🧠</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-grow">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-[10px] text-accent font-black tracking-[0.4em] uppercase">Forensic Intelligence Analyst v2.0</div>
-                                                        {!isPaid && <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[8px] h-4">PREVIEW</Badge>}
-                                                    </div>
-                                                    <Badge className="bg-accent/20 text-accent border border-accent/30 rounded-sm font-bold tracking-widest px-3">
-                                                        {result.ai_intelligence.risk_profile}
-                                                    </Badge>
-                                                </div>
-                                                <h3 className="text-3xl font-black text-white uppercase mb-4 tracking-tight leading-none">
-                                                    Verdict: {result.ai_intelligence.audit_verdict}
-                                                </h3>
-                                                <div className="relative">
-                                                    <p className="text-gray-300 leading-relaxed italic text-lg max-w-3xl mb-0 pl-8 relative">
-                                                        <span className="absolute left-0 top-0 text-5xl text-accent/20 leading-none">"</span>
-                                                        {result.ai_intelligence.technical_advisory}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                    <div className="h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent"></div>
-                                </Card>
-                            </motion.div>
-                        )}
-
-                        {/* Logbook vs Public Intelligence Explanation */}
-                        <div className="bg-accent/5 border border-accent/20 rounded-xl p-8 mt-16 mb-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                                <div>
-                                    <div className="text-[10px] text-accent font-black tracking-[0.3em] uppercase mb-2">The Logbook Paradox</div>
-                                    <h3 className="text-2xl font-black text-white uppercase mb-4 leading-tight">Public Forensic vs. Private Logs</h3>
-                                    <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                                        Aircraft logbooks (the binders) are <span className="text-white font-bold">private property</span> and often siloed in proprietary systems. There is no central "Google" for aircraft logbooks because they contain proprietary operator data.
-                                    </p>
-                                    <p className="text-gray-400 text-sm leading-relaxed">
-                                        However, when a mechanic finds a major defect during an audit, they are legally required to report it as a <span className="text-accent underline font-bold uppercase">Service Difficulty (SDR)</span>. GOTAILSCAN indexes these <span className="text-white font-bold underline italic">Public Forensic Trails</span> to verify if the physical logbooks tell the whole truth.
-                                    </p>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="flex gap-4 p-4 bg-white/5 border border-white/5 rounded-lg group hover:border-accent/30 transition-all">
-                                        <div className="p-3 bg-white/5 rounded-full flex-shrink-0">📖</div>
-                                        <div>
-                                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Private Logs</div>
-                                            <div className="text-[11px] text-gray-500">Operator-owned. Often digitizied in private silos like CAMP or FlightDocs.</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 p-4 bg-accent/10 border border-accent/20 rounded-lg group">
-                                        <div className="p-3 bg-accent/20 rounded-full flex-shrink-0">📡</div>
-                                        <div>
-                                            <div className="text-[10px] font-black text-accent uppercase tracking-widest mb-1">Manual Maintenance Shadow</div>
-                                            <div className="text-[11px] text-gray-300">Public forensic evidence that cannot be censored, deleted, or lost.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Bento Grid - DATA SOURCES */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16">
 
@@ -910,175 +785,240 @@ const Hero = () => {
                                     </div>
                                 </CardContent>
                             </Card>
-                            {/* SOURCE: UTILIZATION AUDIT */}
-                            {/* Logic: If Paid, show this card. But if Tier is Basic, BLUR it. If Pro, SHOW it. */}
-                            {isPaid && (
-                                <Card className="md:col-span-3 border-white/10 bg-white/5 flex flex-col md:flex-row relative overflow-hidden">
-                                    {/* BASIC TIER LOCK OVERLAY */}
-                                    {tier === 'basic' && (
-                                        <div className="absolute inset-0 z-20 backdrop-blur-[6px] bg-black/40 flex flex-col items-center justify-center text-center p-8">
-                                            <div className="bg-accent/10 p-4 rounded-full mb-4">
-                                                <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
-                                            <h3 className="text-xl font-black text-white uppercase mb-2">Pro Feature Locked</h3>
-                                            <p className="text-gray-400 text-sm max-w-md mb-6">Unlock 12-Month Utilization Audit & Flight Paths with the PRO upgrade.</p>
-                                            <Button
-                                                onClick={() => {
-                                                    // Simulate upgrade flow
-                                                    window.location.href = `${window.location.origin}/success?paid=true&tier=pro`;
-                                                }}
-                                                className="bg-accent hover:bg-[#ff7b45] text-white font-bold uppercase tracking-widest text-xs px-8 py-3"
-                                            >
-                                                Upgrade to Pro
-                                            </Button>
-                                        </div>
-                                    )}
+                        </div>
 
-                                    {/* Map Visualization (Mock) */}
-                                    <div className="md:w-1/2 h-64 md:h-auto bg-[#0f0f0f] relative border-b md:border-b-0 md:border-r border-white/10">
-                                        <div className="absolute inset-0 opacity-40 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/World_map_blank_without_borders.svg/2000px-World_map_blank_without_borders.svg.png')] bg-cover bg-center filter grayscale contrast-125"></div>
-                                        <div className="relative z-10 w-full h-full">
-                                            {/* Deterministic Dot Placement (Shift from Africa to North America + Jitter) */}
-                                            {(() => {
-                                                const seed = (nNumber || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                                                const jitter = (offset) => (Math.sin(seed + offset) * 10); // +/- 10%
-                                                // North America Bias: Left 20-35%, Top 25-45%
-                                                const left = 25 + jitter(1);
-                                                const top = 35 + jitter(2);
 
-                                                return (
-                                                    <div
-                                                        className="absolute flex flex-col items-center gap-2"
-                                                        style={{ left: `${left}%`, top: `${top}%` }}
-                                                    >
-                                                        <div className="w-3 h-3 bg-accent rounded-full animate-ping absolute"></div>
-                                                        <div className="w-3 h-3 bg-accent rounded-full relative shadow-[0_0_15px_#FF5F1F]"></div>
-                                                        <Badge variant="secondary" className="bg-black/80 text-white font-mono text-[10px] border border-white/10 backdrop-blur-sm whitespace-nowrap">
-                                                            LAST TRACKED: {result.flight_data?.last_tracked ? new Date(result.flight_data.last_tracked).toLocaleDateString() : 'N/A'}
-                                                        </Badge>
-                                                    </div>
-                                                );
-                                            })()}
-                                        </div>
+                        {/* SOURCE: UTILIZATION AUDIT */}
+                        <Card className="md:col-span-3 border-white/10 bg-white/5 flex flex-col md:flex-row relative overflow-hidden mt-8 mb-8">
+                            {/* BASIC TIER LOCK OVERLAY */}
+                            {tier === 'basic' && (
+                                <div className="absolute inset-0 z-20 backdrop-blur-[6px] bg-black/40 flex flex-col items-center justify-center text-center p-8">
+                                    <div className="bg-accent/10 p-4 rounded-full mb-4">
+                                        <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
                                     </div>
+                                    <h3 className="text-xl font-black text-white uppercase mb-2">Pro Feature Locked</h3>
+                                    <p className="text-gray-400 text-sm max-w-md mb-6">Unlock 12-Month Utilization Audit & Flight Paths with the PRO upgrade.</p>
+                                    <Button
+                                        onClick={() => {
+                                            // Simulate upgrade flow
+                                            window.location.href = `${window.location.origin}/success?paid=true&tier=pro`;
+                                        }}
+                                        className="bg-accent hover:bg-[#ff7b45] text-white font-bold uppercase tracking-widest text-xs px-8 py-3"
+                                    >
+                                        Upgrade to Pro
+                                    </Button>
+                                </div>
+                            )}
 
-                                    {/* Utilization Data */}
-                                    <CardContent className="md:w-1/2 p-8 flex flex-col justify-center">
-                                        <div className="flex items-center justify-between mb-8">
-                                            <div>
-                                                <div className="text-[10px] text-accent font-black tracking-widest uppercase mb-1">FlightAware AeroAPI</div>
-                                                <h3 className="text-2xl font-black text-white uppercase">Utilization Audit</h3>
-                                            </div>
-                                            <Badge
-                                                variant="outline"
-                                                className={`border-0 ${result.flight_data?.data_source === 'adsb' ? 'bg-green-500/10 text-green-500' : 'bg-warning/10 text-warning'}`}
+                            {/* Map Visualization (Mock) */}
+                            <div className="md:w-1/2 h-64 md:h-auto bg-[#0f0f0f] relative border-b md:border-b-0 md:border-r border-white/10">
+                                <div className="absolute inset-0 opacity-40 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/World_map_blank_without_borders.svg/2000px-World_map_blank_without_borders.svg.png')] bg-cover bg-center filter grayscale contrast-125"></div>
+                                <div className="relative z-10 w-full h-full">
+                                    {/* Deterministic Dot Placement (Shift from Africa to North America + Jitter) */}
+                                    {(() => {
+                                        const seed = (nNumber || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                                        const jitter = (offset) => (Math.sin(seed + offset) * 10); // +/- 10%
+                                        // North America Bias: Left 20-35%, Top 25-45%
+                                        const left = 25 + jitter(1);
+                                        const top = 35 + jitter(2);
+
+                                        return (
+                                            <div
+                                                className="absolute flex flex-col items-center gap-2"
+                                                style={{ left: `${left}%`, top: `${top}%` }}
                                             >
-                                                {result.flight_data?.data_source === 'adsb' ? 'ADS-B CONFIRMED' : 'MLAT ESTIMATED'}
-                                            </Badge>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <div>
-                                                <div className="text-xs text-gray-500 mb-2 font-bold uppercase">12-Month Activity</div>
-                                                <div className="text-3xl font-black text-white">
-                                                    {result.flight_data?.total_hours_12m || 0} <span className="text-gray-500 text-sm">HRS</span>
-                                                </div>
-                                                <div className="text-[10px] text-gray-400 mt-1">~{(result.flight_data?.total_hours_12m / 12).toFixed(1)} hrs/month avg</div>
+                                                <div className="w-3 h-3 bg-accent rounded-full animate-ping absolute"></div>
+                                                <div className="w-3 h-3 bg-accent rounded-full relative shadow-[0_0_15px_#FF5F1F]"></div>
+                                                <Badge variant="secondary" className="bg-black/80 text-white font-mono text-[10px] border border-white/10 backdrop-blur-sm whitespace-nowrap">
+                                                    LAST TRACKED: {result.flight_data?.last_tracked ? new Date(result.flight_data.last_tracked).toLocaleDateString() : 'N/A'}
+                                                </Badge>
                                             </div>
-                                            <div>
-                                                <div className="text-xs text-gray-500 mb-2 font-bold uppercase">Active Status</div>
-                                                <div className="text-3xl font-black text-white">
-                                                    {result.flight_data?.total_hours_12m > 50 ? 'ACTIVE' : 'DORMANT'}
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+
+                            {/* Utilization Data */}
+                            <CardContent className="md:w-1/2 p-8 flex flex-col justify-center">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div>
+                                        <div className="text-[10px] text-accent font-black tracking-widest uppercase mb-1">FlightAware AeroAPI</div>
+                                        <h3 className="text-2xl font-black text-white uppercase">Utilization Audit</h3>
+                                    </div>
+                                    <Badge
+                                        variant="outline"
+                                        className={`border-0 ${result.flight_data?.data_source === 'adsb' ? 'bg-green-500/10 text-green-500' : 'bg-warning/10 text-warning'}`}
+                                    >
+                                        {result.flight_data?.data_source === 'adsb' ? 'ADS-B CONFIRMED' : 'MLAT ESTIMATED'}
+                                    </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-2 font-bold uppercase">12-Month Activity</div>
+                                        <div className="text-3xl font-black text-white">
+                                            {result.flight_data?.total_hours_12m || 0} <span className="text-gray-500 text-sm">HRS</span>
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 mt-1">~{(result.flight_data?.total_hours_12m / 12).toFixed(1)} hrs/month avg</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500 mb-2 font-bold uppercase">Active Status</div>
+                                        <div className="text-3xl font-black text-white">
+                                            {result.flight_data?.total_hours_12m > 50 ? 'ACTIVE' : 'DORMANT'}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 mt-1">Based on recent filing</div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* CORROSION RISK ALERT */}
+                        {isPaid && (result.flight_data?.total_hours_12m || 0) < 10 && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 flex flex-row items-center gap-6 animate-pulse">
+                                <div className="p-3 bg-red-500/20 rounded-full">
+                                    <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 className="text-red-500 font-bold uppercase tracking-widest text-sm mb-1">Dormancy & Corrosion Risk Detected</h4>
+                                    <p className="text-gray-400 text-xs">This aircraft has minimal recent activity in our tracking feed. Note: Many General Aviation (GA) aircraft are blocked via LADD/PIA privacy programs. If truly dormant, long-term inactivity can lead to engine seal degradation and airframe corrosion. A comprehensive pre-buy borescope inspection is highly recommended.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* AI FORENSIC AUDIT (PREMIUM PREVIEW) */}
+                        {result.ai_intelligence && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-16"
+                            >
+                                <Card className="border-accent/40 bg-accent/5 overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                                        <div className="w-32 h-32 rounded-full border-4 border-accent animate-pulse"></div>
+                                    </div>
+                                    <CardContent className="p-10 relative z-10">
+                                        <div className="flex flex-col md:flex-row gap-10 items-start">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-24 h-24 bg-accent/10 rounded-2xl flex items-center justify-center border border-accent/20 relative rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                                    <div className="absolute -top-2 -right-2 bg-accent text-[8px] font-black px-2 py-0.5 rounded text-white animate-bounce">LIVE</div>
+                                                    <span className="text-4xl">🧠</span>
                                                 </div>
-                                                <div className="text-[10px] text-gray-400 mt-1">Based on recent filing</div>
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-[10px] text-accent font-black tracking-[0.4em] uppercase">Forensic Intelligence Analyst v2.0</div>
+                                                        {!isPaid && <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[8px] h-4">PREVIEW</Badge>}
+                                                    </div>
+                                                    <Badge className="bg-accent/20 text-accent border border-accent/30 rounded-sm font-bold tracking-widest px-3">
+                                                        {result.ai_intelligence.risk_profile}
+                                                    </Badge>
+                                                </div>
+                                                <h3 className="text-3xl font-black text-white uppercase mb-4 tracking-tight leading-none">
+                                                    Verdict: {result.ai_intelligence.audit_verdict}
+                                                </h3>
+                                                <div className="relative">
+                                                    <p className="text-gray-300 leading-relaxed italic text-lg max-w-3xl mb-0 pl-8 relative">
+                                                        <span className="absolute left-0 top-0 text-5xl text-accent/20 leading-none">"</span>
+                                                        {result.ai_intelligence.technical_advisory}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
-                                </Card>
-                            )}
-                        </div>
-
-                        {/* Paid Content: Only visible if isPaid */}
-                        {isPaid && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="mt-12 space-y-8"
-                            >
-                                <div className="glass-card p-12 border-gold/30 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-8">
-                                        <svg className="w-24 h-24 text-gold opacity-10" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div className="max-w-2xl text-left">
-                                        <div className="text-gold font-black tracking-widest text-xs uppercase mb-2">IA-Certified Diligence Verdict</div>
-                                        <h3 className="text-3xl font-black text-white mb-6 uppercase italic">Full Historical Summary</h3>
-                                        <p className="text-gray-400 leading-relaxed mb-8">
-                                            {(() => {
-                                                const hasMajorIssues = result.forensic_records?.ntsb_count > 0 || result.forensic_records?.liens_found;
-                                                const hasMechanical = result.forensic_records?.sdr_count > 0;
-                                                const isClean = !hasMajorIssues && !hasMechanical;
-
-                                                if (isClean) {
-                                                    return `Initial scan of aircraft ${nNumber} reveals a remarkably stable forensic profile. No major NTSB damage history or active liens were detected in the federal registries. Mechanical records (SDRs) indicate a routine service lifecycle. This aircraft represents a high-confidence asset for acquisition.`;
-                                                } else if (hasMajorIssues) {
-                                                    return `Diligence audit of ${nNumber} identifies critical intelligence points. ${result.forensic_records?.ntsb_count > 0 ? 'Documentation suggests a historical NTSB occurrence that requires structural inspection.' : ''} ${result.forensic_records?.liens_found ? 'Furthermore, an active financial lien has been detected.' : ''} We recommend a comprehensive title search and logbook audit before proceeding.`;
-                                                } else {
-                                                    return `Scan of ${nNumber} shows a stable safety history with no major accidents, however, ${result.forensic_records?.sdr_count} mechanical service reports (SDRs) were found. While not necessarily disqualifying, these indicate specific component wear cycles that should be reviewed against current airworthiness directives.`;
-                                                }
-                                            })()}
-                                        </p>
-                                        <button
-                                            onClick={async () => {
-                                                setGeneratingPdf(true);
-                                                await generatePDFReport(nNumber, result);
-                                                setGeneratingPdf(false);
-                                            }}
-                                            disabled={generatingPdf}
-                                            className={`px-10 py-5 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all flex items-center gap-4 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 ${generatingPdf ? 'cursor-wait' : ''}`}
-                                        >
-                                            {generatingPdf ? (
-                                                <>
-                                                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                                                    Assembling Historical Records...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                    </svg>
-                                                    Download Historical PDF
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* DIGITAL VAULT / LOGBOOK UPLOAD */}
-                                <Card className="border-dashed border-white/10 bg-white/[0.02] p-12 flex flex-col items-center justify-center group hover:border-accent/30 transition-all cursor-pointer">
-                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                        <svg className="w-8 h-8 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                                        </svg>
-                                    </div>
-                                    <div className="text-[10px] text-accent font-black tracking-[0.3em] uppercase mb-2">Private Intel Bridge</div>
-                                    <h3 className="text-xl font-black text-white uppercase mb-2 tracking-widest">AeroVault™ PDF Logbook Audit</h3>
-                                    <p className="text-gray-400 text-xs text-center max-w-sm mb-6">
-                                        Bridge the gap between public forensics and private binders. Upload your PDF scans for AI OCR interpretation and AD compliance cross-referencing.
-                                    </p>
-                                    <div className="px-4 py-2 bg-white/5 rounded border border-white/10 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                        Beta Deployment Scheduled: Q1 2026
-                                    </div>
+                                    <div className="h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent"></div>
                                 </Card>
                             </motion.div>
                         )}
 
-                        {/* Lead captured via paywall overlay - no redundancy needed here */}
+                        {/* Logbook vs Public Intelligence Explanation */}
+
+
+
+
+
+
+                        {/* Paid Content: Only visible if isPaid */}
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="mt-12 space-y-8"
+                        >
+                            <div className="glass-card p-12 border-gold/30 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8">
+                                    <svg className="w-24 h-24 text-gold opacity-10" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="max-w-2xl text-left">
+                                    <div className="text-gold font-black tracking-widest text-xs uppercase mb-2">IA-Certified Diligence Verdict</div>
+                                    <h3 className="text-3xl font-black text-white mb-6 uppercase italic">Full Historical Summary</h3>
+                                    <p className="text-gray-400 leading-relaxed mb-8">
+                                        {(() => {
+                                            const hasMajorIssues = result.forensic_records?.ntsb_count > 0 || result.forensic_records?.liens_found;
+                                            const hasMechanical = result.forensic_records?.sdr_count > 0;
+                                            const isClean = !hasMajorIssues && !hasMechanical;
+
+                                            if (isClean) {
+                                                return `Initial scan of aircraft ${nNumber} reveals a remarkably stable forensic profile. No major NTSB damage history or active liens were detected in the federal registries. Mechanical records (SDRs) indicate a routine service lifecycle. This aircraft represents a high-confidence asset for acquisition.`;
+                                            } else if (hasMajorIssues) {
+                                                return `Diligence audit of ${nNumber} identifies critical intelligence points. ${result.forensic_records?.ntsb_count > 0 ? 'Documentation suggests a historical NTSB occurrence that requires structural inspection.' : ''} ${result.forensic_records?.liens_found ? 'Furthermore, an active financial lien has been detected.' : ''} We recommend a comprehensive title search and logbook audit before proceeding.`;
+                                            } else {
+                                                return `Scan of ${nNumber} shows a stable safety history with no major accidents, however, ${result.forensic_records?.sdr_count} mechanical service reports (SDRs) were found. While not necessarily disqualifying, these indicate specific component wear cycles that should be reviewed against current airworthiness directives.`;
+                                            }
+                                        })()}
+                                    </p>
+                                    <button
+                                        onClick={async () => {
+                                            setGeneratingPdf(true);
+                                            await generatePDFReport(nNumber, result);
+                                            setGeneratingPdf(false);
+                                        }}
+                                        disabled={generatingPdf}
+                                        className={`px-10 py-5 bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all flex items-center gap-4 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 ${generatingPdf ? 'cursor-wait' : ''}`}
+                                    >
+                                        {generatingPdf ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                                                Assembling Historical Records...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                Download Historical PDF
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* DIGITAL VAULT / LOGBOOK UPLOAD */}
+                            <Card className="border-dashed border-white/10 bg-white/[0.02] p-12 flex flex-col items-center justify-center group hover:border-accent/30 transition-all cursor-pointer">
+                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                    <svg className="w-8 h-8 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div className="text-[10px] text-accent font-black tracking-[0.3em] uppercase mb-2">Private Intel Bridge</div>
+                                <h3 className="text-xl font-black text-white uppercase mb-2 tracking-widest">AeroVault™ PDF Logbook Audit</h3>
+                                <p className="text-gray-400 text-xs text-center max-w-sm mb-6">
+                                    Bridge the gap between public forensics and private binders. Upload your PDF scans for AI OCR interpretation and AD compliance cross-referencing.
+                                </p>
+                                <div className="px-4 py-2 bg-white/5 rounded border border-white/10 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                    Beta Deployment Scheduled: Q1 2026
+                                </div>
+                            </Card>
+                        </motion.div>
                     </motion.div>
                 )}
+
+
+
             </AnimatePresence>
 
             {/* Validation Section - Below the Fold */}

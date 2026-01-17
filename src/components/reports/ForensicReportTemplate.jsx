@@ -81,7 +81,7 @@ const PageOne = ({ data }) => {
 
     return (
         <Page size="A4" style={tw('p-12 bg-white relative')}>
-            <Header id={`X-RAY-${data.tail_number}-${Date.now().toString().slice(-6)}`} tail={data.tail_number} />
+            <Header id={`X-RAY-${data.tail_number}-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`} tail={data.tail_number} />
 
             {/* CONFIDENCE OVERVIEW */}
             <View style={tw('flex flex-row gap-8 mb-10 items-center')}>
