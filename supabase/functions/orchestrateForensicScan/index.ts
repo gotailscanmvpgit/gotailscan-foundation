@@ -95,10 +95,7 @@ serve(async (req) => {
                     const d = data.data;
                     console.log(`✅ Discovery Success: Retrieved ${d.n_number}`);
 
-                    // Note: We deliberately do NOT save 'ESTIMATED' data to the persistent registry anymore
-                    // to prevent pollution. We only pass it through for this session.
-                    // await supabase.from('aircraft_registry').insert(d); // <-- DISABLED PERSISTENCE of Estimates
-
+                    // We do NOT persist estimates.
                     aircraft = {
                         year: parseInt(d.year_mfr) || 2000,
                         make_model: (d.mfr_mdl_code || '') + ' ' + (d.eng_mfr_mdl || ''),
@@ -106,8 +103,11 @@ serve(async (req) => {
                         owner: d.name,
                         city: d.city,
                         state: d.state || d.province,
-                        verification_status: data.verification_status || 'VERIFIED' // Capture flag
+                        verification_status: data.verification_status || 'VERIFIED'
                     };
+                } else {
+                    console.log(`[Orchestrator] Live Discovery returned Not Found for ${normalizedTail}`);
+                    // STOP HERE. Do not attempt to guess or estimate beyond this point.
                 }
             } catch (err) {
                 console.error("Discovery failed:", err);
