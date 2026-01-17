@@ -28,12 +28,13 @@ export const scraperService = {
             orchestrationData = {
                 valuation: { estimated_value: 0, currency: 'USD' },
                 forensic_records: { ntsb_count: 0, sdr_count: 0, liens_found: false },
+                aircraft_details: { year: 'N/A', make_model: 'Unidentified Aircraft', serial: 'N/A' },
                 ai_intelligence: { audit_verdict: "SYSTEM ERROR", risk_profile: "CAUTION", technical_advisory: "Network connectivity issue. Showing baseline data." }
             };
         }
 
         // 2. Map Backend Data to Forensic Deductions
-        const { forensic_records, valuation } = orchestrationData;
+        const { forensic_records, valuation, aircraft_details, ai_intelligence } = orchestrationData;
 
         // Create a deterministic seed from the tail number
         const seed = nNumber.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -191,6 +192,8 @@ export const scraperService = {
             confidence_score: score,
             audit_results: auditResults,
             forensic_records: forensic_records, // Restore for PDF and internal logic
+            aircraft_details: aircraft_details,
+            ai_intelligence: ai_intelligence,
             flight_data: flightData,
             valuation: valuation,
             source_data: {

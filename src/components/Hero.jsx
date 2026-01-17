@@ -495,11 +495,11 @@ const Hero = () => {
                                             </h3>
                                             <div className="mt-1 flex items-center gap-2">
                                                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                                    {result.aircraft_details.year} {result.aircraft_details.make_model}
+                                                    {result.aircraft_details?.year || 'N/A'} {result.aircraft_details?.make_model || 'Unknown Model'}
                                                 </span>
                                                 <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
                                                 <span className="text-[10px] font-mono text-gray-500 uppercase">
-                                                    S/N: {result.aircraft_details.serial}
+                                                    S/N: {result.aircraft_details?.serial || 'N/A'}
                                                 </span>
                                             </div>
                                         </div>
