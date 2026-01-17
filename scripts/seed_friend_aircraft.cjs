@@ -150,6 +150,32 @@ async function seedFriend() {
     } else {
         console.log("✅ N377GK (Musso Aviation) successfully integrated into the registry.");
     }
+
+    // Seed C-GJED (2001 Custom Super Cub)
+    const aircraft6 = {
+        n_number: 'C-GJED',
+        serial_number: 'CS-001-J3',
+        mfr_mdl_code: 'PIPER/CUSTOM',
+        eng_mfr_mdl: 'PA-18/J3 Super Cub',
+        year_mfr: '2001',
+        name: 'PRIVATE OWNER',
+        city: 'VANCOUVER',
+        state: 'BC',
+        country: 'CANADA',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError6 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft6, { onConflict: 'n_number' });
+
+    if (regError6) {
+        console.error("❌ Error seeding C-GJED:", regError6);
+    } else {
+        console.log("✅ C-GJED (Custom Super Cub) successfully integrated into the registry.");
+    }
 }
 
 seedFriend();
