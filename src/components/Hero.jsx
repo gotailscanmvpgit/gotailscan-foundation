@@ -482,6 +482,38 @@ const Hero = () => {
                             </div>
                         )}
 
+                        {/* Logbook vs Public Intelligence Explanation */}
+                        <div className="bg-accent/5 border border-accent/20 rounded-xl p-8 mt-16 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                                <div>
+                                    <div className="text-[10px] text-accent font-black tracking-[0.3em] uppercase mb-2">The Logbook Paradox</div>
+                                    <h3 className="text-2xl font-black text-white uppercase mb-4 leading-tight">Public Forensic vs. Private Logs</h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                                        Aircraft logbooks (the binders) are <span className="text-white font-bold">private property</span> and often siloed in proprietary systems. There is no central "Google" for aircraft logbooks because they contain proprietary operator data.
+                                    </p>
+                                    <p className="text-gray-400 text-sm leading-relaxed">
+                                        However, when a mechanic finds a major defect during an audit, they are legally required to report it as a <span className="text-accent underline font-bold uppercase">Service Difficulty (SDR)</span>. GOTAILSCAN indexes these <span className="text-white font-bold underline italic">Public Forensic Trails</span> to verify if the physical logbooks tell the whole truth.
+                                    </p>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex gap-4 p-4 bg-white/5 border border-white/5 rounded-lg group hover:border-accent/30 transition-all">
+                                        <div className="p-3 bg-white/5 rounded-full flex-shrink-0">📖</div>
+                                        <div>
+                                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Private Logs</div>
+                                            <div className="text-[11px] text-gray-500">Operator-owned. Often digitizied in private silos like CAMP or FlightDocs.</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4 p-4 bg-accent/10 border border-accent/20 rounded-lg group">
+                                        <div className="p-3 bg-accent/20 rounded-full flex-shrink-0">📡</div>
+                                        <div>
+                                            <div className="text-[10px] font-black text-accent uppercase tracking-widest mb-1">Manual Maintenance Shadow</div>
+                                            <div className="text-[11px] text-gray-300">Public forensic evidence that cannot be censored, deleted, or lost.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Bento Grid - DATA SOURCES */}
                         <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16 ${!isPaid ? 'min-h-[800px]' : ''}`}>
                             {/* Blur Overlay for Paywall - Mission Control Redesign */}
@@ -611,17 +643,17 @@ const Hero = () => {
                                 </CardContent>
                             </Card>
 
-                            {/* SOURCE: SDR */}
+                            {/* SOURCE: SDR / MAINTENANCE INTELLIGENCE */}
                             <Card className="border-white/10 bg-white/5 flex flex-col h-full">
                                 <CardContent className="p-6 flex flex-col h-full">
                                     <div className="flex items-center justify-between mb-8">
                                         <span className="text-[10px] font-black tracking-widest text-gray-500 uppercase">Registry 03</span>
-                                        <Badge variant="outline" className="border-white/20 text-white bg-white/5">SDR</Badge>
+                                        <Badge variant="outline" className="border-white/20 text-white bg-white/5">SDR AUDIT</Badge>
                                     </div>
                                     <div className="flex-grow">
-                                        <div className="text-xs text-gray-500 mb-2 font-bold uppercase">Mechanical Defects</div>
+                                        <div className="text-xs text-gray-500 mb-2 font-bold uppercase">Maintenance Intelligence</div>
                                         <div className="text-2xl font-black text-white mb-4">
-                                            {result.source_data.sdr.length} <span className="text-gray-500 text-sm">FOUND</span>
+                                            {result.source_data.sdr.length} <span className="text-gray-500 text-sm italic font-medium tracking-tight">DIGITAL SHADOW RECORDS FOUND</span>
                                         </div>
 
                                         {result.source_data.sdr.length > 0 ? (
