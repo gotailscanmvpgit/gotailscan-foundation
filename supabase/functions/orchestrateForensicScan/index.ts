@@ -98,18 +98,16 @@ serve(async (req) => {
             }
         }
 
-        // If still no aircraft, fall back to Simulator
+        // If still no aircraft, return Error (No Hallucinations)
         if (!aircraft) {
-            console.log(`[Orchestrator] No real data found. Using Simulator.`);
-            const years = [1978, 1982, 1995, 2005, 2018, 1965];
-            const models = ['CESSNA 172N', 'PIPER PA-28-161', 'BEECH A36', 'CIRRUS SR22', 'MOONEY M20J'];
-
-            aircraft = {
-                year: years[Math.floor(random(1) * years.length)],
-                make_model: models[Math.floor(random(2) * models.length)],
-                serial: `S-${Math.floor(random(3) * 10000)}`,
-                owner: 'Simulated Owner LLC'
-            };
+            console.log(`[Orchestrator] No real data found for ${tail_number}. Aborting.`);
+            return new Response(JSON.stringify({
+                error: `Aircraft ${tail_number} not found in official registries (FAA/Transport Canada).`,
+                details: "We only provide forensics for registered aircraft to ensure 100% data integrity."
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 404,
+            })
         }
 
         // ---------------------------------------------------------
