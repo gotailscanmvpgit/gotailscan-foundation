@@ -98,6 +98,58 @@ async function seedFriend() {
     } else {
         console.log("✅ N865JP successfully integrated into the registry.");
     }
+
+    // Seed N470CS (2015 Cessna T240 / TTx)
+    const aircraft4 = {
+        n_number: '470CS',
+        serial_number: 'T24002070',
+        mfr_mdl_code: 'CESSNA',
+        eng_mfr_mdl: 'T240 (TTx)',
+        year_mfr: '2015',
+        name: 'WISE OWL AVIATION SERVICES LLC',
+        city: 'VISTA',
+        state: 'CA',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError4 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft4, { onConflict: 'n_number' });
+
+    if (regError4) {
+        console.error("❌ Error seeding N470CS:", regError4);
+    } else {
+        console.log("✅ N470CS (Wise Owl) successfully integrated into the registry.");
+    }
+
+    // Seed N377GK (2020 Cessna T206H)
+    const aircraft5 = {
+        n_number: '377GK',
+        serial_number: 'T20609615',
+        mfr_mdl_code: 'CESSNA',
+        eng_mfr_mdl: 'T206H (Turbo Stationair HD)',
+        year_mfr: '2020',
+        name: 'MUSSO AVIATION LLC',
+        city: 'VILLA RICA',
+        state: 'GA',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError5 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft5, { onConflict: 'n_number' });
+
+    if (regError5) {
+        console.error("❌ Error seeding N377GK:", regError5);
+    } else {
+        console.log("✅ N377GK (Musso Aviation) successfully integrated into the registry.");
+    }
 }
 
 seedFriend();
