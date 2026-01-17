@@ -33,59 +33,18 @@ serve(async (req) => {
         /**
          * PHASE 2: FORENSIC PATTERN DISCOVERY (CANADA)
          */
-        const isMock = true;
+        // STRATEGIC CHANGE: AI Pattern Matching Disabled for Data Reliability (Canada)
+        // We now strictly return 'found: false' if the aircraft is not in our known database.
 
-        if (isMock) {
-            // Deterministic Seed
-            const seed = mark.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-            const random = (offset = 0) => {
-                const x = Math.sin(seed + offset) * 10000;
-                return x - Math.floor(x);
-            };
+        console.log(`[Strict Mode] TC Pattern matcher bypassed for ${tail_number}. Returning Not Found.`);
 
-            // CANADIAN REGISTRY BLOCKS
-            let make = "UNKNOWN";
-            let model = "CANADIAN AIRCRAFT";
-
-            // Pattern Sensing (Common Canadian Owner/Model Blocks)
-            if (mark.startsWith('G')) {
-                // General Aviation / Small Business (High Correlation)
-                const types = [
-                    { m: 'CESSNA', mod: '172M' },
-                    { m: 'PIPER', mod: 'PA-28-140' },
-                    { m: 'BOMBARDIER', mod: 'CL-600' }
-                ];
-                const pick = types[Math.floor(random(1) * types.length)];
-                make = pick.m;
-                model = pick.mod;
-            } else if (mark.startsWith('F')) {
-                make = "BEECHCRAFT";
-                model = "B200 King Air";
-            } else {
-                make = "DE HAVILLAND";
-                model = "DHC-6 Twin Otter";
-            }
-
-            // Return structured data mapping strictly to our DB schema
-            return new Response(JSON.stringify({
-                found: true,
-                data: {
-                    n_number: `C-${mark}`,
-                    mfr_mdl_code: make,
-                    eng_mfr_mdl: model,
-                    serial_number: `CA-${Math.floor(random(3) * 90000)}`,
-                    year_mfr: (1990 + Math.floor(random(2) * 34)).toString(),
-                    name: "CANADIAN AVIATION HOLDINGS LTD",
-                    city: "TORONTO",
-                    state: "ON",
-                    country: "CANADA",
-                    region: "Transport Canada"
-                },
-                source: 'Transport Canada Live-Discovery Node Phase 2 (Pattern Matcher)'
-            }), {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-        }
+        return new Response(JSON.stringify({
+            found: false,
+            message: "Strict reliability mode active. Estimated data disabled for Canadian Registry."
+        }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+        })
 
     } catch (error) {
         return new Response(JSON.stringify({ error: error.message }), {
