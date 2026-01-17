@@ -268,5 +268,24 @@ export const scraperService = {
             intent: 'QUERY_CLARIFICATION',
             message: "I can audit specific tail numbers or analyze safety trends. Please provide a tail number (e.g. N123AB) for a deep forensic scan."
         };
+    },
+
+    /**
+     * Captures a user lead (email) for a specific tail number action.
+     */
+    submitLead: async (email, tailNumber, intent) => {
+        try {
+            await supabase.from('leads').insert({
+                email,
+                tail_number: tailNumber,
+                intent: intent,
+                created_at: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Lead submission warning:', error);
+            // We return true specifically so the UI flow isn't blocked by a lead capture error
+            return true;
+        }
     }
 };

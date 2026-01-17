@@ -33,6 +33,11 @@ const Hero = () => {
     const [isBrokerSubmitting, setIsBrokerSubmitting] = useState(false);
     const [brokerSuccess, setBrokerSuccess] = useState(false);
 
+    // Lead Gen / Paywall State
+    const [isUnlocked, setIsUnlocked] = useState(false);
+    const [leadEmail, setLeadEmail] = useState('');
+    const [leadSubmitting, setLeadSubmitting] = useState(false);
+
     // Check if report is paid via URL parameter (Supports /success?paid=true)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -663,6 +668,19 @@ const Hero = () => {
                                                     S/N: {result.aircraft_details?.serial || 'N/A'}
                                                 </span>
                                             </div>
+
+                                            {/* OWNER INFO - PUBLIC FOR NOW */}
+                                            <div className="mt-6 pt-4 border-t border-white/10 w-full">
+                                                <div className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-1">Registered Owner</div>
+                                                <div className="relative">
+                                                    <div className="text-sm font-mono text-gray-300">
+                                                        {result.aircraft_details?.owner || 'Unknown Owner'}
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {result.aircraft_details?.city || 'Unknown City'}, {result.aircraft_details?.state || 'State'}
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="text-right flex flex-col items-end">
                                             <div className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-2">Status</div>
@@ -792,67 +810,7 @@ const Hero = () => {
                         </div>
 
                         {/* Bento Grid - DATA SOURCES */}
-                        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16 ${!isPaid ? 'min-h-[800px]' : ''}`}>
-                            {/* Blur Overlay for Paywall - Mission Control Redesign */}
-                            {!isPaid && (
-                                <div className="absolute inset-0 z-10 backdrop-blur-[12px] bg-black/60 rounded-xl flex flex-col items-center justify-center border border-white/10 h-full w-full">
-                                    <div className="p-8 max-w-2xl text-center">
-                                        <div className="mb-6">
-                                            <h3 className="text-2xl md:text-3xl font-avionics font-bold text-white tracking-widest mb-2 uppercase">Unstoppable Diligence</h3>
-                                            <div className="h-1 w-16 bg-accent mx-auto"></div>
-                                        </div>
-
-                                        <p className="text-gray-300 text-lg mb-10 italic max-w-lg mx-auto leading-relaxed">We found {result.source_data.ntsb.length + result.source_data.sdr.length + result.source_data.cadors.length} government intelligence records for {nNumber}. Interpreting this data requires expert advisory.</p>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-left">
-                                            <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
-                                                <div className="text-[10px] font-black text-accent uppercase mb-2 tracking-widest">Global Audit</div>
-                                                <div className="text-[11px] text-gray-400 leading-tight">Indexing 2.1M+ records from NTSB, FAA, and Transport Canada.</div>
-                                            </div>
-                                            <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
-                                                <div className="text-[10px] font-black text-accent uppercase mb-2 tracking-widest">Equity Protection</div>
-                                                <div className="text-[11px] text-gray-400 leading-tight">One hidden incident can devalue an aircraft by up to $250,000.</div>
-                                            </div>
-                                            <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
-                                                <div className="text-[10px] font-black text-accent uppercase mb-2 tracking-widest">Official Access</div>
-                                                <div className="text-[11px] text-gray-400 leading-tight">Direct real-time links to official 2024 government database vaults.</div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-4 max-w-md mx-auto">
-                                            <div className="flex bg-white/5 p-1 rounded-lg border border-white/10 items-center justify-center">
-                                                <button
-                                                    onClick={() => setLeadIntent('buying')}
-                                                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${leadIntent === 'buying' ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'}`}
-                                                >
-                                                    I am Buying
-                                                </button>
-                                                <button
-                                                    onClick={() => setLeadIntent('selling')}
-                                                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${leadIntent === 'selling' ? 'bg-accent text-white' : 'text-gray-400 hover:text-white'}`}
-                                                >
-                                                    I own this Tail
-                                                </button>
-                                            </div>
-
-                                            <input
-                                                type="email"
-                                                placeholder={leadIntent === 'buying' ? "ENTER EMAIL FOR BROKER RISK SHEET" : "ENTER EMAIL FOR ASSET AUDIT PREVIEW"}
-                                                className="bg-black/40 border border-white/20 text-white text-center h-14 rounded-xl font-bold text-sm tracking-widest placeholder:text-gray-600 outline-none focus:border-accent transition-colors"
-                                            />
-                                            <Button
-                                                onClick={() => {
-                                                    alert(leadIntent === 'buying' ? "Brokerage Risk Summary has been sent! A consultant will follow up on the specific findings for " + nNumber : "Asset Audit Preview requested! We'll send the pre-listing brief for " + nNumber + " to your inbox shortly.");
-                                                }}
-                                                className="px-8 py-7 bg-accent text-white font-black rounded-xl uppercase text-xs tracking-[0.2em] hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(255,95,31,0.2)]"
-                                            >
-                                                {leadIntent === 'buying' ? "Request Broker Data Sheet" : "Get Asset Listing Brief"}
-                                            </Button>
-                                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-4">Standard Brokerage Fee Applied Upon Delivery</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16">
 
                             {/* SOURCE: NTSB */}
                             <Card className="border-white/10 bg-white/5 flex flex-col h-full">
