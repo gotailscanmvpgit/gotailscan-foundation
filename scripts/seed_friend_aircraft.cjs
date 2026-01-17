@@ -518,6 +518,32 @@ async function seedFriend() {
     } else {
         console.log("✅ N514TB (1990 King Air B200) successfully corrected in the registry.");
     }
+
+    // Seed N699PK (Verified: 2024 Cirrus SR22T)
+    const aircraft18 = {
+        n_number: '699PK',
+        serial_number: '9618',
+        mfr_mdl_code: 'CIRRUS',
+        eng_mfr_mdl: 'SR22T',
+        year_mfr: '2024',
+        name: 'AIR 1111 LLC',
+        city: 'SAN DIEGO',
+        state: 'CA',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError18 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft18, { onConflict: 'n_number' });
+
+    if (regError18) {
+        console.error("❌ Error seeding N699PK:", regError18);
+    } else {
+        console.log("✅ N699PK (2024 Cirrus SR22T) successfully corrected in the registry.");
+    }
 }
 
 seedFriend();

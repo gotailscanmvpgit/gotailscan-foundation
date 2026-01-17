@@ -88,6 +88,15 @@ serve(async (req) => {
             // 4. BOMBARDIER / CHALLENGER
             if (make.includes('BOMBARDIER') && model.includes('CHALLENGER')) return 'BOMBARDIER';
 
+            // 5. NUMERIC / RAW ID CATCH-ALL (Fix for '2130004' issue)
+            // If the manufacturer name is basically a number (more than 50% digits), it's a DB key leak.
+            if (/^\d+$/.test(make) || make.length > 3 && (make.match(/\d/g) || []).length > make.length * 0.5) {
+                // Try to derive from Model if it's cleaner
+                if (model.includes('SR20') || model.includes('SR22') || model.includes('VISION')) return 'CIRRUS';
+                if (model.includes('172') || model.includes('182') || model.includes('CITATION')) return 'CESSNA';
+                return 'PENDING REGISTRATION UPDATES'; // Better than "2130004"
+            }
+
             return make; // Default fallback
         };
 
