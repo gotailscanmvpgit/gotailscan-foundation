@@ -28,11 +28,20 @@ serve(async (req) => {
         let aircraft = null;
         let isRealData = false;
 
-        // Normalize Input (Handle case where user misses the 'N')
-        let normalizedTail = tail_number.toUpperCase().trim();
-        if (!normalizedTail.startsWith('N') && !normalizedTail.startsWith('C-') && normalizedTail.length <= 6) {
-            // Check if it looks like a US tail number (Alpha-numeric, 3-5 chars)
-            if (/^[0-9A-Z]{3,6}$/.test(normalizedTail)) {
+        // Normalize Input (Handle case where user misses the prefix or hyphen)
+        let normalizedTail = tail_number.toUpperCase().replace(/\s/g, '').trim();
+
+        if (normalizedTail.startsWith('C') && !normalizedTail.startsWith('C-') && normalizedTail.length === 5) {
+            // Convert CGJED -> C-GJED
+            normalizedTail = 'C-' + normalizedTail.substring(1);
+            console.log(`[Orchestrator] Normalized Canadian tail (C-prefix): ${normalizedTail}`);
+        } else if (!normalizedTail.startsWith('N') && !normalizedTail.startsWith('C-')) {
+            // If it's exactly 4 letters, it's almost certainly a Canadian Mark (e.g. GJED)
+            if (/^[A-Z]{4}$/.test(normalizedTail)) {
+                normalizedTail = 'C-' + normalizedTail;
+                console.log(`[Orchestrator] Normalized Canadian tail (4-letters): ${normalizedTail}`);
+            } else if (normalizedTail.length <= 5 && /^[0-9A-Z]{3,6}$/.test(normalizedTail)) {
+                // Otherwise treat as US
                 normalizedTail = 'N' + normalizedTail;
                 console.log(`[Orchestrator] Auto-prefixed US tail: ${normalizedTail}`);
             }
