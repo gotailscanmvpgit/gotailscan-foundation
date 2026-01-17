@@ -28,6 +28,11 @@ const Hero = () => {
     const [scrolled, setScrolled] = useState(false);
     const [isListening, setIsListening] = useState(false);
 
+    // Broker Lead Capture State
+    const [brokerEmail, setBrokerEmail] = useState('');
+    const [isBrokerSubmitting, setIsBrokerSubmitting] = useState(false);
+    const [brokerSuccess, setBrokerSuccess] = useState(false);
+
     // Check if report is paid via URL parameter (Supports /success?paid=true)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -470,8 +475,50 @@ const Hero = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="p-6 bg-white/5 border border-white/10 rounded-xl">
                                             <h4 className="text-[10px] text-violet-400 font-black uppercase tracking-widest mb-4 italic leading-none">Security Clearance Level 1 Required</h4>
-                                            <p className="text-sm text-gray-500 leading-relaxed">Cross-fleet forensic indexing requires an active Brokerage Subscription. Please register to unlock the Intel Index.</p>
-                                            <button className="mt-6 px-6 py-3 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-violet-500 transition-all">Upgrade to Fleet Access</button>
+                                            <p className="text-sm text-gray-500 leading-relaxed mb-6">Cross-fleet forensic indexing requires an active Brokerage Subscription. Please register to unlock the Intel Index.</p>
+
+                                            {!brokerSuccess ? (
+                                                <div className="flex flex-col gap-3">
+                                                    <input
+                                                        type="email"
+                                                        placeholder="ENTER WORK EMAIL"
+                                                        value={brokerEmail}
+                                                        onChange={(e) => setBrokerEmail(e.target.value)}
+                                                        className="bg-black/40 border border-white/10 rounded px-4 py-3 text-xs text-white placeholder:text-gray-600 focus:border-violet-500 focus:outline-none uppercase font-bold tracking-wider"
+                                                    />
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!brokerEmail.includes('@')) {
+                                                                alert('Please enter a valid email.');
+                                                                return;
+                                                            }
+                                                            setIsBrokerSubmitting(true);
+                                                            try {
+                                                                await fetch('https://tyjcocosfswqswpvlmer.supabase.co/functions/v1/requestBrokerAccess', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ email: brokerEmail, intent: 'fleet_access' })
+                                                                });
+                                                                setBrokerSuccess(true);
+                                                            } catch (e) {
+                                                                console.error(e);
+                                                                alert('Connection error. Please try again.');
+                                                            } finally {
+                                                                setIsBrokerSubmitting(false);
+                                                            }
+                                                        }}
+                                                        disabled={isBrokerSubmitting}
+                                                        className="px-6 py-3 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-violet-500 transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                    >
+                                                        {isBrokerSubmitting ? 'VERIFYING CREDENTIALS...' : 'REQUEST ACCESS'}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3">
+                                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                    <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Request Queued. Consultant will contact you shortly.</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
