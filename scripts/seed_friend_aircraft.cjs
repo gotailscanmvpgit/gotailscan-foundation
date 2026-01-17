@@ -275,6 +275,86 @@ async function seedFriend() {
     } else {
         console.log("✅ N9305P Forensic Finding (Ground Loop) successfully planted.");
     }
+
+
+    // Seed N270AR (Resolved Mismatch: 2024 Cirrus SR22T G6)
+    // Previous System Mismatch: Identified as Cessna 172 due to '2' prefix pattern
+    const aircraft10 = {
+        n_number: '270AR',
+        serial_number: '2345',
+        mfr_mdl_code: 'CIRRUS',
+        eng_mfr_mdl: 'SR22T G6',
+        year_mfr: '2024',
+        name: 'COASTAL AVIATION HOLDINGS',
+        city: 'SANTA MONICA',
+        state: 'CA',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError10 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft10, { onConflict: 'n_number' });
+
+    if (regError10) {
+        console.error("❌ Error seeding N270AR:", regError10);
+    } else {
+        console.log("✅ N270AR (Cirrus SR22T) successfully corrected in the registry.");
+    }
+
+    // Seed N4053F (Resolved Mismatch: 2023 Cessna 182T)
+    const aircraft11 = {
+        n_number: '4053F',
+        serial_number: '18283210',
+        mfr_mdl_code: 'CESSNA',
+        eng_mfr_mdl: '182T Skylane',
+        year_mfr: '2023',
+        name: 'VISTA AIR LLC',
+        city: 'BOXBOROUGH',
+        state: 'MA',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError11 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft11, { onConflict: 'n_number' });
+
+    if (regError11) {
+        console.error("❌ Error seeding N4053F:", regError11);
+    } else {
+        console.log("✅ N4053F (2023 Cessna 182T) successfully corrected in the registry.");
+    }
+
+    // Seed N99JF (Resolved Mismatch: 2009 Cessna 182T)
+    const aircraft12 = {
+        n_number: '99JF',
+        serial_number: '18282150',
+        mfr_mdl_code: 'CESSNA',
+        eng_mfr_mdl: '182T Skylane',
+        year_mfr: '2009',
+        name: 'N99JF LLC',
+        city: 'HICKORY',
+        state: 'NC',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError12 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft12, { onConflict: 'n_number' });
+
+    if (regError12) {
+        console.error("❌ Error seeding N99JF:", regError12);
+    } else {
+        console.log("✅ N99JF (2009 Cessna 182T) successfully corrected in the registry.");
+    }
 }
 
 seedFriend();

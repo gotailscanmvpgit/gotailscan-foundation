@@ -87,17 +87,17 @@ serve(async (req) => {
             console.log(`[Orchestrator] Tail ${normalizedTail} not in DB. Invoking Live-Discovery (${functionName})...`);
 
             try {
-                const { data: scrapedData, error: scrapeError } = await supabase.functions.invoke(functionName, {
+                const { data, error: scrapeError } = await supabase.functions.invoke(functionName, {
                     body: { tail_number: normalizedTail }
                 });
 
-                if (scrapedData && scrapedData.found) {
-                    console.log(`[Orchestrator] Live-Discovery successful. Caching...`);
-                    isRealData = true;
-                    const d = scrapedData.data;
+                if (data && data.found) {
+                    const d = data.data;
+                    console.log(`✅ Discovery Success: Retrieved ${d.n_number}`);
 
-                    // Cache to DB for subsequent searches
-                    await supabase.from('aircraft_registry').insert(d);
+                    // Note: We deliberately do NOT save 'ESTIMATED' data to the persistent registry anymore
+                    // to prevent pollution. We only pass it through for this session.
+                    // await supabase.from('aircraft_registry').insert(d); // <-- DISABLED PERSISTENCE of Estimates
 
                     aircraft = {
                         year: parseInt(d.year_mfr) || 2000,
@@ -105,7 +105,8 @@ serve(async (req) => {
                         serial: d.serial_number,
                         owner: d.name,
                         city: d.city,
-                        state: d.state || d.province
+                        state: d.state || d.province,
+                        verification_status: data.verification_status || 'VERIFIED' // Capture flag
                     };
                 }
             } catch (err) {

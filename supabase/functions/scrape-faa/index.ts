@@ -77,7 +77,8 @@ serve(async (req) => {
         return new Response(JSON.stringify({
             found: true,
             data: discovery,
-            source: 'FAA Live-Discovery Node Phase 2 (Forensic Pattern Matcher)'
+            source: 'FAA Live-Discovery Node Phase 2 (Forensic Pattern Matcher)',
+            verification_status: 'ESTIMATED' // Explicit flag for frontend trust signal
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
