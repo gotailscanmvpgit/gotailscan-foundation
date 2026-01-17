@@ -68,12 +68,38 @@ serve(async (req) => {
             .eq('n_number', registryKey)
             .maybeSingle();
 
+        // ROOT CAUSE FIX: Normalize Manufacturer Names (Read-Time)
+        const normalizeManufacturer = (rawMake, rawModel) => {
+            const make = (rawMake || '').toUpperCase();
+            const model = (rawModel || '').toUpperCase();
+
+            // 1. TEXTRON (Cessna vs Beechcraft)
+            if (make.includes('TEXTRON')) {
+                if (model.includes('172') || model.includes('182') || model.includes('206') || model.includes('210') || model.includes('CITATION')) return 'CESSNA';
+                if (model.includes('KING') || model.includes('BARON') || model.includes('BONANZA') || model.includes('B300') || model.includes('B200')) return 'BEECHCRAFT';
+            }
+
+            // 2. RAYTHEON / HAWKER (Legacy Beech)
+            if (make.includes('RAYTHEON') || make.includes('HAWKER BEECHCRAFT')) return 'BEECHCRAFT';
+
+            // 3. CIRRUS
+            if (make.includes('CIRRUS DESIGN')) return 'CIRRUS';
+
+            // 4. BOMBARDIER / CHALLENGER
+            if (make.includes('BOMBARDIER') && model.includes('CHALLENGER')) return 'BOMBARDIER';
+
+            return make; // Default fallback
+        };
+
         if (realData) {
             console.log(`[Orchestrator] Real data found for ${normalizedTail}`);
             isRealData = true;
+
+            const cleanMake = normalizeManufacturer(realData.mfr_mdl_code || realData.kit_mfr, realData.eng_mfr_mdl || realData.kit_model);
+
             aircraft = {
                 year: parseInt(realData.year_mfr) || 1980,
-                make_model: (realData.mfr_mdl_code || realData.kit_mfr || 'Unknown') + ' ' + (realData.eng_mfr_mdl || realData.kit_model || ''),
+                make_model: cleanMake + ' ' + (realData.eng_mfr_mdl || realData.kit_model || ''),
                 serial: realData.serial_number,
                 owner: realData.name,
                 city: realData.city,

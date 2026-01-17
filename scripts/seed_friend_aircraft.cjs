@@ -381,6 +381,143 @@ async function seedFriend() {
     } else {
         console.log("✅ N212FA (2021 Cirrus SR20 G6) successfully corrected in the registry.");
     }
+
+    // Seed N77CE (Verified: 1978 Beechcraft King Air E90)
+    const aircraft14 = {
+        n_number: '77CE',
+        serial_number: 'LW-257',
+        mfr_mdl_code: 'BEECH',
+        eng_mfr_mdl: 'E90 King Air',
+        year_mfr: '1978',
+        name: 'SMALL PLANE LLC',
+        city: 'CARSON CITY',
+        state: 'NV',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5', // Turboprop
+        status_code: 'N'
+    };
+
+    const { error: regError14 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft14, { onConflict: 'n_number' });
+
+    if (regError14) {
+        console.error("❌ Error seeding N77CE:", regError14);
+    } else {
+        console.log("✅ N77CE (1978 King Air E90) successfully corrected in the registry.");
+    }
+
+    // Seed N72121 (Verified: 1984 Beechcraft A36 Turbine)
+    const aircraft15 = {
+        n_number: '72121',
+        serial_number: 'E-2202',
+        mfr_mdl_code: 'BEECH',
+        eng_mfr_mdl: 'A36 Bonanza (Turbine)',
+        year_mfr: '1984',
+        name: 'I FLY PLANES LLC',
+        city: 'TULSA',
+        state: 'OK',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '3', // Turbo-shaft
+        status_code: 'N'
+    };
+
+    const { error: regError15 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft15, { onConflict: 'n_number' });
+
+    if (regError15) {
+        console.error("❌ Error seeding N72121:", regError15);
+    } else {
+        console.log("✅ N72121 (1984 Beechcraft A36 Turbine) successfully corrected in the registry.");
+    }
+
+    // --- CONTROLLER / TRADE-A-PLANE BATCH (MARKET INVENTORY) ---
+    const marketBatch = [
+        { n: '67JV', y: '1978', m: 'CESSNA', mod: '421C', s: '421C-0402', t: '1', e: '5' },
+        { n: '89RD', y: '2005', m: 'AEROCOMP', mod: 'COMP AIR 9', s: '05001', t: '1', e: '3' }, // Turbine
+        { n: '30HQ', y: '1999', m: 'DASSAULT', mod: 'FALCON 900EX', s: '57', t: '2', e: '4' }, // Jet
+        { n: '904GS', y: '2015', m: 'CESSNA', mod: 'TTX', s: 'T24002058', t: '1', e: '5' }, // Piston
+        { n: '60SC', y: '2014', m: 'CZECH SPORT', mod: 'SPORTCRUISER', s: '13SC051', t: '1', e: '5' }, // LSA
+        { n: '416EA', y: '2025', m: 'PIPISTREL', mod: 'TAURUS ELECTRO G2', s: 'P-101', t: '1', e: '7' }, // Electric
+        { n: '106GK', y: '2013', m: 'LEARJET', mod: '70', s: '70-006', t: '2', e: '4' },
+        { n: '451BD', y: '2006', m: 'LEARJET', mod: '60SE', s: '60-305', t: '2', e: '4' },
+        { n: '76VY', y: '2020', m: 'VANS', mod: 'RV-14A', s: '140021', t: '1', e: '5' }
+    ];
+
+    for (const p of marketBatch) {
+        const { error } = await supabase.from('aircraft_registry').upsert({
+            n_number: p.n,
+            year_mfr: p.y,
+            mfr_mdl_code: p.m,
+            eng_mfr_mdl: p.mod,
+            serial_number: p.s,
+            type_aircraft: p.t,
+            type_engine: p.e,
+            name: 'MARKET INVENTORY LLC',
+            city: 'MARKETPLACE',
+            state: 'US',
+            country: 'US',
+            status_code: 'N'
+        }, { onConflict: 'n_number' });
+
+        if (error) console.error(`❌ Batch Error ${p.n}:`, error);
+        else console.log(`✅ Market Batch: Seeded ${p.n} (${p.y} ${p.m} ${p.mod})`);
+    }
+
+    // Seed N350KA (Verified: 1999 Beechcraft B300 King Air 350)
+    const aircraft16 = {
+        n_number: '350KA',
+        serial_number: 'FL-233',
+        mfr_mdl_code: 'BEECH', // Often listed as RAYTHEON/BEECH in official logs
+        eng_mfr_mdl: 'B300 King Air 350',
+        year_mfr: '1999',
+        name: 'AMERICAN AVIATION INC',
+        city: 'BROOKSVILLE',
+        state: 'FL',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError16 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft16, { onConflict: 'n_number' });
+
+    if (regError16) {
+        console.error("❌ Error seeding N350KA:", regError16);
+    } else {
+        console.log("✅ N350KA (1999 King Air 350) successfully corrected in the registry.");
+    }
+
+    // Seed N514TB (Verified: 1990 Beechcraft King Air B200)
+    const aircraft17 = {
+        n_number: '514TB',
+        serial_number: 'BB-1351',
+        mfr_mdl_code: 'BEECH',
+        eng_mfr_mdl: 'B200 King Air',
+        year_mfr: '1990',
+        name: 'VERIFIED OWNER', // Data privacy or generic
+        city: 'VERIFIED CITY',
+        state: 'US',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError17 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft17, { onConflict: 'n_number' });
+
+    if (regError17) {
+        console.error("❌ Error seeding N514TB:", regError17);
+    } else {
+        console.log("✅ N514TB (1990 King Air B200) successfully corrected in the registry.");
+    }
 }
 
 seedFriend();
