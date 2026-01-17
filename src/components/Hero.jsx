@@ -24,6 +24,7 @@ const Hero = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isInputFocused, setIsInputFocused] = useState(false);
+    const [notFoundResult, setNotFoundResult] = useState(null);
 
     // Check if report is paid via URL parameter (Supports /success?paid=true)
     useEffect(() => {
@@ -88,6 +89,7 @@ const Hero = () => {
         setSuggestions([]);
         setShowSuggestions(false);
         setAiResult(null);
+        setNotFoundResult(null);
 
         if (!val) return;
 
@@ -113,7 +115,11 @@ const Hero = () => {
             }
         } catch (error) {
             console.error("Search failed:", error);
-            setError(error.message || "Unable to connect to intelligence network. Please try again.");
+            if (error.message.includes('not found')) {
+                setNotFoundResult({ nNumber: val });
+            } else {
+                setError(error.message || "Unable to connect to intelligence network. Please try again.");
+            }
         } finally {
             setSearching(false);
         }
@@ -387,6 +393,61 @@ const Hero = () => {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {notFoundResult && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full max-w-4xl mx-auto mb-32"
+                    >
+                        <div className="glass-card border-orange-500/30 p-12 text-left relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
+                                <AlertTriangle className="w-32 h-32 text-orange-500" />
+                            </div>
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="px-3 py-1 bg-orange-500/20 rounded border border-orange-500/30 text-[10px] text-orange-400 font-black tracking-widest uppercase">
+                                        Registry Intelligence Void
+                                    </div>
+                                    <div className="px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] text-gray-500 font-black tracking-widest uppercase italic">
+                                        Status: Negative Return
+                                    </div>
+                                </div>
+
+                                <h2 className="text-3xl font-avionics font-bold text-white mb-8 tracking-widest uppercase">Record Not Identified</h2>
+                                <p className="text-xl text-gray-300 leading-relaxed mb-10">
+                                    Our intelligence network has performed a real-time audit across <span className="text-white font-bold underline decoration-orange-500/50">FAA (US)</span> and <span className="text-white font-bold underline decoration-orange-500/50">Transport Canada (CA)</span> civil registries. No active or historical record exists for <span className="text-orange-500 font-black text-2xl px-2">{notFoundResult.nNumber}</span>.
+                                </p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-xl">
+                                        <h4 className="text-[10px] text-orange-400 font-black uppercase tracking-widest mb-3">Probable Causes</h4>
+                                        <ul className="space-y-2">
+                                            <li className="text-[11px] text-gray-400 flex items-start gap-2">
+                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span>Aircraft registered under a different sovereignty (e.g. Mexico, Bahamas).</span>
+                                            </li>
+                                            <li className="text-[11px] text-gray-400 flex items-start gap-2">
+                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span>Recent de-registration due to export or total loss destruction.</span>
+                                            </li>
+                                            <li className="text-[11px] text-gray-400 flex items-start gap-2">
+                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span>Experimental or Military aircraft outside civil registry scope.</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-xl flex flex-col justify-center">
+                                        <h4 className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4">Deep Intelligence Required?</h4>
+                                        <p className="text-[11px] text-gray-500 leading-relaxed mb-6 italic">If you believe this record is being obfuscated or hidden through a privacy program (LADD/PIA), our specialists can initiate a deep-link audit.</p>
+                                        <button className="w-full py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded transition-all hover:bg-orange-500 hover:text-white">Request Forensic Specialist</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
