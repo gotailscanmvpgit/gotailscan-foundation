@@ -266,6 +266,24 @@ const Hero = () => {
 
 
                 <div id="hero-search" className="relative w-full max-w-xl mx-auto mb-20 z-40">
+                    {/* Search Mode Toggle */}
+                    <div className="flex justify-center mb-6">
+                        <div className="bg-white/5 border border-white/10 p-1 rounded-xl flex gap-1">
+                            <button
+                                onClick={() => setSearchMode('standard')}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${searchMode === 'standard' ? 'bg-accent text-white shadow-[0_0_15px_rgba(255,95,31,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Registry Search
+                            </button>
+                            <button
+                                onClick={() => setSearchMode('ai')}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${searchMode === 'ai' ? 'bg-violet-600 text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                <span className="text-xs">🧠</span> AI Advisory
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="relative group">
                         {/* Search Input - Refined, More Compact, Google-style */}
                         <div className={`flex items-center backdrop-blur-md border-[1.5px] transition-all duration-500 rounded-xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8)] ${searching ? (searchMode === 'ai' ? 'border-violet-500 animate-pulse shadow-[0_0_50px_rgba(124,58,237,0.3)] bg-black' : 'border-accent animate-pulse shadow-[0_0_50px_rgba(255,95,31,0.3)] bg-black') : isInputFocused ? (searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_40px_rgba(124,58,237,0.15)] bg-black' : 'border-accent shadow-[0_0_40px_rgba(255,95,31,0.15)] bg-black') : 'border-white/10 bg-white/[0.03]'}`}>
@@ -552,6 +570,52 @@ const Hero = () => {
                             </div>
                         )}
 
+                        {/* AI FORENSIC AUDIT (PREMIUM PREVIEW) */}
+                        {result.ai_intelligence && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-16"
+                            >
+                                <Card className="border-accent/40 bg-accent/5 overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                                        <div className="w-32 h-32 rounded-full border-4 border-accent animate-pulse"></div>
+                                    </div>
+                                    <CardContent className="p-10 relative z-10">
+                                        <div className="flex flex-col md:flex-row gap-10 items-start">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-24 h-24 bg-accent/10 rounded-2xl flex items-center justify-center border border-accent/20 relative rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                                                    <div className="absolute -top-2 -right-2 bg-accent text-[8px] font-black px-2 py-0.5 rounded text-white animate-bounce">LIVE</div>
+                                                    <span className="text-4xl">🧠</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-[10px] text-accent font-black tracking-[0.4em] uppercase">Forensic Intelligence Analyst v2.0</div>
+                                                        {!isPaid && <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[8px] h-4">PREVIEW</Badge>}
+                                                    </div>
+                                                    <Badge className="bg-accent/20 text-accent border border-accent/30 rounded-sm font-bold tracking-widest px-3">
+                                                        {result.ai_intelligence.risk_profile}
+                                                    </Badge>
+                                                </div>
+                                                <h3 className="text-3xl font-black text-white uppercase mb-4 tracking-tight leading-none">
+                                                    Verdict: {result.ai_intelligence.audit_verdict}
+                                                </h3>
+                                                <div className="relative">
+                                                    <p className="text-gray-300 leading-relaxed italic text-lg max-w-3xl mb-0 pl-8 relative">
+                                                        <span className="absolute left-0 top-0 text-5xl text-accent/20 leading-none">"</span>
+                                                        {result.ai_intelligence.technical_advisory}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                    <div className="h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent"></div>
+                                </Card>
+                            </motion.div>
+                        )}
+
                         {/* Logbook vs Public Intelligence Explanation */}
                         <div className="bg-accent/5 border border-accent/20 rounded-xl p-8 mt-16 mb-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -583,49 +647,6 @@ const Hero = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* AI FORENSIC AUDIT (PREMIUM) */}
-                        {isPaid && result.ai_intelligence && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-16"
-                            >
-                                <Card className="border-accent/40 bg-accent/5 overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                                        <div className="w-32 h-32 rounded-full border-4 border-accent animate-pulse"></div>
-                                    </div>
-                                    <CardContent className="p-10 relative z-10">
-                                        <div className="flex flex-col md:flex-row gap-10 items-start">
-                                            <div className="flex-shrink-0">
-                                                <div className="w-24 h-24 bg-accent/10 rounded-2xl flex items-center justify-center border border-accent/20 relative rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                                                    <div className="absolute -top-2 -right-2 bg-accent text-[8px] font-black px-2 py-0.5 rounded text-white animate-bounce">LIVE</div>
-                                                    <span className="text-4xl">🧠</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-grow">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div className="text-[10px] text-accent font-black tracking-[0.4em] uppercase">Forensic Intelligence Analyst v2.0</div>
-                                                    <Badge className="bg-accent/20 text-accent border border-accent/30 rounded-sm font-bold tracking-widest px-3">
-                                                        {result.ai_intelligence.risk_profile}
-                                                    </Badge>
-                                                </div>
-                                                <h3 className="text-3xl font-black text-white uppercase mb-4 tracking-tight leading-none">
-                                                    Verdict: {result.ai_intelligence.audit_verdict}
-                                                </h3>
-                                                <div className="relative">
-                                                    <p className="text-gray-300 leading-relaxed italic text-lg max-w-3xl mb-0 pl-8 relative">
-                                                        <span className="absolute left-0 top-0 text-5xl text-accent/20 leading-none">"</span>
-                                                        {result.ai_intelligence.technical_advisory}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                    <div className="h-1 bg-gradient-to-r from-transparent via-accent/50 to-transparent"></div>
-                                </Card>
-                            </motion.div>
-                        )}
 
                         {/* Bento Grid - DATA SOURCES */}
                         <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 relative mt-16 ${!isPaid ? 'min-h-[800px]' : ''}`}>

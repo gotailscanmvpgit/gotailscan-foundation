@@ -202,6 +202,32 @@ async function seedFriend() {
     } else {
         console.log("✅ C-GWKQ (Lancair 320) successfully integrated into the registry.");
     }
+
+    // Seed C-GXOW (1977 Beechcraft B19 Sport)
+    const aircraft8 = {
+        n_number: 'C-GXOW',
+        serial_number: 'MB-816',
+        mfr_mdl_code: 'BEECH',
+        eng_mfr_mdl: 'B19 Musketeer Sport',
+        year_mfr: '1977',
+        name: 'PRIVATE OWNER',
+        city: 'CALGARY',
+        state: 'AB',
+        country: 'CANADA',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError8 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft8, { onConflict: 'n_number' });
+
+    if (regError8) {
+        console.error("❌ Error seeding C-GXOW:", regError8);
+    } else {
+        console.log("✅ C-GXOW (Beechcraft B19) successfully integrated into the registry.");
+    }
 }
 
 seedFriend();
