@@ -113,7 +113,7 @@ const Hero = () => {
             }
         } catch (error) {
             console.error("Search failed:", error);
-            setError("Unable to connect to intelligence network. Please try again.");
+            setError(error.message || "Unable to connect to intelligence network. Please try again.");
         } finally {
             setSearching(false);
         }
