@@ -127,7 +127,8 @@ export const scraperService = {
                         reason: 'Mechanical Service Difficulty Report'
                     };
                 }),
-            churn_data: { owners: owners, months: 48, deduction: churnDeduction, reason: `Ownership Churn (${owners} Owners Found)` }
+            churn_data: { owners: owners, months: 48, deduction: churnDeduction, reason: `Ownership Churn (${owners} Owners Found)` },
+            liens_found: forensic_records.liens_found
         };
 
         const score = calculateConfidenceScore(rawData);

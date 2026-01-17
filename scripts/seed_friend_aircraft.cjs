@@ -176,6 +176,32 @@ async function seedFriend() {
     } else {
         console.log("✅ C-GJED (Custom Super Cub) successfully integrated into the registry.");
     }
+
+    // Seed C-GWKQ (1989 Lancair 320 - Amateur Built)
+    const aircraft7 = {
+        n_number: 'C-GWKQ',
+        serial_number: 'L320-001-K',
+        mfr_mdl_code: 'LANCAIR',
+        eng_mfr_mdl: '320 (Amateur Built)',
+        year_mfr: '1989',
+        name: 'PRIVATE OWNER',
+        city: 'CALGARY',
+        state: 'AB',
+        country: 'CANADA',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError7 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft7, { onConflict: 'n_number' });
+
+    if (regError7) {
+        console.error("❌ Error seeding C-GWKQ:", regError7);
+    } else {
+        console.log("✅ C-GWKQ (Lancair 320) successfully integrated into the registry.");
+    }
 }
 
 seedFriend();

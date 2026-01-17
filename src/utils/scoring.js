@@ -30,5 +30,9 @@ export const calculateConfidenceScore = (data) => {
         score -= data.churn_data.deduction || 0;
     }
 
+    if (data.liens_found) {
+        score -= 20;
+    }
+
     return Math.max(0, score);
 };
