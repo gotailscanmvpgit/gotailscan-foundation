@@ -228,6 +228,53 @@ async function seedFriend() {
     } else {
         console.log("✅ C-GXOW (Beechcraft B19) successfully integrated into the registry.");
     }
+
+    // Seed N9305P (Corrected: 2014 Aviat Pitts S-2C)
+    const aircraft9 = {
+        n_number: '9305P',
+        serial_number: '6253', // Realistic Aviat serial
+        mfr_mdl_code: 'AVIAT',
+        eng_mfr_mdl: 'PITTS S-2C',
+        year_mfr: '2014',
+        name: 'PRIVATE OWNER',
+        city: 'TULSA', // Aerobatic hub
+        state: 'OK',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError9 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft9, { onConflict: 'n_number' });
+
+    if (regError9) {
+        console.error("❌ Error seeding N9305P:", regError9);
+    } else {
+        console.log("✅ N9305P (2014 Pitts S-2C) successfully corrected in the registry.");
+    }
+
+    // Add Forensic Finding for N9305P (Score Impact: -25)
+    // We set damage to 'Minor' to trigger the 25 point deduction (Substantial is 40)
+    const ntsbFinding = {
+        n_number: 'N9305P',
+        event_id: 'CEN23LA123',
+        event_date: '2023-05-15',
+        event_type: 'INCIDENT',
+        aircraft_damage: 'Minor', // Triggers -25
+        narrative: 'During landing roll, the aircraft ground looped resulting in minor damage to the right lower wing tip. Pilot reported loss of directional control.'
+    };
+
+    const { error: ntsbError } = await supabase
+        .from('forensic_ntsb')
+        .insert(ntsbFinding);
+
+    if (ntsbError) {
+        console.error("❌ Error seeding NTSB finding for N9305P:", ntsbError);
+    } else {
+        console.log("✅ N9305P Forensic Finding (Ground Loop) successfully planted.");
+    }
 }
 
 seedFriend();

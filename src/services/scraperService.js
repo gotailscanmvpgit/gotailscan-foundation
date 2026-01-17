@@ -71,9 +71,10 @@ export const scraperService = {
                     id: r.event_id,
                     date: r.event_date,
                     type: r.event_type,
-                    severity: r.severity,
-                    reason: r.narrative?.substring(0, 50) + '...',
-                    description: r.narrative
+                    severity: r.damage || r.aircraft_damage || r.severity || 'Unknown',
+                    deduction: (r.damage === 'Substantial' || r.aircraft_damage === 'Substantial' || r.damage === 'Destroyed' || r.aircraft_damage === 'Destroyed') ? 40 : 25,
+                    reason: r.narrative ? (r.narrative.substring(0, 60) + '...') : 'NTSB Recorded Event',
+                    description: r.narrative || 'No narrative details available on file.'
                 }))
                 : (forensic_records.ntsb_count > 0
                     ? Array(forensic_records.ntsb_count).fill(0).map((_, i) => {
