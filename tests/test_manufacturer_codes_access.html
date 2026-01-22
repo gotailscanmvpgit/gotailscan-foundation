@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Manufacturer Codes Access</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <h1>Manufacturer Codes Table Access Test</h1>
+    <button onclick="testAccess()">Test Access</button>
+    <pre id="result"></pre>
+
+    <script>
+        // Get from your .env file
+        const SUPABASE_URL = 'https://gwwyzrzbkhnebmslpuzb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3d3l6cnpia2huZWJtc2xwdXpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA1NzQ5NTYsImV4cCI6MjA0NjE1MDk1Nn0.D5MZTKj4KKSWJTSqOz2fYrr-T4hDDxG_lNVOpfMnxg4'; // PLACEHOLDER - Replace with actual key
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testAccess() {
+            const resultEl = document.getElementById('result');
+            resultEl.textContent = 'Testing...';
+
+            try {
+                // Test 1: Query by specific code
+                console.log('Test 1: Query for code 2073461');
+                const { data: test1, error: error1 } = await supabase
+                    .from('manufacturer_codes')
+                    .select('*')
+                    .eq('code', '2073461')
+                    .single();
+
+                console.log('Test 1 Result:', { data: test1, error: error1 });
+
+                // Test 2: List first 5 entries
+                console.log('Test 2: List first 5 entries');
+                const { data: test2, error: error2 } = await supabase
+                    .from('manufacturer_codes')
+                    .select('*')
+                    .limit(5);
+
+                console.log('Test 2 Result:', { data: test2, error: error2 });
+
+                // Test 3: Count total rows
+                console.log('Test 3: Count rows');
+                const { count, error: error3 } = await supabase
+                    .from('manufacturer_codes')
+                    .select('*', { count: 'exact', head: true });
+
+                console.log('Test 3 Result:', { count, error: error3 });
+
+                // Display results
+                resultEl.textContent = JSON.stringify({
+                    test1: { data: test1, error: error1?.message },
+                    test2: { data: test2, error: error2?.message },
+                    test3: { count, error: error3?.message }
+                }, null, 2);
+
+            } catch (err) {
+                resultEl.textContent = `Error: ${err.message}\n${err.stack}`;
+            }
+        }
+    </script>
+</body>
+
+</html>

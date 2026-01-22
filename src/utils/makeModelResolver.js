@@ -2,6 +2,9 @@
  * Aircraft Make/Model Resolution Helper
  * Intelligently resolves aircraft make and model information
  * when FAA registry data is unclear or contains codes
+ * 
+ * Last updated: 2026-01-22 13:40 EST
+ * Includes manufacturer_codes table lookup (93k+ codes)
  */
 
 import React from 'react';
