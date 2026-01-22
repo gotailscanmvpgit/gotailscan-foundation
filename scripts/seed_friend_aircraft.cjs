@@ -544,6 +544,284 @@ async function seedFriend() {
     } else {
         console.log("✅ N699PK (2024 Cirrus SR22T) successfully corrected in the registry.");
     }
+
+    // Seed N252BH (Fix: 1987 Mooney M20K 252TSE)
+    const aircraft19 = {
+        n_number: '252BH',
+        serial_number: '25-1137',
+        mfr_mdl_code: 'MOONEY',
+        eng_mfr_mdl: 'M20K 252TSE',
+        year_mfr: '1987',
+        name: 'BH HOLDINGS LLC',
+        city: 'KNOXVILLE',
+        state: 'TN',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError19 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft19, { onConflict: 'n_number' });
+
+    if (regError19) {
+        console.error("❌ Error seeding N252BH:", regError19);
+    } else {
+        console.log("✅ N252BH (1987 Mooney M20K) successfully corrected in the registry.");
+    }
+    // Seed N2940L (Verified: 1967 Mooney M20C)
+    const aircraft20 = {
+        n_number: '2940L',
+        serial_number: '670074',
+        mfr_mdl_code: 'MOONEY',
+        eng_mfr_mdl: 'M20C RANGER',
+        year_mfr: '1967',
+        name: 'PRIVATE OWNER',
+        city: 'TAMPA',
+        state: 'FL',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError20 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft20, { onConflict: 'n_number' });
+
+    if (regError20) {
+        console.error("❌ Error seeding N2940L:", regError20);
+    } else {
+        console.log("✅ N2940L (1967 Mooney M20C) successfully integrated into the registry.");
+    }
+    // Seed N888CD (Test: Cirrus Universal Fallback)
+    const aircraft21 = {
+        n_number: '888CD',
+        serial_number: '3000',
+        mfr_mdl_code: 'CIRRUS',
+        eng_mfr_mdl: 'SR22 G3 GTS TURBO',
+        year_mfr: '2010',
+        name: 'CIRRUS FLYER',
+        city: 'DULUTH',
+        state: 'MN',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError21 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft21, { onConflict: 'n_number' });
+
+    if (regError21) {
+        console.error("❌ Error seeding N888CD:", regError21);
+    } else {
+        console.log("✅ N888CD (2010 Cirrus SR22 G3) successfully integrated via Universal Fallback.");
+    }
+    // Seed N46MM (Test: Piper Universal Fallback)
+    const aircraft22 = {
+        n_number: '46MM',
+        serial_number: '4636021',
+        mfr_mdl_code: 'PIPER',
+        eng_mfr_mdl: 'PA-46-350P MALIBU MIRAGE',
+        year_mfr: '2000',
+        name: 'MIRAGE AVIATION LLC',
+        city: 'VERO BEACH',
+        state: 'FL',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError22 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft22, { onConflict: 'n_number' });
+
+    if (regError22) {
+        console.error("❌ Error seeding N46MM:", regError22);
+    } else {
+        console.log("✅ N46MM (2000 Piper Malibu Mirage) successfully integrated via Universal Fallback.");
+    }
+    // Seed N62DA (Test: Diamond Universal Fallback)
+    const aircraft23 = {
+        n_number: '62DA',
+        serial_number: '62.050',
+        mfr_mdl_code: 'DIAMOND',
+        eng_mfr_mdl: 'DA 62',
+        year_mfr: '2019',
+        name: 'DIAMOND DEMO LLC',
+        city: 'LONDON',
+        state: 'ON',
+        country: 'CANADA', // Testing Canadian Diamond
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError23 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft23, { onConflict: 'n_number' });
+
+    if (regError23) {
+        console.error("❌ Error seeding N62DA:", regError23);
+    } else {
+        console.log("✅ N62DA (2019 Diamond DA62) successfully integrated via Universal Fallback.");
+    }
+    // Seed N2010T (Test: Tecnam Universal Fallback)
+    const aircraft24 = {
+        n_number: '2010T',
+        serial_number: '055',
+        mfr_mdl_code: 'TECNAM',
+        eng_mfr_mdl: 'P2010 MKII',
+        year_mfr: '2018',
+        name: 'TECNAM TOURING LLC',
+        city: 'SEBRING',
+        state: 'FL',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError24 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft24, { onConflict: 'n_number' });
+
+    if (regError24) {
+        console.error("❌ Error seeding N2010T:", regError24);
+    } else {
+        console.log("✅ N2010T (2018 Tecnam P2010) successfully integrated via Universal Fallback.");
+    }
+    // Seed N2000S (Test: Beechcraft Universal Fallback - Starship)
+    const aircraft25 = {
+        n_number: '2000S',
+        serial_number: 'nc-51',
+        mfr_mdl_code: 'BEECH',
+        eng_mfr_mdl: '2000 STARSHIP',
+        year_mfr: '1994',
+        name: 'STARSHIP PRESERVATION INC',
+        city: 'WICHITA',
+        state: 'KS',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5', // Turboprop
+        status_code: 'N'
+    };
+
+    const { error: regError25 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft25, { onConflict: 'n_number' });
+
+    if (regError25) {
+        console.error("❌ Error seeding N2000S:", regError25);
+    } else {
+        console.log("✅ N2000S (1994 Beechcraft Starship) successfully integrated via Universal Fallback.");
+    }
+    // Seed N12NG (Test: Pilatus Universal Fallback)
+    const aircraft26 = {
+        n_number: '12NG',
+        serial_number: '2025',
+        mfr_mdl_code: 'PILATUS',
+        eng_mfr_mdl: 'PC-12/47E NGX',
+        year_mfr: '2021',
+        name: 'ALPINE AVIATORS LLC',
+        city: 'BROOMFIELD',
+        state: 'CO',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError26 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft26, { onConflict: 'n_number' });
+
+    if (regError26) {
+        console.error("❌ Error seeding N12NG:", regError26);
+    } else {
+        console.log("✅ N12NG (2021 Pilatus PC-12 NGX) successfully integrated via Universal Fallback.");
+    }
+    // Seed N20TN (Test: Mooney Universal Fallback - Acclaim)
+    const aircraft27 = {
+        n_number: '20TN',
+        serial_number: '31-0100',
+        mfr_mdl_code: 'MOONEY',
+        eng_mfr_mdl: 'M20TN ACCLAIM TYPE S',
+        year_mfr: '2008',
+        name: 'SPEED DEMON LLC',
+        city: 'KERRVILLE',
+        state: 'TX',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError27 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft27, { onConflict: 'n_number' });
+
+    if (regError27) {
+        console.error("❌ Error seeding N20TN:", regError27);
+    } else {
+        console.log("✅ N20TN (2008 Mooney Acclaim) successfully integrated via Universal Fallback.");
+    }
+    // Seed N300EM (Test: Embraer Universal Fallback - Phenom)
+    const aircraft28 = {
+        n_number: '300EM',
+        serial_number: '50500500',
+        mfr_mdl_code: 'EMBRAER',
+        eng_mfr_mdl: 'EMB-505 PHENOM 300E',
+        year_mfr: '2020',
+        name: 'EXECUTIVE JETS LLC',
+        city: 'MELBOURNE',
+        state: 'FL',
+        country: 'US',
+        type_aircraft: '2', // Fixed wing multi engine
+        type_engine: '5', // Turbo-fan
+        status_code: 'N'
+    };
+
+    const { error: regError28 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft28, { onConflict: 'n_number' });
+
+    if (regError28) {
+        console.error("❌ Error seeding N300EM:", regError28);
+    } else {
+        console.log("✅ N300EM (2020 Embraer Phenom 300E) successfully integrated via Universal Fallback.");
+    }
+    // Seed N2MK (Test: De Havilland Universal Fallback - Beaver)
+    const aircraft29 = {
+        n_number: '2MK',
+        serial_number: '1234',
+        mfr_mdl_code: 'DE HAVILLAND',
+        eng_mfr_mdl: 'DHC-2 MK. I BEAVER',
+        year_mfr: '1956',
+        name: 'BUSH PILOTS ASSOC',
+        city: 'ANCHORAGE',
+        state: 'AK',
+        country: 'US',
+        type_aircraft: '1',
+        type_engine: '5',
+        status_code: 'N'
+    };
+
+    const { error: regError29 } = await supabase
+        .from('aircraft_registry')
+        .upsert(aircraft29, { onConflict: 'n_number' });
+
+    if (regError29) {
+        console.error("❌ Error seeding N2MK:", regError29);
+    } else {
+        console.log("✅ N2MK (1956 De Havilland Beaver) successfully integrated via Universal Fallback.");
+    }
 }
+
+
 
 seedFriend();

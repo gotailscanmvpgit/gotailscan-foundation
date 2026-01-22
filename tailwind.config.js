@@ -20,6 +20,9 @@ export default {
             borderRadius: {
                 xl: 'calc(var(--radius) + 4px)',
             },
+            animation: {
+                'spin-slow': 'spin 8s linear infinite',
+            }
         },
     },
     plugins: [

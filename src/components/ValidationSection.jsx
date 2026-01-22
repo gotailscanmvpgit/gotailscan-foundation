@@ -22,7 +22,7 @@ const ValidationSection = () => {
     ];
 
     return (
-        <div className="w-full max-w-5xl mx-auto py-24 px-6 border-t border-white/5 mt-10">
+        <div className="w-full max-w-5xl mx-auto py-16 px-6 border-t border-white/5 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
                 {points.map((point, index) => (
                     <motion.div

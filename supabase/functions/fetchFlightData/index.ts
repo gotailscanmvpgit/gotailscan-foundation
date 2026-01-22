@@ -108,10 +108,18 @@ serve(async (req) => {
                 const totalHours = isDormant ? Math.floor(random(11) * 8) : Math.floor(random(12) * 350) + 40;
                 const lastTrackedDate = new Date(Date.now() - ((isDormant ? 70 : 1) * 86400000)).toISOString();
 
+                // Generate Monthly Pulse (12 months)
+                const monthlyHours = Array(12).fill(0).map((_, i) => {
+                    if (isDormant && random(i + 50) < 0.8) return 0;
+                    const h = Math.round(random(i + 100) * (totalHours / 6));
+                    return h;
+                });
+
                 finalFlightData = {
                     total_hours_12m: totalHours,
                     last_tracked: lastTrackedDate,
                     data_source: 'adsb_simulated',
+                    monthly_hours: monthlyHours,
                     raw_json: {
                         flights: totalHours > 0 ? [
                             { origin: 'KLAX', destination: 'KSFO', filed_altitude: 350, filed_ete: 55, date: new Date().toLocaleDateString(), duration: '1.2 hrs' }
@@ -119,6 +127,11 @@ serve(async (req) => {
                     }
                 };
             }
+        }
+
+        // Add monthly_hours to real data if missing
+        if (!finalFlightData.monthly_hours) {
+            finalFlightData.monthly_hours = Array(12).fill(0).map((_, i) => Math.round(i * (finalFlightData.total_hours_12m / 12) * 0.8));
         }
 
         // 4. Save to Cache

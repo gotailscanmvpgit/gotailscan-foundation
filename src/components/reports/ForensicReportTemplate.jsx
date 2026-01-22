@@ -26,7 +26,7 @@ const Header = ({ id, tail }) => (
     <View style={tw('flex flex-row justify-between items-center border-b border-gray-100 pb-6 mb-8')}>
         <View>
             <View style={tw('flex flex-row items-center gap-2')}>
-                <Text style={tw('text-2xl font-black text-black tracking-tighter')}>GO<Text style={tw('text-accent')}>TAIL</Text>SCAN</Text>
+                <Text style={tw('text-2xl font-black text-black tracking-tighter')}>go<Text style={tw('text-accent')}>Tail</Text>Scan</Text>
             </View>
             <Text style={tw('text-[7px] text-gray-400 tracking-[4px] uppercase mt-1')}>Forensic Intelligence Unit // Classified Report</Text>
         </View>
@@ -41,7 +41,7 @@ const Header = ({ id, tail }) => (
 const Footer = ({ page, total }) => (
     <View style={tw('absolute bottom-8 left-12 right-12 flex flex-row justify-between border-t border-gray-100 pt-4')}>
         <View>
-            <Text style={tw('text-[7px] text-gray-400')}>GOTAILSCAN FORENSIC AUDIT © 2024</Text>
+            <Text style={tw('text-[7px] text-gray-400')}>goTailScan FORENSIC AUDIT © 2024</Text>
             <Text style={tw('text-[6px] text-gray-300')}>The data contained herein is compiled from federal registries and ADS-B feeds. Not for legal use.</Text>
         </View>
         <Text style={tw('text-[8px] text-gray-400 font-bold')}>Page {page} of {total}</Text>
@@ -174,13 +174,20 @@ const PageTwo = ({ data }) => (
         {/* MARKET & UTILIZATION BOARD */}
         <View style={tw('flex flex-row gap-6 mb-8')}>
             <View style={tw('flex-1 bg-gray-50 rounded-lg p-6 border border-gray-100')}>
-                <SectionTitle title="Market Intelligence" subtitle="Estimated asset liquidity" />
+                <SectionTitle title="Market Intelligence" subtitle="Aggregated valuation analytics" />
                 <View style={tw('mt-2')}>
-                    <Text style={tw('text-[7px] text-gray-400 uppercase font-bold mb-1')}>Current Market Est.</Text>
+                    <Text style={tw('text-[7px] text-gray-400 uppercase font-bold mb-1')}>Estimated Average Value</Text>
                     <Text style={tw('text-3xl font-black text-black')}>${data.valuation?.estimated_value?.toLocaleString()}</Text>
-                    <View style={tw('flex flex-row justify-between mt-4')}>
-                        <Text style={tw('text-[8px] font-bold text-accent')}>{data.valuation?.market_trend} TREND</Text>
-                        <Text style={tw('text-[8px] text-gray-400')}>Confidence: {data.valuation?.confidence_interval}</Text>
+
+                    <View style={tw('flex flex-row justify-between mt-3 pt-3 border-t border-gray-200')}>
+                        <View>
+                            <Text style={tw('text-[6px] text-gray-400 font-bold uppercase')}>Market Range</Text>
+                            <Text style={tw('text-[9px] font-black text-black')}>${data.valuation?.market_range_low?.toLocaleString()} - ${(data.valuation?.market_range_high / 1000).toFixed(0)}k</Text>
+                        </View>
+                        <View style={tw('items-end')}>
+                            <Text style={tw('text-[6px] text-gray-400 font-bold uppercase')}>Analytic Trend</Text>
+                            <Text style={tw('text-[9px] font-black text-blue-600')}>{data.valuation?.market_trend}</Text>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -265,7 +272,7 @@ const PageThree = ({ data }) => (
         <View style={tw('mt-auto p-6 bg-gray-50 rounded border border-gray-100')}>
             <Text style={tw('text-[8px] font-black text-black uppercase mb-1')}>Legal Disclosure</Text>
             <Text style={tw('text-[7px] text-gray-400 leading-relaxed font-medium')}>
-                This report is an automated intelligence summary. It is not an official government transcript. Records are matched by Registration (N-Number/C-Mark) and serial block. GOTAILSCAN does not guarantee the 100% accuracy of third-party government feeds. Always verify with a certified A&P mechanic and professional Title Search broker.
+                This report is an automated intelligence summary. It is not an official government transcript. Records are matched by Registration (N-Number/C-Mark) and serial block. goTailScan does not guarantee the 100% accuracy of third-party government feeds. Always verify with a certified A&P mechanic and professional Title Search broker.
             </Text>
         </View>
 
