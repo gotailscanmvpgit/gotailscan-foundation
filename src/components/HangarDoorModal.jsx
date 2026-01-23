@@ -14,11 +14,12 @@ export default function HangarDoorModal({ isOpen, searchHistory = [] }) {
                         access_type: 'offline',
                         prompt: 'consent',
                     },
-                    redirectTo: window.location.origin + '/dashboard'
+                    redirectTo: window.location.origin + '/buyer'
                 }
             });
         } catch (error) {
             console.error('Login failed:', error);
+            alert('Login failed: ' + error.message);
         }
     };
 
