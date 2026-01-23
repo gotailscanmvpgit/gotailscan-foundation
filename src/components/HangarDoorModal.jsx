@@ -10,6 +10,13 @@ export default function HangarDoorModal({ isOpen, searchHistory = [] }) {
     if (!isOpen) return null;
 
     const handleEmailLogin = async () => {
+        // DEVELOPER BYPASS
+        if (email.toLowerCase() === 'admin@gotailscan.com') {
+            localStorage.removeItem('guest_searches');
+            window.location.reload();
+            return;
+        }
+
         if (!email.includes('@')) {
             alert('Please enter a valid email.');
             return;
@@ -19,11 +26,12 @@ export default function HangarDoorModal({ isOpen, searchHistory = [] }) {
             const { error } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
-                    emailRedirectTo: window.location.origin + '/buyer'
+                    // Redirect to Root (safer for whitelist)
+                    emailRedirectTo: window.location.origin
                 }
             });
             if (error) throw error;
-            setMessage('Check your email for the login link!');
+            setMessage('Check your email (and Spam folder) for the login link!');
         } catch (error) {
             console.error('Login failed:', error);
             alert('Error: ' + error.message);
