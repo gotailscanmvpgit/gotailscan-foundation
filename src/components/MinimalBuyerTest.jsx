@@ -4,6 +4,7 @@ import { resolveMakeModel, isCleanMakeModel } from '../utils/makeModelResolver';
 import CircularGauge from './CircularGauge';
 import PillarBar from './PillarBar';
 import HangarDoorModal from './HangarDoorModal';
+import AircraftAssetCard from './AircraftAssetCard';
 import { supabase } from '../lib/supabaseClient';
 
 export default function MinimalBuyerTest() {
@@ -93,12 +94,6 @@ export default function MinimalBuyerTest() {
                 localStorage.setItem('guest_searches', JSON.stringify(newHistory));
                 setGuestHistory(newHistory);
             }
-        } else {
-            // Log to DB if logged in
-            await supabase.from('user_searches').insert({
-                user_id: session.user.id,
-                tail_number: targetTail.toUpperCase()
-            });
         }
 
         setLoading(true);
@@ -114,6 +109,27 @@ export default function MinimalBuyerTest() {
             const data = await module.scraperService.scanTailNumber(targetTail.toUpperCase(), 'unpaid', null, { origin, destination, payloadWeight });
             console.log('[MinimalBuyerTest] Received data:', data?.mission_analysis);
             setResult(data);
+
+            // PERSIST FOR LOGGED IN USERS
+            if (session && data) {
+                const payload = {
+                    user_id: session.user.id,
+                    tail_number: targetTail.toUpperCase(),
+                    search_data: {
+                        aircraft_details: data.aircraft_details,
+                        metrics: {
+                            risk_score: 100 - (data.confidence_score || 0),
+                            alpha: data.ai_intelligence?.tax_strategy ? 15 : 0,
+                            mission_fit: data.mission_analysis?.score || 0
+                        }
+                    }
+                };
+                await supabase.from('user_searches').insert(payload);
+                // Refresh list logic is handled by useEffect[result] dependency causing fetchUserHistory to run?
+                // No, fetchUserHistory depends on [result] in the useEffect dependency array?
+                // Let's check dependency in Step 2404: `}, [result]);`
+                // Yes. When `setResult(data)` runs, `fetchUserHistory` runs.
+            }
         } catch (err) {
             console.error('Scan failed:', err);
             setError(err.message || 'Failed to fetch data');
@@ -316,7 +332,25 @@ export default function MinimalBuyerTest() {
             </div>
 
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
-                {/* Search Bar */}
+
+                {/* My Hangar Dashboard */}
+                {userHistory.length > 0 && !result && (
+                    <div style={{ marginBottom: '40px' }}>
+                        <h3 style={{ fontSize: '14px', color: '#9ca3af', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            My Hangar <span style={{ background: '#334155', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '11px' }}>{userHistory.length}</span>
+                        </h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                            {userHistory.map(card => (
+                                <AircraftAssetCard
+                                    key={card.id}
+                                    search={card}
+                                    onClick={() => { setTailNumber(card.tail_number); handleScan(card.tail_number); }}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Search Bar */}
                 <div style={{ ...cardStyle, marginBottom: '32px' }}>
                     <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
