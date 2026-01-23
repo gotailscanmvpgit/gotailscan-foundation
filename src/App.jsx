@@ -20,7 +20,13 @@ function App() {
           const history = JSON.parse(guestHistory);
           if (history.length > 0) {
             console.log('[Auth] Syncing guest history to user account:', history);
-            // TODO: Call backend to persist history: supabase.from('user_searches').insert(...)
+            const { error: insertError } = await supabase.from('user_searches').insert(
+              history.map(tail => ({
+                user_id: session.user.id,
+                tail_number: tail
+              }))
+            );
+            if (insertError) console.error('History sync failed:', insertError);
           }
           // Clear guest limit to unlock dashboard
           localStorage.removeItem('guest_searches');

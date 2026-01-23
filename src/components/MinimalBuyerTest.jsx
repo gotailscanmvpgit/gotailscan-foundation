@@ -4,6 +4,7 @@ import { resolveMakeModel, isCleanMakeModel } from '../utils/makeModelResolver';
 import CircularGauge from './CircularGauge';
 import PillarBar from './PillarBar';
 import HangarDoorModal from './HangarDoorModal';
+import { supabase } from '../lib/supabaseClient';
 
 export default function MinimalBuyerTest() {
     const navigate = useNavigate();
@@ -19,12 +20,29 @@ export default function MinimalBuyerTest() {
     const [resolvedMakeModel, setResolvedMakeModel] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [guestHistory, setGuestHistory] = useState([]);
+    const [userHistory, setUserHistory] = useState([]);
 
     // Load guest history
     useEffect(() => {
         const stored = localStorage.getItem('guest_searches');
         if (stored) setGuestHistory(JSON.parse(stored));
     }, []);
+
+    // Load User History (DB)
+    useEffect(() => {
+        const fetchUserHistory = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                const { data } = await supabase
+                    .from('user_searches')
+                    .select('*')
+                    .order('searched_at', { ascending: false })
+                    .limit(10);
+                if (data) setUserHistory(data);
+            }
+        };
+        fetchUserHistory();
+    }, [result]);
 
     // Auto-scan on mount if parameters exist
     useEffect(() => {
@@ -36,12 +54,19 @@ export default function MinimalBuyerTest() {
         const history = stored ? JSON.parse(stored) : [];
 
         if (tail && autostart === 'true') {
-            if (history.length >= 3) {
-                setLoading(false);
-                setIsModalOpen(true);
-            } else {
-                handleScan(tail);
-            }
+            // Check session to bypass limit
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    handleScan(tail);
+                } else {
+                    if (history.length >= 3) {
+                        setLoading(false);
+                        setIsModalOpen(true);
+                    } else {
+                        handleScan(tail);
+                    }
+                }
+            });
         } else {
             setLoading(false); // Reset if not valid
         }
@@ -51,25 +76,37 @@ export default function MinimalBuyerTest() {
         const targetTail = overrideTail || tailNumber;
         if (!targetTail?.trim()) return;
 
-        // CHECK SEARCH GATE
-        const stored = localStorage.getItem('guest_searches');
-        const history = stored ? JSON.parse(stored) : [];
-        if (history.length >= 3) {
-            setIsModalOpen(true);
-            setLoading(false);
-            return;
-        }
+        // CHECK SEARCH GATE (Skip if logged in)
+        const { data: { session } } = await supabase.auth.getSession();
 
-        setLoading(true);
-        setError(null);
-
-        try {
+        if (!session) {
+            const stored = localStorage.getItem('guest_searches');
+            const history = stored ? JSON.parse(stored) : [];
+            if (history.length >= 3) {
+                setIsModalOpen(true);
+                setLoading(false);
+                return;
+            }
             // Track search attempt
             if (!history.includes(targetTail)) {
                 const newHistory = [...history, targetTail];
                 localStorage.setItem('guest_searches', JSON.stringify(newHistory));
                 setGuestHistory(newHistory);
             }
+        } else {
+            // Log to DB if logged in
+            await supabase.from('user_searches').insert({
+                user_id: session.user.id,
+                tail_number: targetTail.toUpperCase()
+            });
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            // Track search attempt (Redundant for guest but needed flow? No, covered above.)
+            // Just proceed to scan.
 
             // Dynamic import - scraperService is a named export
             const module = await import('../services/scraperService');
@@ -204,6 +241,20 @@ export default function MinimalBuyerTest() {
     const salinityData = getSalinityIndex();
     const dormancyAlert = getDormancyAnalysis();
 
+    const sidebarStyle = {
+        position: 'fixed',
+        left: '20px',
+        top: '100px',
+        width: '240px',
+        background: 'rgba(15, 23, 42, 0.8)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '20px',
+        display: userHistory.length > 0 ? 'block' : 'none',
+        zIndex: 40
+    };
+
     const cardStyle = {
         background: 'rgba(15, 23, 42, 0.6)',
         backdropFilter: 'blur(20px)',
@@ -228,6 +279,27 @@ export default function MinimalBuyerTest() {
 
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #020617, #0f172a, #020617)' }}>
+            {/* History Sidebar */}
+            {userHistory.length > 0 && (
+                <div style={sidebarStyle} className="hidden md:block">
+                    <h3 style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '12px' }}>Recent Scans</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {userHistory.map(h => (
+                            <button key={h.id}
+                                onClick={() => { setTailNumber(h.tail_number); handleScan(h.tail_number); }}
+                                style={{
+                                    textAlign: 'left',
+                                    background: tailNumber === h.tail_number ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                                    border: tailNumber === h.tail_number ? '1px solid rgba(16, 185, 129, 0.4)' : 'none',
+                                    padding: '8px', borderRadius: '8px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer'
+                                }}
+                            >
+                                {h.tail_number}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 50 }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
