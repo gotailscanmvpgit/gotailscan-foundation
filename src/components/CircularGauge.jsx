@@ -1,58 +1,61 @@
 import { useEffect, useState } from 'react';
+import { motion, useSpring, useTransform, animate } from 'framer-motion';
 
 /**
  * Premium Circular Gauge Component
- * Animated SVG gauge with gradient fill and smooth transitions
+ * Animated SVG gauge with framer-motion and multi-mode support
  */
-export default function CircularGauge({ score, size = 120, strokeWidth = 12 }) {
-    const [animatedScore, setAnimatedScore] = useState(0);
+export default function CircularGauge({ score, size = 120, strokeWidth = 12, mode = 'fit' }) {
+    const [displayScore, setDisplayScore] = useState(0);
 
     useEffect(() => {
-        // Animate score from 0 to target
-        const duration = 1500; // 1.5 seconds
-        const steps = 60;
-        const increment = score / steps;
-        let current = 0;
-
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= score) {
-                setAnimatedScore(score);
-                clearInterval(timer);
-            } else {
-                setAnimatedScore(Math.floor(current));
-            }
-        }, duration / steps);
-
-        return () => clearInterval(timer);
+        const controls = animate(0, score, {
+            duration: 1.5,
+            ease: "easeOut",
+            onUpdate: (value) => setDisplayScore(Math.floor(value)),
+        });
+        return () => controls.stop();
     }, [score]);
 
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (animatedScore / 100) * circumference;
 
-    // Color based on score
+    // Color based on mode and score
     const getColor = () => {
-        if (score >= 90) return { start: '#10b981', end: '#34d399' }; // Green
-        if (score >= 70) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
-        if (score >= 50) return { start: '#f97316', end: '#fb923c' }; // Orange
-        return { start: '#ef4444', end: '#f87171' }; // Red
+        if (mode === 'risk') {
+            // For Risk: Low (0-20) is Green, High (80-100) is Red
+            if (score <= 20) return { start: '#10b981', end: '#34d399' }; // Green
+            if (score <= 50) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
+            if (score <= 80) return { start: '#f97316', end: '#fb923c' }; // Orange
+            return { start: '#ef4444', end: '#f87171' }; // Red
+        } else {
+            // For Fit: High (90-100) is Green, Low (0-40) is Red
+            if (score >= 90) return { start: '#10b981', end: '#34d399' }; // Green
+            if (score >= 70) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
+            if (score >= 50) return { start: '#f97316', end: '#fb923c' }; // Orange
+            return { start: '#ef4444', end: '#f87171' }; // Red
+        }
     };
 
     const colors = getColor();
     const center = size / 2;
 
     return (
-        <div style={{ position: 'relative', width: size, height: size }}>
+        <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, ease: "backOut" }}
+            style={{ position: 'relative', width: size, height: size }}
+        >
             <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
                 {/* Gradient Definition */}
                 <defs>
-                    <linearGradient id={`gauge-gradient-${score}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id={`gauge-gradient-${score}-${mode}`} x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor={colors.start} />
                         <stop offset="100%" stopColor={colors.end} />
                     </linearGradient>
                     {/* Glow filter */}
-                    <filter id={`glow-${score}`}>
+                    <filter id={`glow-${score}-${mode}`}>
                         <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                         <feMerge>
                             <feMergeNode in="coloredBlur" />
@@ -67,25 +70,24 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12 }) {
                     cy={center}
                     r={radius}
                     fill="none"
-                    stroke="rgba(255,255,255,0.1)"
+                    stroke="rgba(255,255,255,0.05)"
                     strokeWidth={strokeWidth}
                 />
 
                 {/* Progress circle */}
-                <circle
+                <motion.circle
                     cx={center}
                     cy={center}
                     r={radius}
                     fill="none"
-                    stroke={`url(#gauge-gradient-${score})`}
+                    stroke={`url(#gauge-gradient-${score}-${mode})`}
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
-                    strokeDashoffset={offset}
+                    strokeDashoffset={circumference}
+                    animate={{ strokeDashoffset: circumference - (score / 100) * circumference }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
                     strokeLinecap="round"
-                    filter={`url(#glow-${score})`}
-                    style={{
-                        transition: 'stroke-dashoffset 0.5s ease-in-out'
-                    }}
+                    filter={`url(#glow-${score}-${mode})`}
                 />
             </svg>
 
@@ -97,24 +99,49 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12 }) {
                 transform: 'translate(-50%, -50%)',
                 textAlign: 'center'
             }}>
-                <div style={{
-                    fontSize: `${size * 0.28}px`,
-                    fontWeight: 'bold',
-                    color: 'white',
-                    lineHeight: 1
-                }}>
-                    {animatedScore}%
-                </div>
+                <motion.div
+                    key={displayScore}
+                    initial={{ y: 5, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    style={{
+                        fontSize: `${size * 0.28}px`,
+                        fontWeight: '900',
+                        color: 'white',
+                        lineHeight: 1,
+                        fontFamily: 'Roboto Mono, monospace'
+                    }}
+                >
+                    {displayScore}
+                </motion.div>
                 <div style={{
                     fontSize: `${size * 0.1}px`,
                     color: '#9ca3af',
                     marginTop: '4px',
                     textTransform: 'uppercase',
-                    letterSpacing: '1px'
+                    letterSpacing: '2px',
+                    fontWeight: 'bold'
                 }}>
-                    FIT
+                    {mode === 'risk' ? 'SCORE' : 'FIT'}
                 </div>
             </div>
-        </div>
+
+            {/* Decorative Outer Ring pulse if high score/risk */}
+            {(mode === 'risk' && score > 70) || (mode === 'fit' && score > 90) ? (
+                <motion.div
+                    animate={{
+                        scale: [1, 1.1, 1],
+                        opacity: [0.1, 0.3, 0.1]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{
+                        position: 'absolute',
+                        top: -10, left: -10, right: -10, bottom: -10,
+                        border: `2px solid ${colors.start}`,
+                        borderRadius: '50%',
+                        pointerEvents: 'none'
+                    }}
+                />
+            ) : null}
+        </motion.div>
     );
 }

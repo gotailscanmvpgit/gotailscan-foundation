@@ -1192,6 +1192,16 @@ serve(async (req) => {
         const intelligence_output = generateVerdict();
         report.ai_intelligence = intelligence_output;
 
+        // CRITICAL: Synchronize the final report confidence score with the AI's reasoned verdict
+        // This prevents the "Low Risk 10/100 but WALK AWAY" contradiction.
+        if (intelligence_output.risk_profile === 'WALK AWAY' || intelligence_output.risk_profile === 'BLOCKED') {
+            // Force the confidence score to reflect high risk (e.g. max 30-40)
+            report.confidence_score = Math.min(report.confidence_score, 30);
+        } else if (intelligence_output.technical_advisory.includes('corrosion') || intelligence_output.technical_advisory.includes('Gaps')) {
+            // Moderate risk
+            report.confidence_score = Math.min(report.confidence_score, 65);
+        }
+
         return new Response(JSON.stringify(report), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,

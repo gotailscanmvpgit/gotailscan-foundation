@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import scraperService from '../services/scraperService';
+import { motion, AnimatePresence } from 'framer-motion';
+import CircularGauge from './CircularGauge';
 
 export default function MechanicDashboard() {
     const navigate = useNavigate();
@@ -216,16 +218,18 @@ export default function MechanicDashboard() {
                                             </div>
 
                                             {/* Continuity Score */}
-                                            <div className="bg-gradient-to-r from-orange-500/10 to-transparent p-4 rounded border border-orange-500/30">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="text-sm font-bold text-orange-400 uppercase">Record Continuity</div>
-                                                    <div className="text-3xl font-black text-white">{analysis.continuity_score}</div>
-                                                </div>
-                                                <div className="w-full bg-black/40 h-2 rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full ${analysis.continuity_score > 90 ? 'bg-emerald-500' : analysis.continuity_score > 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                                        style={{ width: `${analysis.continuity_score}%` }}
-                                                    />
+                                            <div className="bg-gradient-to-r from-orange-500/10 to-transparent p-4 rounded border-2 border-orange-500/30">
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                                    <div style={{ flex: '0 0 auto' }}>
+                                                        <CircularGauge score={analysis.continuity_score} size={100} strokeWidth={10} mode="fit" />
+                                                    </div>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Record Continuity</div>
+                                                        <div className="text-xl font-black text-white uppercase">
+                                                            {analysis.continuity_score > 90 ? 'EXCELLENT' : analysis.continuity_score > 70 ? 'STABLE' : 'UNRELIABLE'}
+                                                        </div>
+                                                        <div className="text-[10px] text-orange-400 mt-1">Based on {analysis.pages_scanned} processed pages</div>
+                                                    </div>
                                                 </div>
                                             </div>
 

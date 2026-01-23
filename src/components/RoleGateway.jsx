@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Shield, Zap, Target } from 'lucide-react';
+import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Shield, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import xrayImage from '../assets/xray.png';
 
 export default function RoleGateway() {
     const navigate = useNavigate();
@@ -23,17 +24,22 @@ export default function RoleGateway() {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    const handleSearch = (e) => {
-        if (e) e.preventDefault();
+    const navigateToRole = (roleId) => {
+        const targetLens = roleId || lens;
         let path = '/buyer';
-        if (lens === 'vault') path = '/seller';
-        if (lens === 'tools') path = '/mechanic';
+        if (targetLens === 'vault') path = '/seller';
+        if (targetLens === 'tools') path = '/mechanic';
 
         if (tailNumber.trim()) {
             navigate(`${path}?tail=${tailNumber.toUpperCase()}&autostart=true`);
         } else {
             navigate(path);
         }
+    };
+
+    const handleSearchSubmit = (e) => {
+        if (e) e.preventDefault();
+        navigateToRole();
     };
 
     const handleCameraOpen = async () => {
@@ -96,200 +102,224 @@ export default function RoleGateway() {
 
     const activeLens = lenses.find(l => l.id === lens) || lenses[0];
 
+    const pillars = [
+        {
+            title: 'Predictive Maintenance',
+            subtitle: 'The "Future-Proof" Audit',
+            pitch: '"Stop looking at what was fixed. See what\'s about to break."',
+            data: 'Our AI cross-references millions of SDR (Service Difficulty Reports) and CADORS logs to identify failure patterns for your specific make and model.',
+            value: 'We predict major maintenance events—like landing gear actuators or engine overhauls—before they happen, giving you a 200-hour "Early Warning System".',
+            icon: Eye,
+            color: '#10b981'
+        },
+        {
+            title: 'Market Alpha',
+            subtitle: 'The "Fair Deal" Finder',
+            pitch: '"Stop guessing the value. Know the score."',
+            data: 'We rank the aircraft against the entire global fleet based on its equipment, airframe time, and verified maintenance health.',
+            value: 'Instantly see if a tail is a "Hidden Gem" or a "Money Pit" with a single, data-backed score.',
+            icon: BarChart3,
+            color: '#3b82f6'
+        },
+        {
+            title: 'Risk Radar',
+            subtitle: 'The "Blocked" Status Check',
+            pitch: '"Identify red flags before you call the broker."',
+            data: 'A 24/7 forensic scan of global sanction lists, theft registries, and unreported incident databases.',
+            value: 'Instantly see if a plane is "Blocked" due to legal liens, safety issues, or compliance gaps.',
+            icon: Lock,
+            color: '#ef4444'
+        },
+        {
+            title: 'Mission Fit',
+            subtitle: 'Personalized Flight Plan',
+            pitch: '"The right plane for your life, not just the brochure."',
+            data: 'A real-world payload-to-fuel simulation based on your standard passengers and frequent routes.',
+            value: 'Ensure your typical mission (e.g., Teterboro to Palm Beach) is achievable with your typical layout.',
+            icon: PlaneTakeoff,
+            color: '#a855f7'
+        }
+    ];
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center relative overflow-hidden px-4 py-8">
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center relative overflow-x-hidden">
 
             {/* Premium Background Effects */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                {/* Animated Grid */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-
-                {/* Dynamic Gradient Orb */}
                 <div
-                    className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 transition-all duration-1000"
+                    className="absolute w-[800px] h-[800px] rounded-full blur-[120px] opacity-10 transition-all duration-1000"
                     style={{
-                        background: `radial-gradient(circle, ${activeLens.color}40, transparent)`,
-                        left: `${mousePosition.x - 300}px`,
-                        top: `${mousePosition.y - 300}px`,
+                        background: `radial-gradient(circle, ${activeLens.color}, transparent)`,
+                        left: `${mousePosition.x - 400}px`,
+                        top: `${mousePosition.y - 400}px`,
                     }}
                 ></div>
-
-                {/* Scan Line */}
-                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
             </div>
 
-            {/* Camera Overlay */}
-            {showCamera && (
-                <div className="fixed inset-0 z-[100] bg-black">
-                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-[90%] max-w-md aspect-[3/4] border-4 border-orange-500 rounded-lg relative">
-                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-orange-500"></div>
-                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-orange-500"></div>
-                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-orange-500"></div>
-                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-orange-500"></div>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500 text-sm font-mono font-bold bg-black/50 px-4 py-2 rounded">
-                                ALIGN LOGBOOK PAGE
-                            </div>
-                        </div>
-                    </div>
-                    <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 pointer-events-auto">
-                        <button onClick={handleCameraClose} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold">Cancel</button>
-                        <button onClick={handleCapture} className="px-8 py-3 bg-orange-500 text-black rounded-xl font-bold flex items-center gap-2">
-                            <Camera className="w-5 h-5" /> Capture
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Main Content */}
-            <div className="relative z-10 w-full max-w-5xl">
+            {/* Main Hero & Console Section */}
+            <div className="relative z-10 w-full max-w-6xl px-4 flex flex-col items-center">
 
                 {/* Hero Section */}
-                <div className="text-center mb-12 animate-fade-in-down">
-                    {/* Logo */}
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/50">
-                            <Shield className="w-7 h-7 text-white" />
+                <div className="text-center pt-16 md:pt-24 pb-8 md:pb-12 animate-fade-in-down w-full">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6 md:mb-8">
+                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-2xl shadow-emerald-500/50 md:rotate-3">
+                            <Shield className="w-6 h-6 md:w-8 md:h-8 text-white" />
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight">
+                        <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-white tracking-tighter uppercase italic text-center">
                             goTailScan
                         </h1>
                     </div>
-
-                    {/* Tagline */}
-                    <div className="flex flex-col items-center gap-3 mb-6">
-                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold tracking-widest flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                            ENTERPRISE DB V2.0 ONLINE
-                        </div>
-                        <p className="text-xl md:text-3xl text-slate-300 font-light">
-                            Global Aviation Forensic Intelligence
+                    <div className="space-y-4 px-2">
+                        <p className="text-xl md:text-3xl text-slate-300 font-light tracking-tight max-w-2xl mx-auto leading-tight">
+                            See what others miss. <span className="font-black text-white italic underline decoration-emerald-500 underline-offset-8">Audit the Future</span> of any aircraft.
                         </p>
-                    </div>
-
-                    {/* Value Props */}
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8">
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <Zap className="w-4 h-4 text-emerald-500" />
-                            <span>Instant Forensics</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <Target className="w-4 h-4 text-blue-500" />
-                            <span>AI-Powered Analysis</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <Shield className="w-4 h-4 text-orange-500" />
-                            <span>FAA/TC Verified Data</span>
-                        </div>
+                        <p className="text-slate-500 text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] md:tracking-[0.4em]">Forensic Aviation Intelligence Engine</p>
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <form onSubmit={handleSearch} className="relative w-full mb-8">
-                    <div className={`relative h-20 flex items-center bg-slate-900/50 backdrop-blur-xl border-2 rounded-2xl px-6 shadow-2xl transition-all duration-300 ${isFocused ? `border-${activeLens.color.split('-')[1]}-500 shadow-${activeLens.color.split('-')[1]}-500/50` : 'border-slate-700'
-                        }`} style={{
-                            borderColor: isFocused ? activeLens.color : undefined,
-                            boxShadow: isFocused ? `0 0 30px ${activeLens.color}40` : undefined
-                        }}>
-                        <input
-                            type="text"
-                            value={tailNumber}
-                            onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            placeholder="ENTER TAIL, MODEL, OR SERIAL..."
-                            className="flex-1 bg-transparent border-none outline-none text-2xl md:text-3xl font-bold text-white placeholder-slate-600 font-mono tracking-wider caret-white"
-                            autoFocus
-                        />
+                {/* Intelligence Console */}
+                <div className="w-full max-w-4xl mb-24 md:mb-32 bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-[30px] md:rounded-[40px] p-3 md:p-4 shadow-3xl">
+                    <form onSubmit={handleSearchSubmit} className="relative w-full mb-4 md:mb-6">
+                        <div className={`relative h-20 md:h-32 flex items-center bg-black/60 border-2 rounded-[24px] md:rounded-[30px] px-6 md:px-12 transition-all duration-500 ${isFocused ? `border-${activeLens.color}-500` : 'border-slate-800'}`}
+                            style={{
+                                borderColor: isFocused ? activeLens.color : undefined,
+                                boxShadow: isFocused ? `0 0 60px ${activeLens.color}30` : '0 0 20px rgba(0,0,0,0.5)'
+                            }}>
+                            <input
+                                type="text"
+                                value={tailNumber}
+                                onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                placeholder="N-NUMBER..."
+                                className="flex-1 bg-transparent border-none outline-none text-2xl md:text-6xl font-black text-white placeholder-slate-900 font-mono tracking-tighter cursor-text min-w-0"
+                                autoFocus
+                            />
 
-                        {lens === 'tools' && (
-                            <button
-                                type="button"
-                                onClick={handleCameraOpen}
-                                className="ml-2 p-4 bg-orange-500/20 hover:bg-orange-500/30 rounded-xl transition-all"
-                                title="Scan Logbook"
+                            <Button
+                                type="submit"
+                                className="h-12 md:h-20 px-4 md:px-12 rounded-xl md:rounded-[24px] bg-white text-black hover:bg-slate-200 transition-all active:scale-95 ml-2"
                             >
-                                <Camera className="w-6 h-6 text-orange-400" />
+                                <ArrowRight className="w-6 h-6 md:w-8 md:h-8" />
+                            </Button>
+                        </div>
+                    </form>
+
+                    <div className="grid grid-cols-3 gap-2 md:gap-4">
+                        {lenses.map((l) => (
+                            <button
+                                key={l.id}
+                                onClick={() => navigateToRole(l.id)}
+                                onMouseEnter={() => { setHoveredLens(l.id); setLens(l.id); }}
+                                className={`relative p-3 sm:p-6 md:p-10 rounded-2xl md:rounded-[28px] transition-all duration-500 flex flex-col items-center gap-2 md:gap-4 border-2 ${lens === l.id
+                                    ? 'bg-white text-black border-transparent scale-[1.02] md:scale-[1.05] shadow-2xl'
+                                    : 'bg-slate-900/40 text-slate-500 border-transparent hover:border-white/10 hover:text-white'
+                                    }`}
+                            >
+                                <l.icon className={`w-5 h-5 md:w-10 md:h-10 ${lens === l.id ? 'text-black' : 'opacity-40'}`} />
+                                <span className="text-[10px] md:text-xl font-black uppercase tracking-widest">{l.label}</span>
+                                {lens === l.id && (
+                                    <div className="absolute -top-1 -right-1 w-2 h-2 md:w-4 md:h-4 bg-black rounded-full border-2 border-white animate-pulse"></div>
+                                )}
                             </button>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="ml-2 md:ml-4 px-4 md:px-8 py-3 md:py-4 text-white rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-all duration-300 text-sm md:text-base"
-                            style={{
-                                background: `linear-gradient(135deg, ${activeLens.color}, ${activeLens.color}dd)`,
-                                boxShadow: `0 4px 20px ${activeLens.color}40, 0 0 40px ${activeLens.color}20`
-                            }}
-                        >
-                            SCAN <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
+                        ))}
                     </div>
-                </form>
-
-                {/* Clear Role Selection Header */}
-                <div className="text-center mb-6">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                        Choose Your Role
-                    </h2>
-                    <p className="text-slate-400 text-sm md:text-base">
-                        Select how you're using this aircraft to get tailored insights
-                    </p>
                 </div>
 
-                {/* Role Selection Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    {lenses.map((l) => (
-                        <button
-                            key={l.id}
-                            onClick={() => setLens(l.id)}
-                            onMouseEnter={() => setHoveredLens(l.id)}
-                            onMouseLeave={() => setHoveredLens(null)}
-                            className={`relative p-6 rounded-2xl transition-all duration-300 ${lens === l.id
-                                ? 'bg-slate-800/80 ring-2 scale-105'
-                                : 'bg-slate-900/50 hover:bg-slate-800/60'
-                                }`}
-                            style={{
-                                ringColor: lens === l.id ? l.color : undefined,
-                                boxShadow: lens === l.id ? `0 0 40px ${l.color}30` : undefined
-                            }}
-                        >
-                            <div className="flex flex-col items-center text-center">
-                                {lens === l.id && (
-                                    <div className="absolute top-4 right-4 px-3 py-1 bg-white text-black text-xs font-bold rounded-full">
-                                        ✓ SELECTED
-                                    </div>
-                                )}
-                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${l.gradient} flex items-center justify-center mb-4 shadow-lg`}
-                                    style={{ background: `linear-gradient(135deg, ${l.color}, ${l.color}dd)` }}>
-                                    <l.icon className="w-8 h-8 text-white" />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2">{l.label}</h3>
-                                <p className="text-sm text-slate-400 mb-4">{l.description}</p>
-                                <div className="flex flex-col gap-2 w-full">
-                                    {l.features.map((feature, idx) => (
-                                        <div key={idx} className="text-xs text-slate-500 flex items-center gap-2">
-                                            <div className="w-1 h-1 rounded-full bg-slate-600"></div>
-                                            {feature}
+                {/* THE 4 PILLARS SECTION */}
+                <div className="w-full mb-32 md:mb-48 pt-12 md:pt-24 border-t border-white/5">
+                    <div className="mb-16 md:mb-24 text-center">
+                        <h2 className="text-3xl md:text-6xl font-black text-white tracking-tighter uppercase italic mb-4 md:mb-6 px-4">
+                            Deep Forensic Infrastructure
+                        </h2>
+                        <div className="w-16 md:w-24 h-1 bg-emerald-500 mx-auto"></div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-24 md:mb-32">
+                        {/* THE X-RAY IMAGE */}
+                        <div className="relative group perspective-1000 px-2">
+                            <div className="absolute inset-0 bg-emerald-500/20 blur-[60px] md:blur-[100px] rounded-full group-hover:bg-emerald-500/30 transition-all duration-1000"></div>
+                            <img
+                                src={xrayImage}
+                                alt="Aircraft X-Ray"
+                                className="relative z-10 w-full h-auto rounded-2xl md:rounded-[32px] border border-white/10 shadow-3xl transform md:rotate-1 group-hover:rotate-0 transition-all duration-700"
+                            />
+                            {/* Scanning Effect */}
+                            <div className="absolute top-0 left-0 w-full h-px bg-emerald-500 shadow-[0_0_20px_emerald-500] z-20 animate-scanline"></div>
+                        </div>
+
+                        <div className="space-y-6 md:space-y-8 px-4">
+                            <h3 className="text-2xl md:text-5xl font-black text-white italic tracking-tighter leading-tight mb-2 md:mb-4">
+                                "X-Ray Vision for your next Acquisition."
+                            </h3>
+                            <p className="text-lg md:text-xl text-slate-400 leading-relaxed font-light">
+                                goTailScan doesn't just read the logbooks—it reconstructs the aircraft's entire lifecycle using global multi-source data feeds.
+                            </p>
+                            <div className="flex flex-wrap gap-4">
+                                <div className="flex -space-x-2 md:-space-x-3">
+                                    {['FAA', 'NTSB', 'CADORS', 'SDR'].map((lbl, i) => (
+                                        <div key={i} className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-800 border-2 border-slate-950 flex items-center justify-center text-[8px] md:text-[10px] font-black text-white shadow-xl">
+                                            {lbl}
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Authority Badges */}
-                <div className="flex flex-wrap justify-center items-center gap-6 opacity-40 hover:opacity-60 transition-all duration-500">
-                    {['TC', 'FAA', 'NTSB', 'TSB', 'NAV'].map((authority) => (
-                        <div key={authority} className="flex flex-col items-center gap-1 group cursor-pointer">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-110 transition-transform">
-                                <div className="text-slate-300 font-black text-xs">{authority}</div>
+                                <div className="ml-4 flex flex-col justify-center">
+                                    <span className="text-white font-black text-sm tracking-widest">LIVE FEEDS</span>
+                                    <span className="text-emerald-500 text-xs font-bold animate-pulse">SECURE CONNECTION ESTABLISHED</span>
+                                </div>
                             </div>
                         </div>
-                    ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-2 md:px-0">
+                        {pillars.map((p, idx) => (
+                            <div key={idx} className="group relative p-6 md:p-12 rounded-[24px] md:rounded-[40px] bg-slate-900/40 border border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5 transition-all" style={{ background: `linear-gradient(135deg, ${p.color}, transparent)` }}></div>
+
+                                <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center relative shrink-0" style={{ background: `${p.color}20` }}>
+                                        <p.icon className="w-6 h-6 md:w-8 md:h-8" style={{ color: p.color }} />
+                                        <div className="absolute inset-0 rounded-xl md:rounded-2xl blur-lg opacity-40" style={{ background: p.color }}></div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[8px] md:text-[10px] font-black tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1" style={{ color: p.color }}>{p.subtitle}</div>
+                                        <h4 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter">{p.title}</h4>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 md:space-y-6 relative z-10">
+                                    <p className="text-lg md:text-xl font-bold text-white italic">{p.pitch}</p>
+
+                                    <div className="p-4 rounded-xl md:rounded-2xl bg-black/40 border border-white/5">
+                                        <span className="text-[9px] md:text-[10px] font-black text-slate-500 tracking-widest uppercase mb-2 block">The Intelligence Source</span>
+                                        <p className="text-xs md:text-sm text-slate-300 leading-relaxed">{p.data}</p>
+                                    </div>
+
+                                    <div className="p-4 rounded-xl md:rounded-2xl bg-white/5">
+                                        <span className="text-[9px] md:text-[10px] font-black text-emerald-500 tracking-widest uppercase mb-2 block">Forensic Value</span>
+                                        <p className="text-xs md:text-sm text-slate-100 font-bold leading-relaxed">{p.value}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
+
+                {/* Final CTA */}
+                <div className="w-full max-w-2xl text-center pb-24 md:pb-48 px-4">
+                    <h5 className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em] mb-6 md:mb-8">Ready to audit?</h5>
+                    <button
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        className="group flex items-center gap-3 md:gap-4 mx-auto px-6 md:px-10 py-4 md:py-6 bg-emerald-500 rounded-full text-black font-black text-lg md:text-xl uppercase italic tracking-tighter hover:scale-105 transition-all shadow-2xl shadow-emerald-500/20"
+                    >
+                        START YOUR FIRST SCAN <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform" />
+                    </button>
+                    <p className="mt-6 md:mt-8 text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-widest leading-relaxed">No Credit Card Required<br className="md:hidden" /> for Guest Forensic Lookup</p>
+                </div>
+
             </div>
         </div>
     );
 }
+
