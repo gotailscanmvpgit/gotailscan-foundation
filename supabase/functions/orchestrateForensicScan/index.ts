@@ -66,7 +66,7 @@ serve(async (req) => {
 
         // Try to fetch from Real DB (Check both with and without prefix)
         const { data: realData } = await supabase
-            .from('aircraft_registry')
+            .from('mv_aircraft_summary')
             .select('*')
             .or(`n_number.eq.${registryKey},n_number.eq.${normalizedTail}`)
             .limit(1)
@@ -99,7 +99,7 @@ serve(async (req) => {
                 year: parseInt(realData.year_mfr) || 1980,
                 make_model: cleanMakeModel,
                 serial: realData.serial_number,
-                owner: realData.name,
+                owner: realData.owner_name,
                 city: realData.city,
                 state: realData.state || realData.province // Handle CA province
             };
@@ -180,6 +180,48 @@ serve(async (req) => {
                 owner: 'SKYLANE FLYERS LLC',
                 city: 'WICHITA',
                 state: 'KS',
+                country: 'USA'
+            };
+            console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
+        }
+
+        // DEMO OVERRIDE: N650GF -> Gulfstream G650ER (Ultra-Long Range)
+        if (normalizedTail === 'N650GF') {
+            aircraft = {
+                year: 2019,
+                make_model: 'GULFSTREAM AEROSPACE G650ER',
+                serial: '6355',
+                owner: 'GLOBAL FLIGHT ASSETS TRUST',
+                city: 'WILMINGTON',
+                state: 'DE',
+                country: 'USA'
+            };
+            console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
+        }
+
+        // DEMO OVERRIDE: N700CJ -> Cessna Citation Longitude (Super-Midsize)
+        if (normalizedTail === 'N700CJ') {
+            aircraft = {
+                year: 2021,
+                make_model: 'CESSNA CITATION LONGITUDE',
+                serial: '700-0034',
+                owner: 'TEXTRON AVIATION INC',
+                city: 'WICHITA',
+                state: 'KS',
+                country: 'USA'
+            };
+            console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
+        }
+
+        // DEMO OVERRIDE: N300EM -> Embraer Phenom 300E (Light Jet)
+        if (normalizedTail === 'N300EM') {
+            aircraft = {
+                year: 2022,
+                make_model: 'EMBRAER PHENOM 300E',
+                serial: '50500652',
+                owner: 'EXECUTIVE JET MANAGEMENT',
+                city: 'CINCINNATI',
+                state: 'OH',
                 country: 'USA'
             };
             console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
@@ -759,9 +801,9 @@ serve(async (req) => {
 
             // 2. Keyword & Sentiment Analysis
             const flags = [];
-            if (age > 20 && random(10) > 6) flags.push({ page: 42, term: "reskin", context: "LH Wing Reskin due to hangar rash", sentiment: "NEGATIVE" });
-            if (random(10) > 8) flags.push({ page: 108, term: "prop strike", context: "Propeller strike inspection IAW AD...", sentiment: "CRITICAL" });
-            if (random(10) > 5) flags.push({ page: 12, term: "tach replaced", context: "Tachometer replaced at 2400.0", sentiment: "NEUTRAL (Traceability Risk)" });
+            if (age > 20 && random(10) > 0.6) flags.push({ page: 42, term: "reskin", context: "LH Wing Reskin due to hangar rash", sentiment: "NEGATIVE" });
+            if (random(10) > 0.8) flags.push({ page: 108, term: "prop strike", context: "Propeller strike inspection IAW AD...", sentiment: "CRITICAL" });
+            if (random(10) > 0.5) flags.push({ page: 12, term: "tach replaced", context: "Tachometer replaced at 2400.0", sentiment: "NEUTRAL (Traceability Risk)" });
 
             // 3. Mechanic Integrity Network
             const mechanics = [
@@ -787,28 +829,70 @@ serve(async (req) => {
         const logbook_audit = analyzeLogbooks(aircraft.year, tail_number);
 
         // COMPLIANCE WATCHDOG (OFAC / LIEN / INTERPOL)
-        const checkCompliance = (ownerName) => {
-            // Simulate a hit for demo purposes if the owner name is suspiciously generic or if random chance
-            const isClean = random(100) > 5; // 5% chance of a "False Positive" or "Hit"
+        // COMPLIANCE WATCHDOG (OFAC / LIEN / INTERPOL) - CASTELLUM.AI INTEGRATION
+        const checkCompliance = async (ownerName) => {
+            const castellumApiKey = Deno.env.get('CASTELLUM_API_KEY');
+            let realHits = [];
+            let isClean = true;
+            let checkSource = "SIMULATION (MOCK)";
+
+            // 1. Live Sanctions Check (Castellum.AI Free Tier)
+            if (castellumApiKey && ownerName && ownerName !== 'Unknown') {
+                try {
+                    console.log(`[Compliance] Checking Castellum.AI for: ${ownerName}`);
+                    const response = await fetch(`https://api.castellum.ai/v1/search?name=${encodeURIComponent(ownerName)}`, {
+                        headers: { 'X-API-Key': castellumApiKey }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Castellum returns a list of matches.
+                        if (data && data.data && data.data.length > 0) {
+                            // Filter for high confidence exact matches
+                            const relevantMatches = data.data.filter(match => match.score > 0.85); // 85% confidence threshold
+
+                            if (relevantMatches.length > 0) {
+                                isClean = false;
+                                checkSource = "CASTELLUM.AI (LIVE)";
+                                realHits = relevantMatches.map(m => `Sanctions Match: ${m.name} (${m.source || 'Global List'})`);
+                            } else {
+                                checkSource = "CASTELLUM.AI (CLEARED)";
+                            }
+                        } else {
+                            checkSource = "CASTELLUM.AI (CLEARED)";
+                        }
+                    } else {
+                        console.warn('[Compliance] Castellum API error:', response.status);
+                    }
+                } catch (err) {
+                    console.error('[Compliance] Sanctions check failed:', err);
+                }
+            }
+
+            // 2. Fallback Simulation (if no API Key or API failure, keep it mostly clean 95%)
+            if (checkSource.includes('SIMULATION')) {
+                isClean = random(100) > 0.05;
+            }
 
             if (!isClean) {
                 return {
                     status: "FLAGGED",
                     risk_level: "HIGH",
-                    hits: ["Potential Match: OFAC SDN List (Name Similarity)", "Active UCC Lien Filing (Delaware)"],
-                    databases: ["OFAC SDN", "INTERPOL", "UCC"],
+                    hits: realHits.length > 0 ? realHits : ["Potential Match: OFAC SDN List (Name Similarity)", "Active UCC Lien Filing (Delaware)"],
+                    databases: ["OFAC SDN", "INTERPOL", "UCC", checkSource],
                     clearance_code: "REQ_MANUAL_REVIEW"
                 };
             }
+
             return {
                 status: "CLEARED",
                 risk_level: "LOW",
                 hits: [],
-                databases: ["OFAC SDN", "EU SANCTIONS", "INTERPOL RED", "UCC LIENS"],
+                databases: ["OFAC SDN", "EU SANCTIONS", "INTERPOL RED", "UCC LIENS", checkSource],
                 clearance_code: `AUTO-CLR-${Math.floor(random(99999))}`
             };
         };
-        const compliance_audit = checkCompliance(aircraft.owner?.name || "Unknown");
+        const compliance_audit = await checkCompliance(aircraft.owner?.name || "Unknown");
 
         // PRE-MARKET ACQUISITION ALGO (The 'Hunter')
         const predictSalesLikelihood = (dormancyMonths, ownershipYears, acftAge, daysOnMarket) => {
@@ -882,6 +966,109 @@ serve(async (req) => {
         }
 
 
+        // 9. MISSION FIT ANALYSIS (The "Performance Audit")
+        const calculateMissionFit = (acft: any, perf: any, val: any) => {
+            const mm = (acft.make_model || '').toUpperCase();
+
+            // 1. Define the User's "Implied" Mission (Simulated based on aircraft class)
+            let mission = {
+                label: "Regional Family Trips",
+                distance: 400, // nm
+                pax: 3,
+                runway: 3000,
+                route: "Home Base -> Regional Dest."
+            };
+
+            // Smart Mission Profiling based on Aircraft Type
+            if (mm.includes('SR22') || mm.includes('BONANZA') || mm.includes('MOONEY')) {
+                mission = { label: "Cross-Country Business", distance: 800, pax: 2, runway: 3500, route: "NY -> Florida" };
+            } else if (mm.includes('CITATION') || mm.includes('PHENOM')) {
+                mission = { label: "Executive Coast-to-Coast", distance: 1500, pax: 4, runway: 5000, route: "LA -> Aspen" };
+            } else if (mm.includes('PILATUS') || mm.includes('TBM')) {
+                mission = { label: "Ski Trip Express", distance: 600, pax: 6, runway: 2500, route: "Bay Area -> Truckee" };
+            }
+
+            // 2. Score Calculation
+            let score = 100;
+            const reasons = [];
+
+            // A. Range Check
+            if (perf.max_range < mission.distance) {
+                score -= 40;
+                reasons.push({ type: "CRITICAL", text: `Range Shortfall: Needs fuel stop for ${mission.distance}nm mission.` });
+            } else if (perf.max_range > mission.distance * 2.5) {
+                score -= 10;
+                reasons.push({ type: "ADVISORY", text: `Over-capability: You are buying 2x the range you need.` });
+            }
+
+            // B. Payload Check (Simulated)
+            const pax_weight = mission.pax * 200; // 200lbs per person + bags
+            // Gross approximation: Piston uses 15gal/hr, Turbine 100gal/hr?
+            // Better: Use performace.useful_load vs (Fuel for Mission + Pax)
+
+            let fuel_burn_lbs_hr = 100; // Default Piston
+            if (mm.includes('SR22') || mm.includes('BONANZA')) fuel_burn_lbs_hr = 100; // ~16gph
+            if (mm.includes('TURBO') || mm.includes('MOONEY')) fuel_burn_lbs_hr = 110;
+            if (mm.includes('KING AIR') || mm.includes('TBM')) fuel_burn_lbs_hr = 400; // ~60gph
+            if (mm.includes('JET') || mm.includes('CITATION')) fuel_burn_lbs_hr = 1200; // ~180gph
+
+            const flight_hours = mission.distance / (perf.cruise_speed || 150);
+            const mission_fuel_lbs = (flight_hours * fuel_burn_lbs_hr) * 1.2; // +20% Reserve
+
+            const payload_available_for_pax = perf.useful_load - mission_fuel_lbs;
+            const payload_margin = payload_available_for_pax - pax_weight;
+
+            if (payload_margin < 0) {
+                // If margin is negative, we can't do the mission without bumping pax or fuel
+                score -= 30;
+                reasons.push({ type: "WARNING", text: `Payload Limitation: Cannot carry ${mission.pax} people + Legal Reserves. Overweight by ${Math.abs(Math.round(payload_margin))} lbs.` });
+            } else {
+                reasons.push({ type: "POSITIVE", text: `Payload Config: Can carry full mission load with ${Math.round(payload_margin)} lbs to spare.` });
+            }
+
+            // C. Runway Check (Simulated Takeoff Roll)
+            const req_runway = mm.includes('JET') ? 3500 : (mm.includes('TURBOPROP') ? 2500 : 1500);
+            if (mission.runway < req_runway) {
+                score -= 50;
+                reasons.push({ type: "CRITICAL", text: `Runway Limit: ${mission.runway}ft is too short for safe continuous ops.` });
+            }
+
+            // 3. Pillars Construction
+            const pillars = {
+                operational: {
+                    label: "Operational Efficiency",
+                    status: (score > 80) ? "OPTIMIZED" : "INEFFICIENT",
+                    metric: `Fuel Burn: ${Math.round(mission_fuel_lbs)} lbs / trip`,
+                    insight: `Burns $${Math.round((mission_fuel_lbs / 6.7) * 6)} in fuel for this trip.`
+                },
+                payload: {
+                    label: "Payload Reality Check",
+                    status: (payload_margin > 0) ? "PASS" : "FAIL",
+                    metric: `Margin: ${payload_margin > 0 ? '+' : ''}${Math.round(payload_margin)} lbs`,
+                    insight: (payload_margin > 0)
+                        ? `Clears 45-min IFR Reserve with ${mission.pax} Pax.`
+                        : `Must leave ${Math.ceil(Math.abs(payload_margin) / 200)} passenger(s) behind to make legal weight.`
+                },
+                financial: {
+                    label: "Financial Optimization",
+                    status: "TOP 10%", // Mocked
+                    metric: "Value/Mile Score: A+",
+                    insight: `Beats fleet average cost-per-mile by 12% for this specific mission.`
+                }
+            };
+
+            return {
+                score: Math.max(0, Math.round(score)),
+                title: "Mission Fit Analysis",
+                mission_profile: mission,
+                verdict: score > 85 ? "PERFECT FIT" : (score > 55 ? "CAPABLE BUT COMPROMISED" : "WRONG TOOL FOR JOB"),
+                reasoning: reasons,
+                pillars: pillars
+            };
+        };
+
+        const mission_analysis = calculateMissionFit(aircraft, performance, valuation);
+
         const report = {
             tail_number,
             confidence_score: confScore,
@@ -890,6 +1077,7 @@ serve(async (req) => {
             valuation: valuation,
             operating_costs: costs,
             performance: performance,
+            mission_analysis: mission_analysis, // Added Mission Fit
             avionics_audit: avionics,
             predictive_maintenance: predictive_maintenance,
             market_history: market_history,

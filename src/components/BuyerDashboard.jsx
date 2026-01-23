@@ -18,6 +18,7 @@ export default function BuyerDashboard() {
         setLoading(true);
         try {
             const data = await scraperService.fetchForensicData(tailNumber.toUpperCase());
+            console.log("DEBUG: BuyerDashboard Received Data -> Mission Analysis:", data?.mission_analysis);
             setResult(data);
         } catch (error) {
             console.error('Scan failed:', error);
@@ -182,21 +183,62 @@ export default function BuyerDashboard() {
                                 </CardContent>
                             </Card>
 
-                            {/* Mission Fit HUD */}
+                            {/* Mission Fit HUD - UPGRADED */}
                             <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                                 <CardContent className="p-6">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <Activity className="w-5 h-5 text-blue-400" />
-                                        <h3 className="text-xl font-black text-white uppercase">Mission Fit Analysis</h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {Object.entries(getMissionFit() || {}).map(([key, value]) => (
-                                            <div key={key} className="bg-black/40 p-4 rounded-lg border border-white/5">
-                                                <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">{key.replace('_', ' ')}</div>
-                                                <div className="text-xl font-black text-white">{value}</div>
+                                    <div className="flex items-center justify-between gap-3 mb-6">
+                                        <div className="flex items-center gap-3">
+                                            <Activity className="w-5 h-5 text-blue-400" />
+                                            <div>
+                                                <h3 className="text-xl font-black text-white uppercase">Mission Fit</h3>
+                                                <div className="text-[10px] text-gray-400 uppercase tracking-widest">
+                                                    {result.mission_analysis?.mission_profile?.label || "Performance Audit"}
+                                                </div>
                                             </div>
-                                        ))}
+                                        </div>
+                                        {result.mission_analysis && (
+                                            <div className="text-right">
+                                                <div className={`text-3xl font-black ${result.mission_analysis.score > 80 ? 'text-emerald-400' : (result.mission_analysis.score > 50 ? 'text-yellow-400' : 'text-red-400')}`}>
+                                                    {result.mission_analysis.score}%
+                                                </div>
+                                                <div className="text-[9px] font-bold text-gray-500 uppercase">Fit Score</div>
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {result.mission_analysis ? (
+                                        <div className="space-y-4">
+                                            {/* Pillars */}
+                                            {Object.entries(result.mission_analysis.pillars).map(([key, pillar]) => (
+                                                <div key={key} className="bg-black/40 p-3 rounded border border-white/5 group hover:border-blue-500/30 transition-colors">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <div className="text-[10px] text-gray-400 uppercase font-black group-hover:text-gray-300">{pillar.label}</div>
+                                                        <Badge className={`text-[9px] font-black ${pillar.status === 'OPTIMIZED' || pillar.status === 'PASS' || pillar.status === 'TOP 10%' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' :
+                                                            pillar.status === 'FAIL' || pillar.status === 'OVERLOAD' || pillar.status === 'INEFFICIENT' ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                                                            }`}>{pillar.status}</Badge>
+                                                    </div>
+                                                    <div className="text-xs text-gray-300 font-mono">{pillar.insight || pillar.metric}</div>
+                                                </div>
+                                            ))}
+
+                                            <div className="pt-3 border-t border-white/10">
+                                                <div className="text-[10px] text-blue-400 font-bold uppercase mb-1">Verdict</div>
+                                                <div className="text-sm text-white font-medium italic">"{result.mission_analysis.verdict}"</div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {/* Fallback to old simple view if no mission analysis */}
+                                            {Object.entries(getMissionFit() || {}).map(([key, value]) => (
+                                                <div key={key} className="bg-black/40 p-4 rounded-lg border border-white/5">
+                                                    <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">{key.replace('_', ' ')}</div>
+                                                    <div className="text-xl font-black text-white">{value}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Valuation Footer */}
                                     <div className="mt-6 pt-6 border-t border-white/5">
                                         <div className="text-[10px] text-gray-500 uppercase mb-2">Value Assessment</div>
                                         <div className="flex items-baseline gap-2">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import SplitScreenComparison from './SplitScreenComparison';
+import AircraftIdentityCard from './AircraftIdentityCard';
 
 export default function MechanicDashboardStandalone() {
     const navigate = useNavigate();
@@ -105,10 +106,15 @@ export default function MechanicDashboardStandalone() {
     const checklist = getComplianceChecklist();
 
     const cardStyle = {
-        background: 'rgba(0, 0, 0, 0.6)',
-        border: '2px solid rgba(255, 255, 255, 0.2)',
-        borderRadius: '8px',
-        padding: '20px'
+        background: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: '2px solid rgba(249, 115, 22, 0.3)',
+        borderRadius: '16px',
+        padding: '28px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(249, 115, 22, 0.1)',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+        overflow: 'hidden'
     };
 
     const getStatusColor = (status) => {
@@ -169,118 +175,121 @@ export default function MechanicDashboardStandalone() {
                 </div>
 
                 {result && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                        {/* Logbook OCR Analysis */}
-                        <div style={cardStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
-                                <div style={{ fontSize: '24px' }}>📄</div>
-                                <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>LOGBOOK ANALYSIS</h3>
-                            </div>
-
-                            {analysis ? (
-                                <div style={{ display: 'grid', gap: '16px' }}>
-                                    {/* OCR Stats */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                            <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>OCR CONFIDENCE</div>
-                                            <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>{analysis.ocr_confidence.toFixed(1)}%</div>
-                                        </div>
-                                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                            <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>PAGES SCANNED</div>
-                                            <div style={{ fontSize: '24px', fontWeight: '900', color: 'white' }}>{analysis.pages_scanned}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Continuity Score */}
-                                    <div style={{ background: 'linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent)', padding: '16px', borderRadius: '6px', border: '1px solid rgba(249, 115, 22, 0.3)' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                            <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#f97316', textTransform: 'uppercase' }}>RECORD CONTINUITY</div>
-                                            <div style={{ fontSize: '28px', fontWeight: '900', color: 'white' }}>{analysis.continuity_score}</div>
-                                        </div>
-                                        <div style={{ width: '100%', background: 'rgba(0,0,0,0.4)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                                            <div
-                                                style={{ height: '100%', background: analysis.continuity_score > 90 ? '#10b981' : analysis.continuity_score > 70 ? '#eab308' : '#ef4444', width: `${analysis.continuity_score}%`, transition: 'width 0.3s' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Gaps */}
-                                    {analysis.gaps.length > 0 && (
-                                        <div>
-                                            <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>⚠ CRITICAL GAPS</div>
-                                            {analysis.gaps.slice(0, 3).map((gap, i) => (
-                                                <div key={i} style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #ef4444', padding: '12px', marginBottom: '8px' }}>
-                                                    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#ef4444' }}>{gap.flag}</div>
-                                                    <div style={{ fontSize: '10px', color: '#9ca3af', fontFamily: 'monospace', marginTop: '4px' }}>{gap.period}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                    <>
+                        <AircraftIdentityCard aircraftDetails={result.aircraft_details} cardStyle={cardStyle} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                            {/* Logbook OCR Analysis */}
+                            <div style={cardStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
+                                    <div style={{ fontSize: '24px' }}>📄</div>
+                                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>LOGBOOK ANALYSIS</h3>
                                 </div>
-                            ) : (
-                                <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
-                                    <div style={{ fontSize: '48px', marginBottom: '8px', opacity: 0.3 }}>📄</div>
-                                    <div style={{ fontSize: '12px' }}>No logbook data available</div>
-                                </div>
-                            )}
-                        </div>
 
-                        {/* AD Compliance Checklist */}
-                        <div style={cardStyle}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
-                                <div style={{ fontSize: '24px' }}>⚙️</div>
-                                <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>AD COMPLIANCE</h3>
-                            </div>
+                                {analysis ? (
+                                    <div style={{ display: 'grid', gap: '16px' }}>
+                                        {/* OCR Stats */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>OCR CONFIDENCE</div>
+                                                <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>{analysis.ocr_confidence.toFixed(1)}%</div>
+                                            </div>
+                                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                                <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>PAGES SCANNED</div>
+                                                <div style={{ fontSize: '24px', fontWeight: '900', color: 'white' }}>{analysis.pages_scanned}</div>
+                                            </div>
+                                        </div>
 
-                            <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
-                                {checklist.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
-                                        <div style={{ fontSize: '12px' }}>No checklist generated</div>
+                                        {/* Continuity Score */}
+                                        <div style={{ background: 'linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent)', padding: '16px', borderRadius: '6px', border: '1px solid rgba(249, 115, 22, 0.3)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#f97316', textTransform: 'uppercase' }}>RECORD CONTINUITY</div>
+                                                <div style={{ fontSize: '28px', fontWeight: '900', color: 'white' }}>{analysis.continuity_score}</div>
+                                            </div>
+                                            <div style={{ width: '100%', background: 'rgba(0,0,0,0.4)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                                                <div
+                                                    style={{ height: '100%', background: analysis.continuity_score > 90 ? '#10b981' : analysis.continuity_score > 70 ? '#eab308' : '#ef4444', width: `${analysis.continuity_score}%`, transition: 'width 0.3s' }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Gaps */}
+                                        {analysis.gaps.length > 0 && (
+                                            <div>
+                                                <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>⚠ CRITICAL GAPS</div>
+                                                {analysis.gaps.slice(0, 3).map((gap, i) => (
+                                                    <div key={i} style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #ef4444', padding: '12px', marginBottom: '8px' }}>
+                                                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#ef4444' }}>{gap.flag}</div>
+                                                        <div style={{ fontSize: '10px', color: '#9ca3af', fontFamily: 'monospace', marginTop: '4px' }}>{gap.period}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
-                                    checklist.map((ad, i) => {
-                                        const colors = getStatusColor(ad.status);
-                                        return (
-                                            <div key={i} style={{ padding: '12px', borderRadius: '6px', borderLeft: `4px solid ${colors.border}`, background: colors.bg }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '12px' }}>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'white', textTransform: 'uppercase', marginBottom: '4px' }}>{ad.id}</div>
-                                                        <div style={{ fontSize: '11px', color: '#9ca3af' }}>{ad.description}</div>
-                                                        <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '4px' }}>Due: {ad.due}</div>
-                                                    </div>
-                                                    <div style={{ padding: '2px 8px', borderRadius: '3px', background: colors.border, color: 'black', fontSize: '9px', fontWeight: '900' }}>
-                                                        {ad.status}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
+                                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '8px', opacity: 0.3 }}>📄</div>
+                                        <div style={{ fontSize: '12px' }}>No logbook data available</div>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* Quick Stats */}
-                            <div style={{ paddingTop: '16px', borderTop: '2px solid rgba(255,255,255,0.1)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>
-                                        {checklist.filter(ad => ad.status === 'VERIFIED').length}
-                                    </div>
-                                    <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>VERIFIED</div>
+                            {/* AD Compliance Checklist */}
+                            <div style={cardStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
+                                    <div style={{ fontSize: '24px' }}>⚙️</div>
+                                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>AD COMPLIANCE</h3>
                                 </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#eab308' }}>
-                                        {checklist.filter(ad => ad.status === 'PENDING' || ad.status === 'CHECK').length}
-                                    </div>
-                                    <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>PENDING</div>
+
+                                <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
+                                    {checklist.length === 0 ? (
+                                        <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
+                                            <div style={{ fontSize: '12px' }}>No checklist generated</div>
+                                        </div>
+                                    ) : (
+                                        checklist.map((ad, i) => {
+                                            const colors = getStatusColor(ad.status);
+                                            return (
+                                                <div key={i} style={{ padding: '12px', borderRadius: '6px', borderLeft: `4px solid ${colors.border}`, background: colors.bg }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '12px' }}>
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'white', textTransform: 'uppercase', marginBottom: '4px' }}>{ad.id}</div>
+                                                            <div style={{ fontSize: '11px', color: '#9ca3af' }}>{ad.description}</div>
+                                                            <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '4px' }}>Due: {ad.due}</div>
+                                                        </div>
+                                                        <div style={{ padding: '2px 8px', borderRadius: '3px', background: colors.border, color: 'black', fontSize: '9px', fontWeight: '900' }}>
+                                                            {ad.status}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
                                 </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#ef4444' }}>
-                                        {checklist.filter(ad => ad.status === 'OVERDUE').length}
+
+                                {/* Quick Stats */}
+                                <div style={{ paddingTop: '16px', borderTop: '2px solid rgba(255,255,255,0.1)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>
+                                            {checklist.filter(ad => ad.status === 'VERIFIED').length}
+                                        </div>
+                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>VERIFIED</div>
                                     </div>
-                                    <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>OVERDUE</div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '900', color: '#eab308' }}>
+                                            {checklist.filter(ad => ad.status === 'PENDING' || ad.status === 'CHECK').length}
+                                        </div>
+                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>PENDING</div>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '900', color: '#ef4444' }}>
+                                            {checklist.filter(ad => ad.status === 'OVERDUE').length}
+                                        </div>
+                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>OVERDUE</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {/* TELEMETRY: Split-Screen Comparison */}

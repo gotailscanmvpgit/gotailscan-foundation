@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { resolveMakeModel, isCleanMakeModel } from '../utils/makeModelResolver';
+import CircularGauge from './CircularGauge';
+import PillarBar from './PillarBar';
 
 export default function MinimalBuyerTest() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [tailNumber, setTailNumber] = useState(searchParams.get('tail') || '');
+    const [origin, setOrigin] = useState('');
+    const [destination, setDestination] = useState('');
+    const [payloadWeight, setPayloadWeight] = useState(400); // Default: 2 pax @ 200 lbs each
     // PREVENT FLASH: If autostarting, set loading to true immediately
     const [loading, setLoading] = useState(searchParams.get('autostart') === 'true');
     const [result, setResult] = useState(null);
@@ -33,7 +38,9 @@ export default function MinimalBuyerTest() {
         try {
             // Dynamic import - scraperService is a named export
             const module = await import('../services/scraperService');
-            const data = await module.scraperService.scanTailNumber(targetTail.toUpperCase());
+            console.log('[MinimalBuyerTest] Scanning with route:', { origin, destination, payloadWeight });
+            const data = await module.scraperService.scanTailNumber(targetTail.toUpperCase(), 'unpaid', null, { origin, destination, payloadWeight });
+            console.log('[MinimalBuyerTest] Received data:', data?.mission_analysis);
             setResult(data);
         } catch (err) {
             console.error('Scan failed:', err);
@@ -131,15 +138,16 @@ export default function MinimalBuyerTest() {
     };
 
     // TELEMETRY: Dormancy Caution
-    const getDormancyCaution = () => {
+    const getDormancyAnalysis = () => {
         if (!result?.dormancy_analysis) return null;
 
         const lastFlightGap = result.dormancy_analysis.last_flight_gap || 0;
-        const daysSinceLastFlight = lastFlightGap * 30; // Convert months to days (approximate)
+        const daysSinceLastFlight = Math.round(lastFlightGap * 30); // Convert months to days (approximate)
 
         if (daysSinceLastFlight > 45) {
             return {
                 show: true,
+                status: 'WARNING',
                 days: daysSinceLastFlight,
                 severity: daysSinceLastFlight > 180 ? 'CRITICAL' : 'CAUTION',
                 message: daysSinceLastFlight > 180
@@ -147,18 +155,40 @@ export default function MinimalBuyerTest() {
                     : `${daysSinceLastFlight} days since last flight - Pre-purchase inspection critical`
             };
         }
-        return null;
+
+        // Positive / Active State
+        return {
+            show: true,
+            status: 'GOOD',
+            days: daysSinceLastFlight,
+            severity: 'ACTIVE',
+            message: `Aircraft is flying regularly. Last flight ${daysSinceLastFlight} days ago.`
+        };
     };
 
     const salinityData = getSalinityIndex();
-    const dormancyAlert = getDormancyCaution();
+    const dormancyAlert = getDormancyAnalysis();
 
     const cardStyle = {
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
+        background: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(20px)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '12px',
-        padding: '24px'
+        borderRadius: '16px',
+        padding: '28px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+        overflow: 'hidden'
+    };
+
+    const premiumCardStyle = {
+        ...cardStyle,
+        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6))',
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+    };
+
+    const fadeInStyle = {
+        animation: 'fadeIn 0.6s ease-out'
     };
 
     return (
@@ -179,6 +209,7 @@ export default function MinimalBuyerTest() {
             </div>
 
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
+                {/* Search Bar */}
                 {/* Search Bar */}
                 <div style={{ ...cardStyle, marginBottom: '32px' }}>
                     <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -301,20 +332,48 @@ export default function MinimalBuyerTest() {
                                 </div>
                             </div>
 
-                            {/* TELEMETRY: Dormancy Caution */}
+                            {/* TELEMETRY: Dormancy/Utilization Monitor */}
                             {dormancyAlert && (
-                                <div style={{ ...cardStyle, background: dormancyAlert.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(234, 179, 8, 0.1)', border: `2px solid ${dormancyAlert.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(234, 179, 8, 0.3)'}` }}>
+                                <div style={{
+                                    ...cardStyle,
+                                    background: dormancyAlert.status === 'WARNING'
+                                        ? (dormancyAlert.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(234, 179, 8, 0.1)')
+                                        : 'rgba(16, 185, 129, 0.1)',
+                                    border: `2px solid ${dormancyAlert.status === 'WARNING'
+                                        ? (dormancyAlert.severity === 'CRITICAL' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(234, 179, 8, 0.3)')
+                                        : 'rgba(16, 185, 129, 0.3)'
+                                        }`
+                                }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                                        <div style={{ fontSize: '48px' }}>⏸️</div>
+                                        <div style={{ fontSize: '48px' }}>
+                                            {dormancyAlert.status === 'WARNING' ? '⏸️' : '✈️'}
+                                        </div>
                                         <div style={{ flex: 1 }}>
-                                            <h3 style={{ fontSize: '20px', fontWeight: '900', color: dormancyAlert.severity === 'CRITICAL' ? '#ef4444' : '#eab308', textTransform: 'uppercase', margin: 0 }}>
-                                                DORMANCY CAUTION
+                                            <h3 style={{
+                                                fontSize: '20px',
+                                                fontWeight: '900',
+                                                color: dormancyAlert.status === 'WARNING'
+                                                    ? (dormancyAlert.severity === 'CRITICAL' ? '#ef4444' : '#eab308')
+                                                    : '#10b981',
+                                                textTransform: 'uppercase',
+                                                margin: 0
+                                            }}>
+                                                {dormancyAlert.status === 'WARNING' ? 'DORMANCY CAUTION' : 'ACTIVE UTILIZATION'}
                                             </h3>
                                             <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
                                                 {dormancyAlert.days} days since last flight
                                             </div>
                                         </div>
-                                        <div style={{ padding: '8px 16px', borderRadius: '6px', background: dormancyAlert.severity === 'CRITICAL' ? '#ef4444' : '#eab308', color: 'black', fontSize: '11px', fontWeight: '900' }}>
+                                        <div style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '6px',
+                                            background: dormancyAlert.status === 'WARNING'
+                                                ? (dormancyAlert.severity === 'CRITICAL' ? '#ef4444' : '#eab308')
+                                                : '#10b981',
+                                            color: 'black',
+                                            fontSize: '11px',
+                                            fontWeight: '900'
+                                        }}>
                                             {dormancyAlert.severity}
                                         </div>
                                     </div>
@@ -324,21 +383,139 @@ export default function MinimalBuyerTest() {
                                 </div>
                             )}
 
-                            {/* Mission Fit */}
-                            <div style={cardStyle}>
-                                <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'white', textTransform: 'uppercase', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <span>📊</span> Mission Fit
-                                </h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px' }}>Value</div>
-                                        <div style={{ fontSize: '20px', fontWeight: '900', color: 'white' }}>${(result.valuation?.estimated_value / 1000).toFixed(0)}k</div>
-                                    </div>
-                                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px' }}>Year</div>
-                                        <div style={{ fontSize: '20px', fontWeight: '900', color: 'white' }}>{result.aircraft_details?.year || 'N/A'}</div>
+                            {/* Performance Audit (Formerly Mission Fit) */}
+                            <div style={{
+                                ...cardStyle,
+                                background: 'linear-gradient(145deg, rgba(88, 28, 135, 0.1), rgba(17, 24, 39, 0.4))',
+                                border: '1px solid rgba(139, 92, 246, 0.2)'
+                            }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                        <span>🤔</span> Is this the right plane for me?
+                                    </h3>
+                                    <div style={{ fontSize: '10px', color: '#9ca3af' }}>Test your specific routes and see if this aircraft fits your mission.</div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px' }}>
+                                        {/* Route Inputs */}
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: 'bold' }}>ROUTE:</div>
+                                            <input
+                                                placeholder="Origin (e.g. KJFK)"
+                                                value={origin}
+                                                onChange={(e) => setOrigin(e.target.value)}
+                                                style={{ flex: 1, minWidth: '0', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '4px 8px', color: 'white', fontSize: '12px' }}
+                                            />
+                                            <span style={{ color: '#6b7280' }}>→</span>
+                                            <input
+                                                placeholder="Dest (e.g. EGLL)"
+                                                value={destination}
+                                                onChange={(e) => setDestination(e.target.value)}
+                                                style={{ flex: 1, minWidth: '0', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '4px 8px', color: 'white', fontSize: '12px' }}
+                                            />
+                                        </div>
+
+                                        {/* Payload Weight Slider */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: 'bold' }}>PAYLOAD:</div>
+                                                <div style={{ fontSize: '13px', color: '#60a5fa', fontWeight: 'bold' }}>{payloadWeight} lbs</div>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="200"
+                                                max="2000"
+                                                step="50"
+                                                value={payloadWeight}
+                                                onChange={(e) => setPayloadWeight(parseInt(e.target.value))}
+                                                style={{ width: '100%', accentColor: '#3b82f6' }}
+                                            />
+                                            <div style={{ fontSize: '10px', color: '#6b7280', textAlign: 'center' }}>Solo Pilot (200 lbs) → Full Load (2000 lbs)</div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleScan()}
+                                            disabled={loading}
+                                            style={{
+                                                background: '#3b82f6',
+                                                border: 'none',
+                                                borderRadius: '4px',
+                                                padding: '6px 16px',
+                                                color: 'white',
+                                                fontSize: '11px',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                opacity: loading ? 0.5 : 1,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                whiteSpace: 'nowrap'
+                                            }}
+                                        >
+                                            {loading ? '...' : 'ANALYZE ROUTE'}
+                                        </button>
                                     </div>
                                 </div>
+
+                                {/* Only show results if user has analyzed a specific route */}
+                                {result.mission_analysis && result.mission_analysis.mission_profile?.label &&
+                                    result.mission_analysis.mission_profile.label !== "Regional Family Trips" ? (
+                                    <div>
+                                        {/* DEBUG: Verify Data Flow */}
+                                        {console.log('Rendering Mission Analysis:', result.mission_analysis)}
+
+                                        {/* Premium Score Visualization */}
+                                        <div style={{ display: 'flex', gap: '24px', marginBottom: '24px', alignItems: 'center' }}>
+                                            <div style={{ flex: '0 0 auto' }}>
+                                                <CircularGauge score={result.mission_analysis.score} size={140} strokeWidth={14} />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '11px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>Mission Profile</div>
+                                                <div style={{ fontSize: '18px', color: 'white', fontWeight: 'bold', marginBottom: '12px' }}>
+                                                    {result.mission_analysis.mission_profile?.label || 'Standard Profile'}
+                                                </div>
+                                                <div style={{
+                                                    display: 'inline-block', padding: '8px 16px',
+                                                    background: result.mission_analysis.score >= 80 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2))' : result.mission_analysis.score >= 50 ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(252, 211, 77, 0.2))' : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.2))',
+                                                    border: `1px solid ${result.mission_analysis.score >= 80 ? '#10b981' : result.mission_analysis.score >= 50 ? '#fbbf24' : '#ef4444'}`,
+                                                    borderRadius: '6px', fontSize: '12px', fontWeight: 'bold',
+                                                    color: result.mission_analysis.score >= 80 ? '#10b981' : result.mission_analysis.score >= 50 ? '#fbbf24' : '#ef4444',
+                                                    textTransform: 'uppercase', letterSpacing: '0.5px'
+                                                }}>{result.mission_analysis.verdict}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Premium Pillar Bars */}
+                                        <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
+                                            {result.mission_analysis.pillars && Object.entries(result.mission_analysis.pillars).map(([key, pillar], index) => (
+                                                <PillarBar
+                                                    key={key}
+                                                    label={pillar.label}
+                                                    status={pillar.status}
+                                                    metric={pillar.metric}
+                                                    delay={index * 100}
+                                                />
+                                            ))}
+                                        </div>
+
+
+                                    </div>
+                                ) : (
+                                    /* Fallback: Waiting for route analysis */
+                                    <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 16px', opacity: 0.3 }}>
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" style={{ color: '#8b5cf6' }} />
+                                            <path d="M12 2v20M2 12h20" stroke="currentColor" strokeWidth="1.5" style={{ color: '#8b5cf6' }} />
+                                            <path d="M12 2l3 8-3 2-3-2 3-8z" fill="currentColor" style={{ color: '#8b5cf6' }} />
+                                        </svg>
+                                        <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '8px', fontWeight: 'bold' }}>
+                                            Ready to Analyze
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.6' }}>
+                                            Enter your origin and destination above,<br />
+                                            then click <strong>ANALYZE ROUTE</strong> to see if this aircraft<br />
+                                            is the right fit for your mission.
+                                        </div>
+                                    </div>
+                                )}
+
                                 {result.ai_intelligence?.tax_strategy && (
                                     <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '8px' }}>
                                         <div style={{ fontSize: '10px', color: '#10b981', fontWeight: 'bold', marginBottom: '4px' }}>TAX BENEFIT</div>
@@ -367,6 +544,6 @@ export default function MinimalBuyerTest() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

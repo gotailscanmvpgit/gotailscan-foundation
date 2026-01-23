@@ -1,27 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radar, TrendingUp, Wrench, ArrowRight, Camera } from 'lucide-react';
+import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Shield, Zap, Target } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export default function RoleGateway() {
     const navigate = useNavigate();
     const [tailNumber, setTailNumber] = useState('');
-    const [lens, setLens] = useState('radar'); // 'radar' (buy), 'vault' (sell), 'tools' (audit)
-    const [hoveredLens, setHoveredLens] = useState(null); // For dynamic mission text
+    const [lens, setLens] = useState('radar');
+    const [hoveredLens, setHoveredLens] = useState(null);
     const [isFocused, setIsFocused] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const videoRef = useRef(null);
     const streamRef = useRef(null);
 
-    // Dynamic Route Handling based on Lens
+    // Track mouse for gradient effect
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            setMousePosition({ x: e.clientX, y: e.clientY });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
+
     const handleSearch = (e) => {
         if (e) e.preventDefault();
-
-        let path = '/buyer'; // default
+        let path = '/buyer';
         if (lens === 'vault') path = '/seller';
         if (lens === 'tools') path = '/mechanic';
 
-        // Navigate with tail number as query param if present
         if (tailNumber.trim()) {
             navigate(`${path}?tail=${tailNumber.toUpperCase()}&autostart=true`);
         } else {
@@ -29,11 +36,10 @@ export default function RoleGateway() {
         }
     };
 
-    // Camera functionality for Mechanic mode
     const handleCameraOpen = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' } // Rear camera
+                video: { facingMode: 'environment' }
             });
             streamRef.current = stream;
             if (videoRef.current) {
@@ -42,7 +48,7 @@ export default function RoleGateway() {
             setShowCamera(true);
         } catch (err) {
             console.error('Camera access denied:', err);
-            alert('Camera access is required to scan logbooks. Please enable camera permissions.');
+            alert('Camera access is required. Please enable camera permissions.');
         }
     };
 
@@ -54,33 +60,68 @@ export default function RoleGateway() {
     };
 
     const handleCapture = () => {
-        // Capture logic would go here
         alert('Logbook page captured! OCR processing would start here.');
         handleCameraClose();
     };
 
     const lenses = [
-        { id: 'radar', icon: Radar, label: 'Buyer', color: 'text-emerald-400', bgColor: 'bg-emerald-500', path: '/buyer', hint: 'Risk Radar' },
-        { id: 'vault', icon: TrendingUp, label: 'Seller', color: 'text-blue-400', bgColor: 'bg-blue-500', path: '/seller', hint: 'Value Vault' },
-        { id: 'tools', icon: Wrench, label: 'Mechanic', color: 'text-orange-400', bgColor: 'bg-orange-500', path: '/mechanic', hint: 'Audit Tools' }
+        {
+            id: 'radar',
+            icon: Radar,
+            label: 'Buyer',
+            color: '#10b981',
+            gradient: 'from-emerald-500 to-teal-600',
+            description: 'Risk Detection & Due Diligence',
+            features: ['Accident History', 'Maintenance Gaps', 'Value Analysis']
+        },
+        {
+            id: 'vault',
+            icon: TrendingUp,
+            label: 'Seller',
+            color: '#3b82f6',
+            gradient: 'from-blue-500 to-indigo-600',
+            description: 'Asset Equity & Market Position',
+            features: ['Valuation Report', 'Market Insights', 'Listing Optimization']
+        },
+        {
+            id: 'tools',
+            icon: Wrench,
+            label: 'Mechanic',
+            color: '#f97316',
+            gradient: 'from-orange-500 to-amber-600',
+            description: 'Logbook OCR & Compliance',
+            features: ['Digital Logbooks', 'AD Compliance', 'Inspection Tracking']
+        }
     ];
 
     const activeLens = lenses.find(l => l.id === lens) || lenses[0];
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-start pt-24 relative overflow-hidden font-sans selection:bg-white/20 px-4 pb-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center relative overflow-hidden px-4 py-8">
+
+            {/* Premium Background Effects */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                {/* Animated Grid */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+
+                {/* Dynamic Gradient Orb */}
+                <div
+                    className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 transition-all duration-1000"
+                    style={{
+                        background: `radial-gradient(circle, ${activeLens.color}40, transparent)`,
+                        left: `${mousePosition.x - 300}px`,
+                        top: `${mousePosition.y - 300}px`,
+                    }}
+                ></div>
+
+                {/* Scan Line */}
+                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+            </div>
 
             {/* Camera Overlay */}
             {showCamera && (
                 <div className="fixed inset-0 z-[100] bg-black">
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-cover"
-                    />
-
-                    {/* Scan Frame Overlay */}
+                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="w-[90%] max-w-md aspect-[3/4] border-4 border-orange-500 rounded-lg relative">
                             <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-orange-500"></div>
@@ -92,171 +133,156 @@ export default function RoleGateway() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Camera Controls */}
                     <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4 pointer-events-auto">
-                        <button
-                            onClick={handleCameraClose}
-                            className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleCapture}
-                            className="px-8 py-3 bg-orange-500 text-black rounded-xl font-bold flex items-center gap-2"
-                        >
-                            <Camera className="w-5 h-5" />
-                            Capture
+                        <button onClick={handleCameraClose} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold">Cancel</button>
+                        <button onClick={handleCapture} className="px-8 py-3 bg-orange-500 text-black rounded-xl font-bold flex items-center gap-2">
+                            <Camera className="w-5 h-5" /> Capture
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Background Effects */}
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-scanline"></div>
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-gradient-to-r from-transparent via-${activeLens.color.split('-')[1]}-900/10 to-transparent blur-3xl opacity-30 transition-colors duration-1000`}></div>
-            </div>
-
             {/* Main Content */}
-            <div className="relative z-10 w-full max-w-3xl">
+            <div className="relative z-10 w-full max-w-5xl">
 
-                {/* BRAND */}
-                <div className="text-center mb-6 md:mb-8 animate-fade-in-down">
-                    <h1 className="text-3xl md:text-6xl font-black text-white tracking-tight mb-2 md:mb-3 flex items-center justify-center gap-2 md:gap-4 font-mono">
-                        <span className="text-white/20 font-thin tracking-widest text-xl md:text-2xl">///</span>
-                        goTailScan<span className="text-emerald-500 animate-pulse">_</span>
-                    </h1>
-                    <p className="text-slate-400 text-xs md:text-lg font-light tracking-wide uppercase">
-                        Aviation Intelligence <span className="text-white/30 mx-2">|</span> Command Interface
+                {/* Hero Section */}
+                <div className="text-center mb-12 animate-fade-in-down">
+                    {/* Logo */}
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/50">
+                            <Shield className="w-7 h-7 text-white" />
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight">
+                            goTailScan
+                        </h1>
+                    </div>
+
+                    {/* Tagline */}
+                    <p className="text-xl md:text-2xl text-slate-400 font-light mb-6">
+                        Aviation Intelligence Platform
                     </p>
+
+                    {/* Value Props */}
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8">
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Zap className="w-4 h-4 text-emerald-500" />
+                            <span>Instant Forensics</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Target className="w-4 h-4 text-blue-500" />
+                            <span>AI-Powered Analysis</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Shield className="w-4 h-4 text-orange-500" />
+                            <span>FAA/TC Verified Data</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* SEARCH BAR - Separated */}
-                <form onSubmit={handleSearch} className="relative w-full mb-3">
-                    <div className="relative h-[60px] flex items-center bg-slate-950/80 backdrop-blur-xl border border-[#333] rounded-2xl px-4 md:px-6 shadow-2xl">
+                {/* Search Bar */}
+                <form onSubmit={handleSearch} className="relative w-full mb-8">
+                    <div className={`relative h-20 flex items-center bg-slate-900/50 backdrop-blur-xl border-2 rounded-2xl px-6 shadow-2xl transition-all duration-300 ${isFocused ? `border-${activeLens.color.split('-')[1]}-500 shadow-${activeLens.color.split('-')[1]}-500/50` : 'border-slate-700'
+                        }`} style={{
+                            borderColor: isFocused ? activeLens.color : undefined,
+                            boxShadow: isFocused ? `0 0 30px ${activeLens.color}40` : undefined
+                        }}>
                         <input
                             type="text"
-                            inputMode="text"
                             value={tailNumber}
                             onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             placeholder="ENTER TAIL NUMBER..."
-                            className="flex-1 bg-transparent border-none outline-none text-xl md:text-2xl font-bold text-white placeholder-slate-600 font-mono tracking-wider caret-white"
+                            className="flex-1 bg-transparent border-none outline-none text-2xl md:text-3xl font-bold text-white placeholder-slate-600 font-mono tracking-wider caret-white"
                             autoFocus
                         />
 
-                        {/* Camera Icon for Mechanic Mode */}
                         {lens === 'tools' && (
                             <button
                                 type="button"
                                 onClick={handleCameraOpen}
-                                className="ml-2 p-3 bg-orange-500/20 hover:bg-orange-500/30 rounded-xl transition-all"
-                                title="Scan Logbook with Camera"
+                                className="ml-2 p-4 bg-orange-500/20 hover:bg-orange-500/30 rounded-xl transition-all"
+                                title="Scan Logbook"
                             >
                                 <Camera className="w-6 h-6 text-orange-400" />
                             </button>
                         )}
+
+                        <button
+                            type="submit"
+                            className="ml-2 md:ml-4 px-4 md:px-8 py-3 md:py-4 text-white rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-all duration-300 text-sm md:text-base"
+                            style={{
+                                background: `linear-gradient(135deg, ${activeLens.color}, ${activeLens.color}dd)`,
+                                boxShadow: `0 4px 20px ${activeLens.color}40, 0 0 40px ${activeLens.color}20`
+                            }}
+                        >
+                            SCAN <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+                        </button>
                     </div>
                 </form>
 
-                {/* MISSION INSTRUCTION TEXT */}
-                <div className="mb-4 pl-2 flex justify-start">
-                    <p className={`text-[0.65rem] md:text-[0.75rem] font-mono font-bold tracking-widest uppercase animate-pulse transition-colors duration-300 ${(hoveredLens || lens) === 'vault' ? 'text-blue-400' : (hoveredLens || lens) === 'tools' ? 'text-orange-500' : 'text-amber-500'}`}>
-                        {(() => {
-                            const target = hoveredLens || lens;
-                            if (target === 'radar') return "/// TARGET: RISK DETECTION & NEGOTIATION DATA";
-                            if (target === 'vault') return "/// TARGET: ASSET EQUITY & PRESERVATION PROOF";
-                            if (target === 'tools') return "/// TARGET: LOGBOOK OCR & COMPLIANCE WORKBENCH";
-                            return "/// SELECT MISSION PROFILE TO INITIALIZE SCAN";
-                        })()}
+                {/* Clear Role Selection Header */}
+                <div className="text-center mb-6">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                        Choose Your Role
+                    </h2>
+                    <p className="text-slate-400 text-sm md:text-base">
+                        Select how you're using this aircraft to get tailored insights
                     </p>
                 </div>
 
-                {/* MISSION ICONS - Separated with mt-4 */}
-                <div className="flex justify-center gap-3 md:gap-4 mt-4">
+                {/* Role Selection Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     {lenses.map((l) => (
                         <button
                             key={l.id}
-                            type="button"
+                            onClick={() => setLens(l.id)}
                             onMouseEnter={() => setHoveredLens(l.id)}
                             onMouseLeave={() => setHoveredLens(null)}
-                            onClick={() => {
-                                setLens(l.id);
-                                // Blur input to prevent keyboard from covering icons on mobile
-                                const input = document.querySelector('input[type="text"]');
-                                if (input) input.blur();
+                            className={`relative p-6 rounded-2xl transition-all duration-300 ${lens === l.id
+                                ? 'bg-slate-800/80 ring-2 scale-105'
+                                : 'bg-slate-900/50 hover:bg-slate-800/60'
+                                }`}
+                            style={{
+                                ringColor: lens === l.id ? l.color : undefined,
+                                boxShadow: lens === l.id ? `0 0 40px ${l.color}30` : undefined
                             }}
-                            className={`flex flex-col items-center gap-2 p-4 rounded-2xl min-w-[100px] md:min-w-[120px] transition-all duration-300 ${lens === l.id ? `${l.bgColor} bg-opacity-20 ring-2 ring-${l.color.split('-')[1]}-500` : 'bg-slate-900/50 hover:bg-slate-900/80'}`}
                         >
-                            <l.icon className={`w-8 h-8 md:w-10 md:h-10 ${lens === l.id ? l.color : 'text-slate-400'} transition-colors`} />
-                            <span className={`text-xs md:text-sm font-bold uppercase tracking-wider ${lens === l.id ? 'text-white' : 'text-slate-500'}`}>
-                                {l.label}
-                            </span>
+                            <div className="flex flex-col items-center text-center">
+                                {lens === l.id && (
+                                    <div className="absolute top-4 right-4 px-3 py-1 bg-white text-black text-xs font-bold rounded-full">
+                                        ✓ SELECTED
+                                    </div>
+                                )}
+                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${l.gradient} flex items-center justify-center mb-4 shadow-lg`}
+                                    style={{ background: `linear-gradient(135deg, ${l.color}, ${l.color}dd)` }}>
+                                    <l.icon className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-2">{l.label}</h3>
+                                <p className="text-sm text-slate-400 mb-4">{l.description}</p>
+                                <div className="flex flex-col gap-2 w-full">
+                                    {l.features.map((feature, idx) => (
+                                        <div key={idx} className="text-xs text-slate-500 flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full bg-slate-600"></div>
+                                            {feature}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </button>
                     ))}
                 </div>
 
-                {/* REGULATORY AUTHORITY BADGES */}
-                <div className="mt-8 md:mt-12 flex flex-wrap justify-center items-center gap-4 md:gap-6 opacity-30 hover:opacity-50 transition-all duration-700 grayscale">
-                    {/* Transport Canada */}
-                    <div className="flex flex-col items-center gap-1 group cursor-pointer">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-105 transition-transform">
-                            <div className="text-center">
-                                <div className="text-slate-300 font-black text-[8px] md:text-[9px] leading-tight">TC</div>
-                                <div className="text-slate-400 text-[5px] md:text-[6px] font-bold">CANADA</div>
+                {/* Authority Badges */}
+                <div className="flex flex-wrap justify-center items-center gap-6 opacity-40 hover:opacity-60 transition-all duration-500">
+                    {['TC', 'FAA', 'NTSB', 'TSB', 'NAV'].map((authority) => (
+                        <div key={authority} className="flex flex-col items-center gap-1 group cursor-pointer">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-110 transition-transform">
+                                <div className="text-slate-300 font-black text-xs">{authority}</div>
                             </div>
                         </div>
-                        <span className="text-[7px] md:text-[8px] font-mono text-slate-500 uppercase tracking-wider">Transport</span>
-                    </div>
-
-                    {/* FAA */}
-                    <div className="flex flex-col items-center gap-1 group cursor-pointer">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-105 transition-transform">
-                            <div className="text-center">
-                                <div className="text-slate-300 font-black text-[9px] md:text-[10px] leading-tight">FAA</div>
-                                <div className="text-slate-400 text-[5px] md:text-[6px] font-bold">USA</div>
-                            </div>
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-mono text-slate-500 uppercase tracking-wider">Aviation</span>
-                    </div>
-
-                    {/* NTSB */}
-                    <div className="flex flex-col items-center gap-1 group cursor-pointer">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-105 transition-transform">
-                            <div className="text-center">
-                                <div className="text-slate-300 font-black text-[8px] md:text-[9px] leading-tight">NTSB</div>
-                                <div className="text-slate-400 text-[5px] md:text-[6px] font-bold">SAFETY</div>
-                            </div>
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-mono text-slate-500 uppercase tracking-wider">Safety</span>
-                    </div>
-
-                    {/* TSB Canada */}
-                    <div className="flex flex-col items-center gap-1 group cursor-pointer">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-105 transition-transform">
-                            <div className="text-center">
-                                <div className="text-slate-300 font-black text-[8px] md:text-[9px] leading-tight">TSB</div>
-                                <div className="text-slate-400 text-[5px] md:text-[6px] font-bold">CANADA</div>
-                            </div>
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-mono text-slate-500 uppercase tracking-wider">TSB</span>
-                    </div>
-
-                    {/* NAV CANADA */}
-                    <div className="flex flex-col items-center gap-1 group cursor-pointer">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border border-slate-600/30 shadow-sm group-hover:scale-105 transition-transform">
-                            <div className="text-center">
-                                <div className="text-slate-300 font-black text-[7px] md:text-[8px] leading-tight">NAV</div>
-                                <div className="text-slate-400 text-[5px] md:text-[6px] font-bold">CANADA</div>
-                            </div>
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-mono text-slate-500 uppercase tracking-wider">Nav</span>
-                    </div>
+                    ))}
                 </div>
-
             </div>
         </div>
     );

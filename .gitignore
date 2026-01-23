@@ -36,3 +36,6 @@ database/*.zip
 database/*.txt
 database/faa_data
 database/ntsb_data
+
+# Local Netlify folder
+.netlify

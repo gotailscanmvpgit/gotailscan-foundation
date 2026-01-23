@@ -13,7 +13,16 @@ CREATE INDEX IF NOT EXISTS idx_manufacturer_codes_code ON manufacturer_codes(cod
 ALTER TABLE manufacturer_codes ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read access
-CREATE POLICY "Allow public read access" ON manufacturer_codes FOR SELECT USING (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'manufacturer_codes' 
+        AND policyname = 'Allow public read access'
+    ) THEN
+        CREATE POLICY "Allow public read access" ON manufacturer_codes FOR SELECT USING (true);
+    END IF;
+END $$;
 
 -- Initial Seed Data from the hardcoded list
 INSERT INTO manufacturer_codes (code, make_model, manufacturer) VALUES

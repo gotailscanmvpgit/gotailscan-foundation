@@ -202,11 +202,15 @@ export default function SellerDashboardStandalone() {
     };
 
     const cardStyle = {
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '12px',
-        padding: '24px'
+        background: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(59, 130, 246, 0.2)',
+        borderRadius: '16px',
+        padding: '28px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(59, 130, 246, 0.1)',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+        overflow: 'hidden'
     };
 
     return (

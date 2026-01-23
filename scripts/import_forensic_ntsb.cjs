@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 const AdmZip = require('adm-zip'); // Added for ZIP handling
+const { Readable } = require('stream'); // Added for stream handling
 const { createClient } = require('@supabase/supabase-js');
 
 // --- CONFIGURATION ---
