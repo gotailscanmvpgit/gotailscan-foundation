@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { resolveMakeModel, isCleanMakeModel } from '../utils/makeModelResolver';
 import CircularGauge from './CircularGauge';
 import PillarBar from './PillarBar';
+import HangarDoorModal from './HangarDoorModal';
 
 export default function MinimalBuyerTest() {
     const navigate = useNavigate();
@@ -16,13 +17,31 @@ export default function MinimalBuyerTest() {
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
     const [resolvedMakeModel, setResolvedMakeModel] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [guestHistory, setGuestHistory] = useState([]);
+
+    // Load guest history
+    useEffect(() => {
+        const stored = localStorage.getItem('guest_searches');
+        if (stored) setGuestHistory(JSON.parse(stored));
+    }, []);
 
     // Auto-scan on mount if parameters exist
     useEffect(() => {
         const tail = searchParams.get('tail');
         const autostart = searchParams.get('autostart');
+
+        // Initial limit check for autostart
+        const stored = localStorage.getItem('guest_searches');
+        const history = stored ? JSON.parse(stored) : [];
+
         if (tail && autostart === 'true') {
-            handleScan(tail);
+            if (history.length >= 3) {
+                setLoading(false);
+                setIsModalOpen(true);
+            } else {
+                handleScan(tail);
+            }
         } else {
             setLoading(false); // Reset if not valid
         }
@@ -32,10 +51,26 @@ export default function MinimalBuyerTest() {
         const targetTail = overrideTail || tailNumber;
         if (!targetTail?.trim()) return;
 
+        // CHECK SEARCH GATE
+        const stored = localStorage.getItem('guest_searches');
+        const history = stored ? JSON.parse(stored) : [];
+        if (history.length >= 3) {
+            setIsModalOpen(true);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
+            // Track search attempt
+            if (!history.includes(targetTail)) {
+                const newHistory = [...history, targetTail];
+                localStorage.setItem('guest_searches', JSON.stringify(newHistory));
+                setGuestHistory(newHistory);
+            }
+
             // Dynamic import - scraperService is a named export
             const module = await import('../services/scraperService');
             console.log('[MinimalBuyerTest] Scanning with route:', { origin, destination, payloadWeight });
@@ -544,6 +579,7 @@ export default function MinimalBuyerTest() {
                     </div>
                 )}
             </div>
+            <HangarDoorModal isOpen={isModalOpen} searchHistory={guestHistory} />
         </div >
     );
 }

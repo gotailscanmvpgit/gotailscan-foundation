@@ -7,7 +7,30 @@ import MechanicDashboardStandalone from './components/MechanicDashboardStandalon
 import VerificationGrid from './components/VerificationGrid';
 import './index.css';
 
+import { useEffect } from 'react';
+import { supabase } from './lib/supabaseClient';
+
 function App() {
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // SYNC GUEST HISTORY
+        const guestHistory = localStorage.getItem('guest_searches');
+        if (guestHistory) {
+          const history = JSON.parse(guestHistory);
+          if (history.length > 0) {
+            console.log('[Auth] Syncing guest history to user account:', history);
+            // TODO: Call backend to persist history: supabase.from('user_searches').insert(...)
+          }
+          // Clear guest limit to unlock dashboard
+          localStorage.removeItem('guest_searches');
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <Router>
       <div className="min-h-screen bg-background">

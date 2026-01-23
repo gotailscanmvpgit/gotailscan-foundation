@@ -158,9 +158,15 @@ export default function RoleGateway() {
                     </div>
 
                     {/* Tagline */}
-                    <p className="text-xl md:text-2xl text-slate-400 font-light mb-6">
-                        Aviation Intelligence Platform
-                    </p>
+                    <div className="flex flex-col items-center gap-3 mb-6">
+                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold tracking-widest flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            ENTERPRISE DB V2.0 ONLINE
+                        </div>
+                        <p className="text-xl md:text-3xl text-slate-300 font-light">
+                            Global Aviation Forensic Intelligence
+                        </p>
+                    </div>
 
                     {/* Value Props */}
                     <div className="flex flex-wrap justify-center gap-4 md:gap-6 mb-8">
@@ -192,7 +198,7 @@ export default function RoleGateway() {
                             onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
-                            placeholder="ENTER TAIL NUMBER..."
+                            placeholder="ENTER TAIL, MODEL, OR SERIAL..."
                             className="flex-1 bg-transparent border-none outline-none text-2xl md:text-3xl font-bold text-white placeholder-slate-600 font-mono tracking-wider caret-white"
                             autoFocus
                         />

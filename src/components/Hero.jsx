@@ -526,9 +526,9 @@ const Hero = () => {
                 </motion.div>
 
                 <p className="text-gray-400 text-lg md:text-xl font-medium mb-12 max-w-2xl mx-auto leading-relaxed opacity-90">
-                    The elite technical scanner for <span className="text-white font-black">Aircraft Forensics</span>. Syncing real-time intelligence across <span className="text-white font-black italic">24 Civil Registries</span> and global safety data pools.
+                    The elite technical scanner for <span className="text-white font-black">Aircraft Forensics</span>. Powered by <span className="text-accent font-black">Enterprise DB v2.0</span> with Neural Search Vectors.
                     <br />
-                    <span className="text-xs uppercase tracking-[0.5em] text-accent font-bold mt-4 block">Type any tail number. We find the truth.</span>
+                    <span className="text-xs uppercase tracking-[0.3em] text-white/50 font-bold mt-4 block">Search by Tail Number, Manufacturer, or Owner.</span>
                 </p>
 
 
@@ -556,7 +556,7 @@ const Hero = () => {
                         <div className={`flex items-center backdrop-blur-xl border-[1.5px] transition-all duration-500 rounded-xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8)] ${searching ? (searchMode === 'ai' ? 'border-violet-500 animate-pulse shadow-[0_0_50px_rgba(124,58,237,0.4)] bg-black/90' : 'border-accent animate-pulse shadow-[0_0_50px_rgba(255,95,31,0.4)] bg-black/90') : isInputFocused ? (searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_40px_rgba(124,58,237,0.2)] bg-black/80' : 'border-accent shadow-[0_0_40px_rgba(255,95,31,0.2)] bg-black/80') : 'border-white/10 bg-black/40'} `}>
                             <input
                                 type="text"
-                                placeholder={searchMode === 'ai' ? "DESCRIBE THE AIRCRAFT OR INCIDENT..." : "SEARCH A TAIL NUMBER"}
+                                placeholder={searchMode === 'ai' ? "DESCRIBE THE AIRCRAFT OR INCIDENT..." : "ENTER TAIL #, MODEL, OR OWNER..."}
                                 value={nNumber}
                                 onFocus={() => setIsInputFocused(true)}
                                 onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
@@ -564,7 +564,7 @@ const Hero = () => {
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') handleSearch();
                                 }}
-                                className="w-full h-16 bg-transparent border-none text-white font-black text-2xl md:text-3xl placeholder:text-white/10 text-center focus:outline-none uppercase tracking-tighter"
+                                className="w-full h-16 bg-transparent border-none text-white font-black text-2xl md:text-3xl placeholder:text-white/20 text-center focus:outline-none uppercase tracking-tighter"
                             />
 
                             {/* Voice Dictation Button */}

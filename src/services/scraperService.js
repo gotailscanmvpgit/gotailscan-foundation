@@ -577,11 +577,14 @@ export const scraperService = {
                 setTimeout(() => reject(new Error('Query timeout')), 3000)
             );
 
-            // Optimized query using UPPER() to leverage index
+            // Optimized query using Full-Text Search (GIN Index)
+            // Matches "Cessna", "N123", "Google", etc.
+            const ftsQuery = upQuery.trim().split(/\s+/).map(w => `${w}:*`).join(' & ');
+
             const queryPromise = supabase
                 .from('aircraft_registry')
                 .select('n_number, name, mfr_mdl_code')
-                .or(`n_number.ilike.${upQuery}%,n_number.ilike.N${upQuery}%`)
+                .textSearch('search_vector', ftsQuery)
                 .limit(8)
                 .abortSignal(AbortSignal.timeout(3000)); // Built-in timeout
 
