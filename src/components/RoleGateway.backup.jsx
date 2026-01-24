@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff, Terminal, Shield, Database } from 'lucide-react';
+import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import xrayImage from '../assets/xray.png';
 
@@ -15,7 +15,7 @@ export default function RoleGateway() {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
 
-    // Track mouse for gradient effect (Original Logic)
+    // Track mouse for gradient effect
     useEffect(() => {
         const handleMouseMove = (e) => {
             setMousePosition({ x: e.clientX, y: e.clientY });
@@ -42,28 +42,61 @@ export default function RoleGateway() {
         navigateToRole();
     };
 
-    // Original Lens Data (Restored for Colors/Gradient Logic) but with updated Labels if needed
+    const handleCameraOpen = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+            setShowCamera(true);
+        } catch (err) {
+            console.error('Camera access denied:', err);
+            alert('Camera access is required. Please enable camera permissions.');
+        }
+    };
+
+    const handleCameraClose = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+        }
+        setShowCamera(false);
+    };
+
+    const handleCapture = () => {
+        alert('Logbook page captured! OCR processing would start here.');
+        handleCameraClose();
+    };
+
     const lenses = [
         {
             id: 'radar',
             icon: Radar,
-            label: 'Buyer Audit',
+            label: 'Buyer',
             color: '#10b981',
-            desc: 'Risk Analysis & Forensic History'
+            gradient: 'from-emerald-500 to-teal-600',
+            description: 'Risk Detection & Due Diligence',
+            features: ['Accident History', 'Maintenance Gaps', 'Value Analysis']
         },
         {
             id: 'vault',
             icon: TrendingUp,
-            label: 'Seller Valuation',
+            label: 'Seller',
             color: '#3b82f6',
-            desc: 'Market Equity & Liquidity'
+            gradient: 'from-blue-500 to-indigo-600',
+            description: 'Asset Equity & Market Position',
+            features: ['Valuation Report', 'Market Insights', 'Listing Optimization']
         },
         {
             id: 'tools',
             icon: Wrench,
-            label: 'Mechanic Log',
+            label: 'Mechanic',
             color: '#f97316',
-            desc: 'Maintenance Compliance'
+            gradient: 'from-orange-500 to-amber-600',
+            description: 'Logbook OCR & Compliance',
+            features: ['Digital Logbooks', 'AD Compliance', 'Inspection Tracking']
         }
     ];
 
@@ -111,7 +144,7 @@ export default function RoleGateway() {
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center relative overflow-x-hidden">
 
-            {/* Premium Background Effects (Original) */}
+            {/* Premium Background Effects */}
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
                 <div
@@ -127,7 +160,7 @@ export default function RoleGateway() {
             {/* Main Hero & Console Section */}
             <div className="relative z-10 w-full max-w-6xl px-4 flex flex-col items-center">
 
-                {/* Hero Section (Original) */}
+                {/* Hero Section */}
                 <div className="text-center pt-16 md:pt-24 pb-8 md:pb-12 animate-fade-in-down w-full">
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6 md:mb-8">
                         <div className="flex items-center gap-2">
@@ -145,61 +178,56 @@ export default function RoleGateway() {
                     </div>
                 </div>
 
-                {/* Intelligence Console (COCKPIT MODE) */}
-                <div className="w-full max-w-4xl mb-24 md:mb-32 cockpit-panel rounded-[30px] md:rounded-[40px] p-4 md:p-6 shadow-3xl relative overflow-hidden">
+                {/* Intelligence Console */}
+                <div className="w-full max-w-4xl mb-24 md:mb-32 bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-[30px] md:rounded-[40px] p-3 md:p-4 shadow-3xl">
+                    <form onSubmit={handleSearchSubmit} className="relative w-full mb-4 md:mb-6">
+                        <div className={`relative h-20 md:h-32 flex items-center bg-black/60 border-2 rounded-[24px] md:rounded-[30px] px-6 md:px-12 transition-all duration-500 ${isFocused ? `border-${activeLens.color}-500` : 'border-slate-800'}`}
+                            style={{
+                                borderColor: isFocused ? activeLens.color : undefined,
+                                boxShadow: isFocused ? `0 0 60px ${activeLens.color}30` : '0 0 20px rgba(0,0,0,0.5)'
+                            }}>
+                            <input
+                                type="text"
+                                value={tailNumber}
+                                onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                placeholder="N-NUMBER..."
+                                className="flex-1 bg-transparent border-none outline-none text-2xl md:text-6xl font-black text-white placeholder-slate-900 font-mono tracking-tighter cursor-text min-w-0"
+                                autoFocus
+                            />
 
-                    {/* Cockpit Glare Effect */}
-                    <div className="absolute inset-x-0 top-0 h-[1px] bg-white/20 z-20"></div>
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_70%)] pointer-events-none"></div>
+                            <Button
+                                type="submit"
+                                className="h-12 md:h-20 px-4 md:px-12 rounded-xl md:rounded-[24px] bg-white text-black hover:bg-slate-200 transition-all active:scale-95 ml-2"
+                            >
+                                <ArrowRight className="w-6 h-6 md:w-8 md:h-8" />
+                            </Button>
+                        </div>
+                    </form>
 
-                    {/* NEW: Command Input Style (Avionics) */}
-                    <div className="mb-6 relative z-10">
-                        <label className="text-[10px] font-mono amber-glow uppercase tracking-widest mb-2 block flex items-center gap-2">
-                            <Terminal className="w-3 h-3 text-amber-400" /> FLIGHT_MANAGEMENT_SYSTEM (FMS)
-                        </label>
-                        <form onSubmit={handleSearchSubmit} className="relative group">
-                            <div className="relative flex items-center bg-black/80 border border-amber-500/30 rounded-lg p-1 shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
-                                <span className="pl-4 text-amber-500 font-mono text-xl animate-pulse">{'>'}</span>
-                                <input
-                                    type="text"
-                                    value={tailNumber}
-                                    onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
-                                    onFocus={() => setIsFocused(true)}
-                                    onBlur={() => setIsFocused(false)}
-                                    placeholder="ENTER_TAIL_NO..."
-                                    className="w-full bg-transparent border-none text-amber-100 font-mono text-xl lg:text-3xl p-4 focus:outline-none uppercase placeholder:text-amber-900/50"
-                                    autoFocus
-                                />
-                                <Button type="submit" className="bg-amber-600/90 hover:bg-amber-500 text-black font-black font-mono uppercase tracking-widest h-auto py-3 px-6 rounded-md border-l border-amber-500/50">
-                                    INITIALIZE
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* NEW: Mode Selection Keys Style (Avionics Buttons) */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 relative z-10">
+                    <div className="grid grid-cols-3 gap-2 md:gap-4">
                         {lenses.map((l) => (
                             <button
                                 key={l.id}
-                                onClick={() => { setLens(l.id); navigateToRole(l.id); }}
-                                className={`relative p-4 border rounded-lg text-left transition-all group overflow-hidden ${lens === l.id
-                                    ? `border-amber-500/50 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.2)]`
-                                    : 'border-white/5 hover:border-white/20 bg-black/40'
+                                onClick={() => navigateToRole(l.id)}
+                                onMouseEnter={() => { setHoveredLens(l.id); setLens(l.id); }}
+                                className={`relative p-3 sm:p-6 md:p-10 rounded-2xl md:rounded-[28px] transition-all duration-500 flex flex-col items-center gap-2 md:gap-4 border-2 ${lens === l.id
+                                    ? 'bg-white text-black border-transparent scale-[1.02] md:scale-[1.05] shadow-2xl'
+                                    : 'bg-slate-900/40 text-slate-500 border-transparent hover:border-white/10 hover:text-white'
                                     }`}
                             >
-                                <div className="flex items-center justify-between mb-2">
-                                    <l.icon className={`w-5 h-5 ${lens === l.id ? 'text-amber-400' : 'text-slate-600'}`} />
-                                    {lens === l.id && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse box-shadow-[0_0_5px_#f59e0b]"></div>}
-                                </div>
-                                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${lens === l.id ? 'text-amber-100' : 'text-slate-400'}`}>{l.label}</div>
-                                <div className="text-[9px] text-amber-500/60 font-mono uppercase leading-tight">{l.desc}</div>
+                                <l.icon className={`w-5 h-5 md:w-10 md:h-10 ${lens === l.id ? 'text-black' : 'opacity-40'}`} />
+                                <span className="text-[10px] md:text-xl font-black uppercase tracking-widest">{l.label}</span>
+                                {lens === l.id && (
+                                    <div className="absolute -top-1 -right-1 w-2 h-2 md:w-4 md:h-4 bg-black rounded-full border-2 border-white animate-pulse"></div>
+                                )}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* THE 4 PILLARS SECTION (Original) */}
+                {/* THE 4 PILLARS SECTION */}
                 <div className="w-full mb-32 md:mb-48 pt-12 md:pt-24 border-t border-white/5">
                     <div className="mb-16 md:mb-24 text-center">
                         <h2 className="text-3xl md:text-6xl font-black text-white tracking-tighter uppercase italic mb-4 md:mb-6 px-4">
@@ -246,40 +274,31 @@ export default function RoleGateway() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-2 md:px-0">
                         {pillars.map((p, idx) => (
-                            <div key={idx} className="group relative p-6 md:p-12 rounded-[24px] md:rounded-[40px] cockpit-panel border-[0.5px] border-white/10 hover:border-amber-500/30 transition-all duration-500 overflow-hidden shadow-2xl">
-                                {/* Glass Glare */}
-                                <div className="absolute inset-x-0 top-0 h-[1px] bg-white/10 z-20"></div>
-                                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.02)_0%,transparent_100%)] pointer-events-none"></div>
+                            <div key={idx} className="group relative p-6 md:p-12 rounded-[24px] md:rounded-[40px] bg-slate-900/40 border border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5 transition-all" style={{ background: `linear-gradient(135deg, ${p.color}, transparent)` }}></div>
 
-                                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-all" style={{ background: `linear-gradient(135deg, ${p.color}, transparent)` }}></div>
-
-                                <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8 relative z-10">
-                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center relative shrink-0 bg-black/50 border border-white/10 shadow-inner">
+                                <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center relative shrink-0" style={{ background: `${p.color}20` }}>
                                         <p.icon className="w-6 h-6 md:w-8 md:h-8" style={{ color: p.color }} />
+                                        <div className="absolute inset-0 rounded-xl md:rounded-2xl blur-lg opacity-40" style={{ background: p.color }}></div>
                                     </div>
                                     <div>
-                                        <div className="text-[8px] md:text-[10px] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1 text-slate-500 group-hover:text-amber-500/80 transition-colors">{p.subtitle}</div>
-                                        <h4 className="text-xl md:text-3xl font-registration text-white uppercase tracking-wider">{p.title}</h4>
+                                        <div className="text-[8px] md:text-[10px] font-black tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1" style={{ color: p.color }}>{p.subtitle}</div>
+                                        <h4 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter">{p.title}</h4>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 md:space-y-6 relative z-10">
-                                    <p className="text-lg md:text-xl font-mono text-slate-300">{p.pitch}</p>
+                                    <p className="text-lg md:text-xl font-bold text-white italic">{p.pitch}</p>
 
-                                    <div className="p-4 rounded-xl md:rounded-2xl bg-black/60 border border-white/5 relative overflow-hidden">
-                                        {/* Tech Corner Accent */}
-                                        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-amber-500/30"></div>
-                                        <span className="text-[9px] md:text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                            <Database className="w-3 h-3" /> The Intelligence Source
-                                        </span>
-                                        <p className="text-xs md:text-sm text-slate-400 font-mono leading-relaxed">{p.data}</p>
+                                    <div className="p-4 rounded-xl md:rounded-2xl bg-black/40 border border-white/5">
+                                        <span className="text-[9px] md:text-[10px] font-black text-slate-500 tracking-widest uppercase mb-2 block">The Intelligence Source</span>
+                                        <p className="text-xs md:text-sm text-slate-300 leading-relaxed">{p.data}</p>
                                     </div>
 
-                                    <div className="p-4 rounded-xl md:rounded-2xl bg-amber-900/10 border border-amber-500/10">
-                                        <span className="text-[9px] md:text-[10px] font-mono text-amber-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                            <Shield className="w-3 h-3" /> Forensic Value
-                                        </span>
-                                        <p className="text-xs md:text-sm text-amber-100 font-mono leading-relaxed">{p.value}</p>
+                                    <div className="p-4 rounded-xl md:rounded-2xl bg-white/5">
+                                        <span className="text-[9px] md:text-[10px] font-black text-emerald-500 tracking-widest uppercase mb-2 block">Forensic Value</span>
+                                        <p className="text-xs md:text-sm text-slate-100 font-bold leading-relaxed">{p.value}</p>
                                     </div>
                                 </div>
                             </div>
@@ -287,7 +306,7 @@ export default function RoleGateway() {
                     </div>
                 </div>
 
-                {/* Final CTA (Original) */}
+                {/* Final CTA */}
                 <div className="w-full max-w-2xl text-center pb-24 md:pb-48 px-4">
                     <h5 className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em] mb-6 md:mb-8">Ready to audit?</h5>
                     <button
