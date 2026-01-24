@@ -69,13 +69,11 @@ export default function AircraftAssetCard({ search, onClick }) {
             }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
+            className={`internal-card ${status === 'BLOCKED' ? 'internal-card-destructive' : isSellerMode ? 'internal-card-blue' : 'internal-card-emerald'}`}
             style={{
-                background: bgGradient,
-                border: `1px solid ${borderColor}`,
-                borderRadius: '16px',
                 padding: '20px',
                 cursor: 'pointer',
-                transition: 'border-color 0.2s',
+                transition: 'all 0.3s ease',
                 position: 'relative',
                 overflow: 'hidden'
             }}

@@ -420,27 +420,12 @@ export default function SellerDashboardStandalone() {
     return resolvedMakeModel.make_model;
   };
 
-  const cardStyle = {
-    background: "rgba(15, 23, 42, 0.6)",
-    backdropFilter: "blur(20px)",
-    border: "1px solid rgba(59, 130, 246, 0.2)",
-    borderRadius: "16px",
-    padding: "28px",
-    boxShadow:
-      "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(59, 130, 246, 0.1)",
-    transition: "all 0.3s ease",
-    position: "relative",
-    overflow: "hidden",
-  };
+  const internalCardClass = "internal-card p-7 relative overflow-hidden transition-all duration-300";
+  const internalCardBlueClass = `${internalCardClass} internal-card-blue`;
+  const cardStyle = {}; // Prevent ReferenceError
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "linear-gradient(to bottom right, #1e3a8a, #0f172a, #020617)",
-      }}
-    >
+    <div className="cockpit-container">
       {/* Minimalist Premium Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/90 backdrop-blur-2xl animate-fade-in transition-all">
@@ -532,9 +517,9 @@ export default function SellerDashboardStandalone() {
                 Seller Mode
               </div>
               <h1
+                className="font-registration"
                 style={{
                   fontSize: "20px",
-                  fontWeight: "900",
                   color: "white",
                   textTransform: "uppercase",
                   margin: 0,
@@ -643,7 +628,7 @@ export default function SellerDashboardStandalone() {
         )}
 
         {/* Search Bar */}
-        <div style={{ ...cardStyle, marginBottom: "32px" }}>
+        <div className={internalCardClass}>
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <input
               placeholder="Enter Your Aircraft Tail Number"
@@ -696,11 +681,9 @@ export default function SellerDashboardStandalone() {
           >
             {/* Hero Metric - Market Alpha */}
             <div
-              className="hero-card-layout"
+              className={`hero-card-layout ${internalCardBlueClass}`}
               style={{
-                ...cardStyle,
-                background: "rgba(59, 130, 246, 0.1)",
-                borderLeft: "4px solid #3b82f6",
+                borderLeftWidth: "4px",
               }}
             >
               <div className="gauge-container" style={{ flex: "0 0 auto" }}>
@@ -808,7 +791,7 @@ export default function SellerDashboardStandalone() {
               }}
             >
               {/* Price Shield */}
-              <div style={cardStyle}>
+              <div className={internalCardClass}>
                 <h3
                   style={{
                     fontSize: "20px",
@@ -880,7 +863,7 @@ export default function SellerDashboardStandalone() {
               </div>
 
               {/* TELEMETRY: MaintenanceAlpha */}
-              <div style={cardStyle}>
+              <div className={internalCardClass}>
                 <h3
                   style={{
                     fontSize: "20px",
@@ -1172,11 +1155,10 @@ export default function SellerDashboardStandalone() {
               {/* TELEMETRY: Certified Value Badge */}
               {certifiedBadge && (
                 <div
+                  className={internalCardBlueClass}
                   style={{
-                    ...cardStyle,
-                    background:
-                      "linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1))",
-                    border: "2px solid rgba(16, 185, 129, 0.4)",
+                    borderWidth: "2px",
+                    borderLeftColor: "#10b981"
                   }}
                 >
                   <div style={{ textAlign: "center", padding: "24px" }}>
@@ -1236,7 +1218,7 @@ export default function SellerDashboardStandalone() {
               )}
 
               {/* Market Demand */}
-              <div style={cardStyle}>
+              <div className={internalCardClass}>
                 <h3
                   style={{
                     fontSize: "20px",
@@ -1360,7 +1342,7 @@ export default function SellerDashboardStandalone() {
             </div>
 
             {/* Value Positioning */}
-            <div style={cardStyle}>
+            <div className={internalCardClass}>
               <h3
                 style={{
                   fontSize: "20px",

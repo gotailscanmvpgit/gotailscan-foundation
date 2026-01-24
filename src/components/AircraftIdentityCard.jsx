@@ -2,7 +2,7 @@ export default function AircraftIdentityCard({ aircraftDetails, cardStyle }) {
     if (!aircraftDetails) return null;
 
     return (
-        <div style={{ ...cardStyle, marginBottom: '24px', background: 'linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent)' }}>
+        <div className="internal-card p-7" style={{ marginBottom: '24px', ...cardStyle }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
                 <div style={{ fontSize: '24px' }}>✈️</div>
                 <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>AIRCRAFT IDENTITY</h3>

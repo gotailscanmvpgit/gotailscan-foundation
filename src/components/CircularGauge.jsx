@@ -104,10 +104,9 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12, mod
                     animate={{ y: 0, opacity: 1 }}
                     style={{
                         fontSize: `${size * 0.28}px`,
-                        fontWeight: '900',
                         color: 'white',
                         lineHeight: 1,
-                        fontFamily: 'Roboto Mono, monospace'
+                        fontFamily: '"Share Tech Mono", monospace'
                     }}
                 >
                     {displayScore}

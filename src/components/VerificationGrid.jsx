@@ -79,7 +79,7 @@ export default function VerificationGrid() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-slate-950 p-8">
+        <div className="cockpit-container p-8">
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <h1 className="text-3xl font-black text-white uppercase tracking-tighter">
@@ -102,21 +102,19 @@ export default function VerificationGrid() {
                         const isUnknown = displayModel.includes('Unknown') || displayModel.includes('Type (');
 
                         return (
-                            <Card key={item.n_number} className={`border-l-4 ${isUnknown ? 'border-l-red-500 border-white/10' : 'border-l-emerald-500 border-white/10'} bg-white/5`}>
-                                <CardContent className="p-4">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="text-lg font-black text-white">{item.n_number}</div>
-                                        <div className="text-xs text-gray-500">{item.year_mfr}</div>
-                                    </div>
-                                    <div className="text-[10px] uppercase text-gray-500 mb-1">Detected Model</div>
-                                    <div className={`font-bold text-sm ${isUnknown ? 'text-red-400' : 'text-emerald-300'}`}>
-                                        {displayModel}
-                                    </div>
-                                    <div className="mt-2 text-[9px] text-gray-600 font-mono truncate">
-                                        RAW: {item.mfr_mdl_code} / {item.eng_mfr_mdl}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <div key={item.n_number} className={`internal-card p-4 border-l-4 ${isUnknown ? 'border-l-red-500' : 'border-l-emerald-500'}`}>
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="text-lg font-registration text-white">{item.n_number}</div>
+                                    <div className="text-xs text-gray-500 font-mono">{item.year_mfr}</div>
+                                </div>
+                                <div className="text-[10px] uppercase text-gray-500 mb-1 font-mono">Detected Model</div>
+                                <div className={`font-bold text-sm ${isUnknown ? 'text-red-400' : 'text-emerald-300'}`}>
+                                    {displayModel}
+                                </div>
+                                <div className="mt-2 text-[9px] text-gray-600 font-mono truncate">
+                                    RAW: {item.mfr_mdl_code} / {item.eng_mfr_mdl}
+                                </div>
+                            </div>
                         );
                     })}
                 </div>

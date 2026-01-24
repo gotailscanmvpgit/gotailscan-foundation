@@ -105,17 +105,9 @@ export default function MechanicDashboardStandalone() {
     const analysis = getLogbookAnalysis();
     const checklist = getComplianceChecklist();
 
-    const cardStyle = {
-        background: 'rgba(15, 23, 42, 0.6)',
-        backdropFilter: 'blur(20px)',
-        border: '2px solid rgba(249, 115, 22, 0.3)',
-        borderRadius: '16px',
-        padding: '28px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(249, 115, 22, 0.1)',
-        transition: 'all 0.3s ease',
-        position: 'relative',
-        overflow: 'hidden'
-    };
+    const internalCardClass = "internal-card p-7 relative overflow-hidden transition-all duration-300";
+    const internalCardAmberClass = `${internalCardClass} internal-card-amber`;
+    const cardStyle = {}; // Prevent ReferenceError
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -128,7 +120,7 @@ export default function MechanicDashboardStandalone() {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
+        <div className="cockpit-container">
             {/* Header - Industrial Style */}
             <div style={{ borderBottom: '2px solid rgba(249, 115, 22, 0.3)', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 50 }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -138,7 +130,7 @@ export default function MechanicDashboardStandalone() {
                         </button>
                         <div style={{ borderLeft: '2px solid rgba(249, 115, 22, 0.3)', paddingLeft: '12px' }}>
                             <div style={{ fontSize: '9px', color: '#f97316', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>A&P MODE</div>
-                            <h1 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0, letterSpacing: '1px' }}>LOGBOOK AUDIT CONSOLE</h1>
+                            <h1 className="font-registration" style={{ fontSize: '18px', color: 'white', textTransform: 'uppercase', margin: 0, letterSpacing: '1px' }}>LOGBOOK AUDIT CONSOLE</h1>
                         </div>
                     </div>
                     <div style={{ padding: '4px 12px', background: 'rgba(249, 115, 22, 0.2)', border: '1px solid rgba(249, 115, 22, 0.4)', borderRadius: '4px', fontSize: '10px', color: '#f97316', fontWeight: 'bold' }}>
@@ -149,7 +141,7 @@ export default function MechanicDashboardStandalone() {
 
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
                 {/* Search/Upload Panel */}
-                <div style={{ ...cardStyle, marginBottom: '24px' }}>
+                <div className={internalCardClass}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
                         <div>
                             <label style={{ fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Aircraft Tail Number</label>
@@ -179,7 +171,7 @@ export default function MechanicDashboardStandalone() {
                         <AircraftIdentityCard aircraftDetails={result.aircraft_details} cardStyle={cardStyle} />
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                             {/* Logbook OCR Analysis */}
-                            <div style={cardStyle}>
+                            <div className={internalCardClass}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
                                     <div style={{ fontSize: '24px' }}>📄</div>
                                     <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>LOGBOOK ANALYSIS</h3>
@@ -234,7 +226,7 @@ export default function MechanicDashboardStandalone() {
                             </div>
 
                             {/* AD Compliance Checklist */}
-                            <div style={cardStyle}>
+                            <div className={internalCardClass}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
                                     <div style={{ fontSize: '24px' }}>⚙️</div>
                                     <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>AD COMPLIANCE</h3>
@@ -307,7 +299,7 @@ export default function MechanicDashboardStandalone() {
 
                 {/* Sign-Off Recommendation */}
                 {result && (
-                    <div style={{ ...cardStyle, marginTop: '24px' }}>
+                    <div className={internalCardClass} style={{ marginTop: '24px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
                             <div style={{ fontSize: '20px' }}>✓</div>
                             <h3 style={{ fontSize: '16px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>SIGN-OFF RECOMMENDATION</h3>

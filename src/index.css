@@ -78,6 +78,63 @@
   background-size: 40px 40px;
 }
 
+.cockpit-container {
+  min-height: 100vh;
+  background-color: #050505;
+  background-image:
+    radial-gradient(circle at center, rgba(16, 185, 129, 0.05) 0%, transparent 70%),
+    linear-gradient(to bottom, #050505, #0a0a0a);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.cockpit-container::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.internal-card {
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 0 20px rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.internal-card-accent {
+  border-top: 2px solid var(--primary);
+}
+
+.internal-card-emerald {
+  border-left: 3px solid #10b981;
+  background: linear-gradient(to right, rgba(16, 185, 129, 0.05), transparent);
+}
+
+.internal-card-blue {
+  border-left: 3px solid #3b82f6;
+  background: linear-gradient(to right, rgba(59, 130, 246, 0.05), transparent);
+}
+
+.internal-card-amber {
+  border-left: 3px solid #fbbf24;
+  background: linear-gradient(to right, rgba(251, 191, 36, 0.05), transparent);
+}
+
+.internal-card-destructive {
+  border-left: 3px solid #ef4444;
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.05), transparent);
+}
+
 /* Base Styles */
 @layer base {
   * {

@@ -443,26 +443,11 @@ export default function MinimalBuyerTest() {
     zIndex: 40,
   };
 
-  const cardStyle = {
-    background: "rgba(15, 23, 42, 0.6)",
-    backdropFilter: "blur(20px)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    borderRadius: "16px",
-    padding: "28px",
-    boxShadow:
-      "0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-    transition: "all 0.3s ease",
-    position: "relative",
-    overflow: "hidden",
-  };
+  const internalCardClass = "internal-card p-7 relative overflow-hidden transition-all duration-300";
+  const internalCardEmeraldClass = `${internalCardClass} internal-card-emerald`;
 
-  const premiumCardStyle = {
-    ...cardStyle,
-    background:
-      "linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6))",
-    boxShadow:
-      "0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
-  };
+  const cardStyle = {}; // Reset manual styles
+  const premiumCardStyle = { borderLeft: "4px solid #10b981" };
 
   const fadeInStyle = {
     animation: "fadeIn 0.6s ease-out",
@@ -490,13 +475,7 @@ export default function MinimalBuyerTest() {
   const derivedRiskLevel = derivedRiskScore > 60 ? "HIGH" : derivedRiskScore > 30 ? "MEDIUM" : "LOW";
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "linear-gradient(to bottom right, #020617, #0f172a, #020617)",
-      }}
-    >
+    <div className="cockpit-container">
       {/* History Sidebar */}
       {userHistory.length > 0 && (
         <div style={sidebarStyle} className="hidden md:block">
@@ -631,9 +610,9 @@ export default function MinimalBuyerTest() {
               }}
             >
               <div
+                className="emerald-glow"
                 style={{
                   fontSize: "10px",
-                  color: "#10b981",
                   fontWeight: "bold",
                   textTransform: "uppercase",
                   letterSpacing: "2px",
@@ -642,9 +621,9 @@ export default function MinimalBuyerTest() {
                 Buyer Mode
               </div>
               <h1
+                className="font-registration"
                 style={{
                   fontSize: "20px",
-                  fontWeight: "900",
                   color: "white",
                   textTransform: "uppercase",
                   margin: 0,
@@ -754,7 +733,7 @@ export default function MinimalBuyerTest() {
         )}
 
         {/* Search Bar */}
-        <div style={{ ...cardStyle, marginBottom: "32px" }}>
+        <div className={internalCardClass} style={{ marginBottom: "32px" }}>
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <input
               placeholder="Enter Tail Number (e.g., N12345 or C-GJED)"
@@ -807,16 +786,9 @@ export default function MinimalBuyerTest() {
           >
             {/* Hero Metric */}
             <div
-              className="hero-card-layout"
+              className={`hero-card-layout ${internalCardClass} ${derivedRiskLevel === "HIGH" ? "internal-card-destructive" : derivedRiskLevel === "MEDIUM" ? "internal-card-amber" : "internal-card-emerald"}`}
               style={{
-                ...cardStyle,
-                background:
-                  derivedRiskLevel === "HIGH"
-                    ? "rgba(239, 68, 68, 0.1)"
-                    : derivedRiskLevel === "MEDIUM"
-                      ? "rgba(234, 179, 8, 0.1)"
-                      : "rgba(16, 185, 129, 0.1)",
-                borderLeft: `4px solid ${derivedRiskLevel === "HIGH" ? "#ef4444" : derivedRiskLevel === "MEDIUM" ? "#eab308" : "#10b981"}`,
+                borderLeftWidth: "4px",
               }}
             >
               <div className="gauge-container" style={{ flex: "0 0 auto" }}>
@@ -847,9 +819,9 @@ export default function MinimalBuyerTest() {
                     Forensic Index
                   </div>
                   <h2
+                    className="font-registration"
                     style={{
                       fontSize: "36px",
-                      fontWeight: "900",
                       color: "white",
                       textTransform: "uppercase",
                       margin: 0,
@@ -959,7 +931,7 @@ export default function MinimalBuyerTest() {
               }}
             >
               {/* Red Flags */}
-              <div style={cardStyle}>
+              <div className={internalCardClass}>
                 <h3
                   style={{
                     fontSize: "20px",
@@ -1054,7 +1026,7 @@ export default function MinimalBuyerTest() {
               </div>
 
               {/* TELEMETRY: Salinity Index */}
-              <div style={cardStyle}>
+              <div className={internalCardClass}>
                 <h3
                   style={{
                     fontSize: "20px",
@@ -1185,20 +1157,9 @@ export default function MinimalBuyerTest() {
               {/* TELEMETRY: Dormancy/Utilization Monitor */}
               {dormancyAlert && (
                 <div
+                  className={`${internalCardClass} ${dormancyAlert.status === "WARNING" ? (dormancyAlert.severity === "CRITICAL" ? "internal-card-destructive" : "internal-card-amber") : "internal-card-emerald"}`}
                   style={{
-                    ...cardStyle,
-                    background:
-                      dormancyAlert.status === "WARNING"
-                        ? dormancyAlert.severity === "CRITICAL"
-                          ? "rgba(239, 68, 68, 0.1)"
-                          : "rgba(234, 179, 8, 0.1)"
-                        : "rgba(16, 185, 129, 0.1)",
-                    border: `2px solid ${dormancyAlert.status === "WARNING"
-                      ? dormancyAlert.severity === "CRITICAL"
-                        ? "rgba(239, 68, 68, 0.3)"
-                        : "rgba(234, 179, 8, 0.3)"
-                      : "rgba(16, 185, 129, 0.3)"
-                      }`,
+                    borderWidth: "2px",
                   }}
                 >
                   <div
@@ -1277,8 +1238,8 @@ export default function MinimalBuyerTest() {
               {/* [FORENSIC] Predictive Maintenance - Financial Shield */}
               {result.predictive_maintenance && (
                 <div
+                  className={internalCardClass}
                   style={{
-                    ...cardStyle,
                     background:
                       "linear-gradient(135deg, rgba(88, 28, 135, 0.15), rgba(0, 0, 0, 0.4))",
                     border: "1px solid rgba(139, 92, 246, 0.3)",
