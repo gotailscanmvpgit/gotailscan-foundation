@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Logo from './Logo';
 
 const Footer = () => {
     return (
@@ -34,14 +33,13 @@ const Footer = () => {
                 <div className="text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start mb-2 gap-2">
                         <div className="flex items-center gap-1.5">
-                            <div className="text-white font-avionics font-bold tracking-[0.2em] text-sm">
-                                goTail<span className="text-accent">Scan</span>
+                            <div className="flex items-center gap-1.5">
+                                <div className="text-white font-registration tracking-widest text-md">
+                                    goTailScan
+                                </div>
+                                <div className="w-1.5 h-4 bg-accent animate-pulse"></div>
                             </div>
-                            <motion.div
-                                animate={{ opacity: [1, 0, 1] }}
-                                transition={{ repeat: Infinity, duration: 0.8, ease: "steps(1)" }}
-                                className="w-1 h-4 bg-accent shadow-[0_0_10px_rgba(249,115,22,0.6)]"
-                            />
+
                         </div>
                     </div>
                     <div className="text-[10px] text-gray-500 font-medium tracking-wide italic">

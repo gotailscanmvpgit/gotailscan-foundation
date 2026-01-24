@@ -23,10 +23,9 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12, mod
     // Color based on mode and score
     const getColor = () => {
         if (mode === 'risk') {
-            // For Risk: Low (0-20) is Green, High (80-100) is Red
-            if (score <= 20) return { start: '#10b981', end: '#34d399' }; // Green
-            if (score <= 50) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
-            if (score <= 80) return { start: '#f97316', end: '#fb923c' }; // Orange
+            // For Risk: Low (0-30) is Green, Medium (31-60) is Yellow, High (>60) is Red
+            if (score <= 30) return { start: '#10b981', end: '#34d399' }; // Green
+            if (score <= 60) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
             return { start: '#ef4444', end: '#f87171' }; // Red
         } else {
             // For Fit: High (90-100) is Green, Low (0-40) is Red
@@ -126,7 +125,7 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12, mod
             </div>
 
             {/* Decorative Outer Ring pulse if high score/risk */}
-            {(mode === 'risk' && score > 70) || (mode === 'fit' && score > 90) ? (
+            {(mode === 'risk' && score > 60) || (mode === 'fit' && score > 90) ? (
                 <motion.div
                     animate={{
                         scale: [1, 1.1, 1],

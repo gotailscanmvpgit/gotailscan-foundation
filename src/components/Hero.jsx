@@ -6,7 +6,8 @@ import CircularGauge from './CircularGauge';
 import ValidationSection from './ValidationSection';
 import ValueProposition from './ValueProposition';
 import Pricing from './Pricing';
-import Logo from './Logo';
+import Pricing from './Pricing';
+import Pricing from './Pricing';
 import { Shield, AlertTriangle, Activity, Globe, Plane, Mic, Radar, Scan, Lock, ArrowRight, CheckCircle, Wrench, TrendingUp, Microscope, FolderSearch, FileText, Target, Brain, Search, ShieldCheck, Gavel, FileWarning } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -513,14 +514,14 @@ const Hero = () => {
                     animate={{ opacity: 1 }}
                     className="flex items-center justify-center mb-12 w-full font-mono"
                 >
-                    <div className="flex items-center gap-2 group cursor-default">
-                        <h1 className="text-2xl md:text-5xl font-black text-white tracking-tighter">
-                            goTail<span className="text-orange-500">Scan</span>
+                    <div className="flex items-center gap-3 group cursor-default">
+                        <h1 className="text-2xl md:text-4xl font-registration text-white tracking-widest flex items-center gap-1">
+                            goTailScan
                         </h1>
                         <motion.div
                             animate={{ opacity: [1, 0, 1] }}
-                            transition={{ repeat: Infinity, duration: 0.8, ease: "steps(1)" }}
-                            className="w-3 md:w-5 h-7 md:h-10 bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.6)]"
+                            transition={{ repeat: Infinity, duration: 1, ease: "steps(2)" }}
+                            className="w-2 h-6 md:h-8 bg-orange-500"
                         />
                     </div>
                 </motion.div>

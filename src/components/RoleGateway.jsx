@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Shield, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff } from 'lucide-react';
+import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import xrayImage from '../assets/xray.png';
 
@@ -163,12 +163,12 @@ export default function RoleGateway() {
                 {/* Hero Section */}
                 <div className="text-center pt-16 md:pt-24 pb-8 md:pb-12 animate-fade-in-down w-full">
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6 md:mb-8">
-                        <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-2xl shadow-emerald-500/50 md:rotate-3">
-                            <Shield className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-4xl sm:text-6xl md:text-7xl font-registration text-white tracking-widest text-center">
+                                goTailScan
+                            </h1>
+                            <div className="w-3 h-8 md:h-12 bg-emerald-500 animate-pulse"></div>
                         </div>
-                        <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-white tracking-tighter uppercase italic text-center">
-                            goTailScan
-                        </h1>
                     </div>
                     <div className="space-y-4 px-2">
                         <p className="text-xl md:text-3xl text-slate-300 font-light tracking-tight max-w-2xl mx-auto leading-tight">
@@ -322,4 +322,3 @@ export default function RoleGateway() {
         </div>
     );
 }
-

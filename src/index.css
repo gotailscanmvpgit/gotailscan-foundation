@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Outfit:wght@300;400;500;700;900&family=Share+Tech+Mono&display=swap');
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
@@ -11,6 +11,8 @@
   --color-warning: #FFBF00;
   --font-mono: "JetBrains Mono", "Roboto Mono", monospace;
   --font-avionics: "Michroma", sans-serif;
+  --font-modern: "Outfit", sans-serif;
+  --font-registration: "Share Tech Mono", monospace;
 }
 
 :root {
