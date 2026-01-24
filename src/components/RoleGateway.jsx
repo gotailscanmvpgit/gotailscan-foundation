@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff, Terminal, Shield, Database } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import xrayImage from '../assets/xray.png';
+import authorityLogos from '../assets/authority_logos.png';
+import Footer from './Footer';
 
 export default function RoleGateway() {
     const navigate = useNavigate();
@@ -228,17 +230,23 @@ export default function RoleGateway() {
                             <p className="text-lg md:text-xl text-slate-400 leading-relaxed font-light">
                                 goTailScan doesn't just read the logbooks—it reconstructs the aircraft's entire lifecycle using global multi-source data feeds.
                             </p>
-                            <div className="flex flex-wrap gap-4">
-                                <div className="flex -space-x-2 md:-space-x-3">
-                                    {['FAA', 'NTSB', 'CADORS', 'SDR'].map((lbl, i) => (
-                                        <div key={i} className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-800 border-2 border-slate-950 flex items-center justify-center text-[8px] md:text-[10px] font-black text-white shadow-xl">
-                                            {lbl}
+                            <div className="flex flex-wrap gap-3 mt-6">
+                                <div className="flex -space-x-2">
+                                    {[
+                                        { lbl: 'FAA', bg: 'bg-[#003366]', border: 'border-blue-400/30' },
+                                        { lbl: 'NTSB', bg: 'bg-[#1a1a1a]', border: 'border-amber-500/50' },
+                                        { lbl: 'TCCA', bg: 'bg-[#880000]', border: 'border-red-500/40' },
+                                        { lbl: 'EASA', bg: 'bg-[#003399]', border: 'border-yellow-400/40' },
+                                        { lbl: 'CAA', bg: 'bg-[#002244]', border: 'border-sky-400/30' }
+                                    ].map((agency, i) => (
+                                        <div key={i} className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${agency.bg} border ${agency.border} flex items-center justify-center text-[8px] md:text-[9px] font-black text-white shadow-lg z-${10 - i} hover:z-20 hover:scale-110 transition-transform cursor-help`} title={agency.lbl}>
+                                            {agency.lbl}
                                         </div>
                                     ))}
                                 </div>
                                 <div className="ml-4 flex flex-col justify-center">
-                                    <span className="text-white font-black text-sm tracking-widest">LIVE FEEDS</span>
-                                    <span className="text-emerald-500 text-xs font-bold animate-pulse">SECURE CONNECTION ESTABLISHED</span>
+                                    <span className="text-white font-mono text-[10px] tracking-widest">LIVE FEEDS</span>
+                                    <span className="text-emerald-500 text-[9px] font-bold animate-pulse">SECURE CONNECTION</span>
                                 </div>
                             </div>
                         </div>
@@ -298,8 +306,8 @@ export default function RoleGateway() {
                     </button>
                     <p className="mt-6 md:mt-8 text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-widest leading-relaxed">No Credit Card Required<br className="md:hidden" /> for Guest Forensic Lookup</p>
                 </div>
-
             </div>
+            <Footer />
         </div>
     );
 }
