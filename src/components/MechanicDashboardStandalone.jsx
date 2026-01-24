@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import SplitScreenComparison from './SplitScreenComparison';
 import AircraftIdentityCard from './AircraftIdentityCard';
+import { logbookOCRService } from '../services/logbookOCRService';
+
+const Badge = ({ children, className }) => (
+    <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${className}`}>
+        {children}
+    </div>
+);
 
 export default function MechanicDashboardStandalone() {
     const navigate = useNavigate();
@@ -11,6 +20,14 @@ export default function MechanicDashboardStandalone() {
     const [loading, setLoading] = useState(searchParams.get('autostart') === 'true');
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
+
+    // OCR State
+    const [ocrLoading, setOcrLoading] = useState(false);
+    const [ocrProgress, setOcrProgress] = useState(0);
+    const [ocrResult, setOcrResult] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [ocrError, setOcrError] = useState(null);
 
     // Auto-audit on mount if parameters exist
     useEffect(() => {
@@ -39,6 +56,41 @@ export default function MechanicDashboardStandalone() {
             setError(err.message || 'Failed to fetch data');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setOcrResult(null);
+        setOcrError(null);
+    };
+
+    const runOCR = async () => {
+        if (!selectedFile) return;
+
+        setOcrLoading(true);
+        setOcrProgress(0);
+        setOcrError(null);
+
+        try {
+            const data = await logbookOCRService.processLogbookImage(selectedFile, (progress) => {
+                setOcrProgress(progress);
+            });
+            setOcrResult(data);
+
+            // If we found a tail number, auto-populate search
+            if (data.findings.aircraft_id && !tailNumber) {
+                setTailNumber(data.findings.aircraft_id);
+            }
+        } catch (err) {
+            setOcrError("Failed to process image. Ensure it is a clear logbook photo.");
+            console.error(err);
+        } finally {
+            setOcrLoading(false);
         }
     };
 
@@ -140,30 +192,104 @@ export default function MechanicDashboardStandalone() {
             </div>
 
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
-                {/* Search/Upload Panel */}
-                <div className={internalCardClass}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
-                        <div>
-                            <label style={{ fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Aircraft Tail Number</label>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    {/* Search Panel */}
+                    <div className={`${internalCardClass} lg:col-span-1`}>
+                        <label style={{ fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Aircraft Tail Number</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                             <input
-                                placeholder="N12345 or C-ABCD"
+                                placeholder="N12345"
                                 value={tailNumber}
                                 onChange={(e) => setTailNumber(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAudit()}
-                                style={{ width: '100%', background: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 255, 255, 0.3)', borderRadius: '6px', padding: '14px', color: 'white', fontSize: '16px', fontWeight: 'bold' }}
+                                style={{ flex: 1, background: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 255, 255, 0.3)', borderRadius: '6px', padding: '12px', color: 'white', fontSize: '16px', fontWeight: 'bold' }}
                             />
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'end' }}>
                             <button
                                 onClick={handleAudit}
                                 disabled={loading}
-                                style={{ background: loading ? '#6b7280' : '#f97316', color: 'black', padding: '14px 40px', borderRadius: '6px', border: 'none', fontWeight: '900', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', textTransform: 'uppercase' }}
+                                style={{ background: loading ? '#6b7280' : '#f97316', color: 'black', padding: '12px 24px', borderRadius: '6px', border: 'none', fontWeight: '900', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px' }}
                             >
-                                {loading ? 'SCANNING...' : 'AUDIT'}
+                                {loading ? <Loader2 className="animate-spin" size={18} /> : 'AUDIT'}
                             </button>
                         </div>
+                        {error && <div style={{ marginTop: '12px', color: '#ef4444', fontSize: '12px' }}>{error}</div>}
                     </div>
-                    {error && <div style={{ marginTop: '12px', color: '#ef4444', fontSize: '14px', fontWeight: 'bold' }}>⚠ {error}</div>}
+
+                    {/* OCR Upload Panel */}
+                    <div className={`${internalCardClass} lg:col-span-2 internal-card-amber`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Scan size={18} className="text-amber-500" />
+                                <h3 className="text-xs font-black text-white uppercase tracking-wider">Logbook Forensic Scan</h3>
+                            </div>
+                            {ocrResult && <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[9px]">OCR VERIFIED</Badge>}
+                        </div>
+
+                        <div className="flex gap-6 h-32">
+                            {/* Upload Area */}
+                            <label className="flex-1 border-2 border-dashed border-white/10 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden group">
+                                <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
+
+                                {previewUrl ? (
+                                    <div className="absolute inset-0">
+                                        <img src={previewUrl} className="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-all" />
+                                        {ocrLoading && (
+                                            <div className="absolute inset-0 bg-amber-500/20 flex flex-col items-center justify-center">
+                                                <div className="w-full max-w-[80%] h-1 bg-white/20 rounded-full mb-2 overflow-hidden">
+                                                    <motion.div
+                                                        className="h-full bg-amber-500"
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${ocrProgress}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[9px] font-bold text-white uppercase tracking-widest">{ocrProgress}% SCANNING</span>
+                                                <div className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)] animate-scanline"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Upload size={24} className="text-gray-500 mb-2" />
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Drop Page Photo</span>
+                                    </>
+                                )}
+                            </label>
+
+                            {/* Extract Button */}
+                            <div className="flex flex-col justify-center gap-2 w-32">
+                                <button
+                                    onClick={runOCR}
+                                    disabled={!selectedFile || ocrLoading}
+                                    className={`w-full py-3 rounded-md font-black text-[10px] uppercase tracking-widest transition-all ${selectedFile && !ocrLoading
+                                        ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.4)]'
+                                        : 'bg-white/5 text-gray-500'
+                                        }`}
+                                >
+                                    {ocrLoading ? 'EXTRACTING...' : 'RUN FORENSIC'}
+                                </button>
+                                {ocrResult && (
+                                    <div className="text-center">
+                                        <div className="text-[9px] text-emerald-400 font-bold uppercase flex items-center justify-center gap-1">
+                                            <CheckCircle size={10} /> Intelligence Extracted
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Result Sneak Peek */}
+                            {ocrResult && (
+                                <div className="flex-1 bg-black/40 rounded-lg p-3 border border-white/5 overflow-y-auto custom-scrollbar">
+                                    <h4 className="text-[8px] text-gray-500 font-bold uppercase mb-2">Metadata Found</h4>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="text-[10px]"><span className="text-gray-600">ID:</span> <span className="text-white font-mono">{ocrResult.findings.aircraft_id || 'NOT FOUND'}</span></div>
+                                        <div className="text-[10px]"><span className="text-gray-600">TT:</span> <span className="text-white font-mono">{ocrResult.findings.total_time || '--'}</span></div>
+                                        <div className="text-[10px]"><span className="text-gray-600">AD:</span> <span className="text-amber-500 font-mono">{ocrResult.findings.ad_compliance.length} items</span></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        {ocrError && <div className="mt-2 text-[10px] text-red-500 font-bold uppercase">⚠ {ocrError}</div>}
+                    </div>
                 </div>
 
                 {result && (
