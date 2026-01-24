@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SplitScreenComparison from './SplitScreenComparison';
 import AircraftIdentityCard from './AircraftIdentityCard';
@@ -291,6 +291,111 @@ export default function MechanicDashboardStandalone() {
                         {ocrError && <div className="mt-2 text-[10px] text-red-500 font-bold uppercase">⚠ {ocrError}</div>}
                     </div>
                 </div>
+
+                <AnimatePresence>
+                    {ocrResult && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
+                        >
+                            {/* REGULATORY INTELLIGENCE (Automated Audit) */}
+                            <div className={`${internalCardClass} internal-card-amber`}>
+                                <div className="flex items-center gap-2 mb-6">
+                                    <FileText className="text-amber-500" size={20} />
+                                    <h3 className="text-lg font-registration text-white uppercase">Regulatory Intelligence</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                    <div className="bg-black/40 p-4 rounded-lg border border-white/5 flex flex-col items-center">
+                                        <div className="text-[10px] text-gray-500 font-bold uppercase mb-2">Audit Health Score</div>
+                                        <div className="text-4xl font-registration text-amber-500">{ocrResult.findings.audit_score}%</div>
+                                        <div className="w-full h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
+                                            <div className="h-full bg-amber-500" style={{ width: `${ocrResult.findings.audit_score}%` }} />
+                                        </div>
+                                    </div>
+                                    <div className="bg-black/40 p-4 rounded-lg border border-white/5">
+                                        <div className="text-[10px] text-gray-500 font-bold uppercase mb-2 text-center">Compliance Markers</div>
+                                        <div className="flex flex-wrap gap-2 justify-center">
+                                            {ocrResult.findings.ad_compliance.length > 0 ? (
+                                                ocrResult.findings.ad_compliance.map((ad, i) => (
+                                                    <Badge key={i} className="bg-amber-500/10 text-amber-500 border border-amber-500/20">{ad}</Badge>
+                                                ))
+                                            ) : (
+                                                <span className="text-[10px] text-gray-600 font-mono italic">No ADs found in scan</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest border-b border-white/5 pb-2">Forensic Discrepancies</h4>
+                                    {ocrResult.findings.anomalies.length > 0 ? (
+                                        ocrResult.findings.anomalies.map((anom, i) => (
+                                            <div key={i} className={`p-3 rounded-md border-l-2 flex items-start gap-3 ${anom.severity === 'CRITICAL' ? 'bg-red-500/10 border-red-500' : 'bg-amber-500/5 border-amber-500'}`}>
+                                                <AlertTriangle size={14} className={anom.severity === 'CRITICAL' ? 'text-red-500' : 'text-amber-500'} />
+                                                <div>
+                                                    <div className={`text-[10px] font-bold ${anom.severity === 'CRITICAL' ? 'text-red-400' : 'text-amber-400'}`}>{anom.type}</div>
+                                                    <div className="text-[11px] text-gray-300 leading-relaxed mt-0.5">{anom.message}</div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-4 text-center bg-white/5 rounded-md italic text-gray-500 text-xs">No forensic anomalies detected in high-confidence scan.</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* PREDICTIVE MAINTENANCE PROJECTION */}
+                            <div className={`${internalCardClass}`}>
+                                <div className="flex items-center gap-2 mb-6">
+                                    <TrendingUp className="text-amber-500" size={20} />
+                                    <h3 className="text-lg font-registration text-white uppercase">Predictive Maintenance Projection</h3>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {ocrResult.findings.predictive_alerts.length > 0 ? (
+                                        ocrResult.findings.predictive_alerts.map((alert, i) => (
+                                            <div key={i} className="bg-black/40 rounded-lg p-4 border border-white/5 transition-all hover:border-amber-500/30">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div>
+                                                        <div className="text-[9px] text-gray-600 font-bold uppercase">{alert.component}</div>
+                                                        <div className="text-sm font-bold text-white uppercase">{alert.task}</div>
+                                                    </div>
+                                                    <Badge className={alert.status === 'CRITICAL' ? 'bg-red-500/20 text-red-500' : 'bg-blue-500/20 text-blue-400'}>
+                                                        {alert.status}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[10px]">
+                                                    <div className="flex items-center gap-1.5 text-gray-400">
+                                                        <Clock size={12} className="text-amber-500" />
+                                                        Due: <span className="text-white font-mono">{alert.window}</span>
+                                                    </div>
+                                                    <div className={`font-black tracking-tighter ${alert.priority === 'MANDATORY' ? 'text-red-500' : 'text-amber-500'}`}>
+                                                        {alert.priority} PRIORITY
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="bg-white/5 p-8 rounded-lg text-center border-2 border-dashed border-white/5">
+                                            <Loader2 size={24} className="text-gray-700 mx-auto mb-3" />
+                                            <div className="text-[10px] text-gray-500 uppercase font-black">Waiting for Logbook Metadata</div>
+                                        </div>
+                                    )}
+
+                                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-md">
+                                        <div className="text-[9px] text-amber-500 font-bold uppercase mb-1">A&P Advisory</div>
+                                        <p className="text-[11px] text-gray-400 leading-relaxed font-mono">
+                                            Projections are based on mathematical extrapolation of hours per day.
+                                            Cross-verify with Title Search for major repairs not logged.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {result && (
                     <>
