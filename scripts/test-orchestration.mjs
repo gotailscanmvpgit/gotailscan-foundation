@@ -20,7 +20,7 @@ async function testOrchestration() {
     try {
         console.log('📞 Calling edge function...');
         const { data, error } = await supabase.functions.invoke('orchestrateForensicScan', {
-            body: { tail_number: 'N915CS' }
+            body: { tail_number: 'N300EM' }
         });
 
         if (error) {
@@ -71,6 +71,13 @@ async function testOrchestration() {
             console.log('\n🤖 AI Intelligence:');
             console.log('   Verdict:', data.ai_intelligence.audit_verdict);
             console.log('   Risk Profile:', data.ai_intelligence.risk_profile);
+        }
+
+        if (data.predictive_maintenance) {
+            console.log('\n🛠️ Predictive Maintenance:');
+            console.log('   System Type:', data.predictive_maintenance.system_type);
+            console.log('   Note:', data.predictive_maintenance.note || 'None');
+            console.log('   Forecast:', JSON.stringify(data.predictive_maintenance.forecast, null, 2));
         }
 
         console.log('\n' + '─'.repeat(60));

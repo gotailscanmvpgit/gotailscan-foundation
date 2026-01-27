@@ -21,17 +21,17 @@ export default function SimpleGateway() {
                         {/* Logo */}
                         <div style={{
                             fontSize: '48px',
-                            background: 'linear-gradient(135deg, #FF5F1F 0%, #FF8F5F 100%)',
+                            background: 'linear-gradient(135deg, #00FFFF 0%, #00CCFF 100%)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
-                            filter: 'drop-shadow(0 0 20px rgba(255, 95, 31, 0.3))'
+                            filter: 'drop-shadow(0 0 20px rgba(0, 255, 255, 0.3))'
                         }}>
                             ✈️
                         </div>
                         <div>
                             <div style={{
                                 fontSize: '10px',
-                                color: '#FF5F1F',
+                                color: '#00FFFF',
                                 fontWeight: 'bold',
                                 textTransform: 'uppercase',
                                 letterSpacing: '3px',
@@ -250,7 +250,7 @@ export default function SimpleGateway() {
                         style={{
                             background: 'rgba(255, 255, 255, 0.03)',
                             backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255, 95, 31, 0.2)',
+                            border: '1px solid rgba(0, 255, 255, 0.2)',
                             borderRadius: '16px',
                             padding: '32px',
                             cursor: 'pointer',
@@ -260,12 +260,12 @@ export default function SimpleGateway() {
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-4px)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 95, 31, 0.4)';
-                            e.currentTarget.style.boxShadow = '0 0 30px rgba(255, 95, 31, 0.2)';
+                            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.4)';
+                            e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 255, 255, 0.2)';
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 95, 31, 0.2)';
+                            e.currentTarget.style.borderColor = 'rgba(0, 255, 255, 0.2)';
                             e.currentTarget.style.boxShadow = 'none';
                         }}
                     >
@@ -275,7 +275,7 @@ export default function SimpleGateway() {
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            background: 'radial-gradient(circle at top right, rgba(255, 95, 31, 0.05), transparent 70%)',
+                            background: 'radial-gradient(circle at top right, rgba(0, 255, 255, 0.05), transparent 70%)',
                             pointerEvents: 'none'
                         }}></div>
 
@@ -283,13 +283,13 @@ export default function SimpleGateway() {
                             <div style={{
                                 width: '64px',
                                 height: '64px',
-                                background: 'rgba(255, 95, 31, 0.1)',
+                                background: 'rgba(0, 255, 255, 0.1)',
                                 borderRadius: '12px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 marginBottom: '24px',
-                                border: '1px solid rgba(255, 95, 31, 0.2)'
+                                border: '1px solid rgba(0, 255, 255, 0.2)'
                             }}>
                                 <span style={{ fontSize: '32px' }}>⚙️</span>
                             </div>
@@ -308,7 +308,7 @@ export default function SimpleGateway() {
                             <div style={{
                                 fontSize: '14px',
                                 fontWeight: 'bold',
-                                color: '#FF5F1F',
+                                color: '#00FFFF',
                                 textTransform: 'uppercase',
                                 letterSpacing: '2px',
                                 marginBottom: '16px'
@@ -325,7 +325,7 @@ export default function SimpleGateway() {
                                 Quick logbook check and AD status for pre-buys
                             </p>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FF5F1F', fontSize: '14px', fontWeight: 'bold' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00FFFF', fontSize: '14px', fontWeight: 'bold' }}>
                                 <span>Enter Console</span>
                                 <span>→</span>
                             </div>
@@ -345,13 +345,13 @@ export default function SimpleGateway() {
                         <div style={{
                             width: '56px',
                             height: '56px',
-                            background: 'rgba(255, 95, 31, 0.1)',
+                            background: 'rgba(0, 255, 255, 0.1)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             margin: '0 auto 16px',
-                            border: '1px solid rgba(255, 95, 31, 0.2)'
+                            border: '1px solid rgba(0, 255, 255, 0.2)'
                         }}>
                             <span style={{ fontSize: '24px' }}>🔍</span>
                         </div>
@@ -367,13 +367,13 @@ export default function SimpleGateway() {
                         <div style={{
                             width: '56px',
                             height: '56px',
-                            background: 'rgba(255, 95, 31, 0.1)',
+                            background: 'rgba(0, 255, 255, 0.1)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             margin: '0 auto 16px',
-                            border: '1px solid rgba(255, 95, 31, 0.2)'
+                            border: '1px solid rgba(0, 255, 255, 0.2)'
                         }}>
                             <span style={{ fontSize: '24px' }}>🧠</span>
                         </div>
@@ -389,13 +389,13 @@ export default function SimpleGateway() {
                         <div style={{
                             width: '56px',
                             height: '56px',
-                            background: 'rgba(255, 95, 31, 0.1)',
+                            background: 'rgba(0, 255, 255, 0.1)',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             margin: '0 auto 16px',
-                            border: '1px solid rgba(255, 95, 31, 0.2)'
+                            border: '1px solid rgba(0, 255, 255, 0.2)'
                         }}>
                             <span style={{ fontSize: '24px' }}>✓</span>
                         </div>

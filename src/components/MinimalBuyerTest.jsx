@@ -871,7 +871,7 @@ export default function MinimalBuyerTest() {
                       }}
                     >
                       <span style={{ color: "#64748b", marginRight: "4px" }}>
-                        ID:
+                        S/N:
                       </span>{" "}
                       {result.aircraft_details?.serial || "N/A"}
                     </div>
@@ -1025,135 +1025,6 @@ export default function MinimalBuyerTest() {
                 )}
               </div>
 
-              {/* TELEMETRY: Salinity Index */}
-              <div className={internalCardClass}>
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "900",
-                    color: "white",
-                    textTransform: "uppercase",
-                    marginBottom: "24px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <span>🌊</span> Salinity Index
-                </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "16px",
-                      background: "rgba(0,0,0,0.3)",
-                      borderRadius: "8px",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "16px",
-                    }}
-                  >
-                    <div style={{ flex: "0 0 auto" }}>
-                      <CircularGauge
-                        score={salinityData.score}
-                        size={60}
-                        strokeWidth={6}
-                        mode="risk"
-                      />
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#6b7280",
-                          textTransform: "uppercase",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        Corrosion Risk
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "#9ca3af",
-                          marginTop: "4px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {salinityData.risk} EXPOSURE
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      padding: "16px",
-                      background: "rgba(0,0,0,0.3)",
-                      borderRadius: "8px",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "#6b7280",
-                        textTransform: "uppercase",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      Location Analysis
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        color: "white",
-                        fontWeight: "bold",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {salinityData.state || "Unknown"}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        color: salinityData.isCoastal ? "#eab308" : "#10b981",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {salinityData.isCoastal
-                        ? "⚠ COASTAL STATE"
-                        : "✓ INLAND STATE"}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    marginTop: "16px",
-                    padding: "12px",
-                    background: "rgba(59, 130, 246, 0.1)",
-                    border: "1px solid rgba(59, 130, 246, 0.3)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      color: "#60a5fa",
-                      lineHeight: "1.6",
-                    }}
-                  >
-                    <strong>Advisory:</strong> Coastal aircraft require enhanced
-                    corrosion inspection. Check wing spars, control cables, and
-                    engine mounts for salt damage.
-                  </div>
-                </div>
-              </div>
-
               {/* TELEMETRY: Dormancy/Utilization Monitor */}
               {dormancyAlert && (
                 <div
@@ -1292,100 +1163,115 @@ export default function MinimalBuyerTest() {
                       }}
                     >
                       <span>🔮</span> Predictive Alerts
+                      <span style={{ fontSize: "10px", color: "orange", marginLeft: "8px" }}>
+                        [{result.predictive_maintenance?.system_type || "LEGACY"}]
+                      </span>
                     </h3>
                   </div>
 
                   <div style={{ display: "grid", gap: "16px" }}>
-                    {result.predictive_maintenance.alerts.map((alert, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          padding: "20px",
-                          background: "rgba(0,0,0,0.4)",
-                          borderRadius: "12px",
-                          border: `1px solid ${alert.risk === "HIGH" ? "rgba(239, 68, 68, 0.3)" : "rgba(139, 92, 246, 0.2)"}`,
-                        }}
-                      >
+                    {(result.predictive_maintenance.forecast || result.predictive_maintenance.alerts || []).map((alert, i) => {
+                      // Normalize Data Structure (Backend v2 vs v1)
+                      const componentName = alert.part || alert.component;
+                      const riskLevel = alert.status === "URGENT" || alert.risk === "HIGH" ? "HIGH" : "MEDIUM";
+                      const probability = alert.health_pct ? (100 - alert.health_pct) : alert.probability;
+                      const advisoryText = alert.label || alert.advisory;
+                      const limitText = alert.est_hours_remaining ? `${alert.est_hours_remaining} hrs` : alert.timeframe;
+
+                      // NEW: Age-Specific Reliability Context
+                      const cohortText = alert.avg_age ? `Avg Failure Age: ${alert.avg_age} yrs` : null;
+
+                      return (
                         <div
+                          key={i}
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "start",
-                            marginBottom: "12px",
+                            padding: "20px",
+                            background: "rgba(0,0,0,0.4)",
+                            borderRadius: "12px",
+                            border: `1px solid ${riskLevel === "HIGH" ? "rgba(239, 68, 68, 0.3)" : "rgba(139, 92, 246, 0.2)"}`,
                           }}
                         >
-                          <div>
-                            <div
-                              style={{
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                color: "white",
-                                marginBottom: "4px",
-                              }}
-                            >
-                              {alert.component}
-                            </div>
-                            <div style={{ fontSize: "11px", color: "#9ca3af" }}>
-                              {alert.source}
-                            </div>
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <div
-                              style={{
-                                fontSize: "18px",
-                                fontWeight: "900",
-                                color:
-                                  alert.risk === "HIGH" ? "#ef4444" : "#a855f7",
-                              }}
-                            >
-                              {alert.probability}%
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "9px",
-                                color: "#6b7280",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              Probability
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "#d1d5db",
-                            lineHeight: "1.6",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          {alert.advisory}
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontSize: "10px",
-                          }}
-                        >
-                          <span
-                            style={{ color: "#a855f7", fontWeight: "bold" }}
-                          >
-                            Window: {alert.timeframe}
-                          </span>
-                          <span
+                          <div
                             style={{
-                              color:
-                                alert.risk === "HIGH" ? "#ef4444" : "#fbbf24",
-                              fontWeight: "bold",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "start",
+                              marginBottom: "12px",
                             }}
                           >
-                            Risk: {alert.risk}
-                          </span>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  color: "white",
+                                  marginBottom: "4px",
+                                }}
+                              >
+                                {componentName}
+                              </div>
+                              <div style={{ fontSize: "11px", color: "#9ca3af" }}>
+                                {alert.source || "FLEET_AGGREGATE"}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <div
+                                style={{
+                                  fontSize: "18px",
+                                  fontWeight: "900",
+                                  color:
+                                    riskLevel === "HIGH" ? "#ef4444" : "#a855f7",
+                                }}
+                              >
+                                {probability}%
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "9px",
+                                  color: "#6b7280",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Failure Risk
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#d1d5db",
+                              lineHeight: "1.6",
+                              marginBottom: "12px",
+                            }}
+                          >
+                            {advisoryText}
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              fontSize: "10px",
+                            }}
+                          >
+                            <span
+                              style={{ color: "#a855f7", fontWeight: "bold" }}
+                            >
+                              Est. Life: {limitText} {cohortText && `| ${cohortText}`}
+                            </span>
+                            <span
+                              style={{
+                                color:
+                                  riskLevel === "HIGH" ? "#ef4444" : "#fbbf24",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              Status: {alert.status || alert.risk}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
 
                   <div
@@ -1765,52 +1651,196 @@ export default function MinimalBuyerTest() {
                   </div>
                 )}
 
-                {result.ai_intelligence?.tax_strategy && (
+                {/* Tax Benefit & Corrosion Risk Side-by-Side */}
+                {(result.ai_intelligence?.tax_strategy || result.climate_exposure) && (
                   <div
                     style={{
                       marginTop: "16px",
-                      padding: "16px",
-                      background: "rgba(16, 185, 129, 0.1)",
-                      border: "1px solid rgba(16, 185, 129, 0.2)",
-                      borderRadius: "8px",
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "12px",
                     }}
                   >
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "#10b981",
-                        fontWeight: "bold",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      TAX BENEFIT
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        color: "white",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {
-                        result.ai_intelligence.tax_strategy
-                          .bonus_depreciation_rate
-                      }{" "}
-                      Write-off
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "12px",
-                        color: "#9ca3af",
-                        marginTop: "4px",
-                      }}
-                    >
-                      ~$
-                      {(
-                        result.ai_intelligence.tax_strategy.year_1_deduction /
-                        1000
-                      ).toFixed(0)}
-                      k Year 1
+                    {/* Tax Benefit Box */}
+                    {result.ai_intelligence?.tax_strategy && (
+                      <div
+                        style={{
+                          padding: "16px",
+                          background: "rgba(16, 185, 129, 0.1)",
+                          border: "1px solid rgba(16, 185, 129, 0.2)",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color: "#10b981",
+                            fontWeight: "bold",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          TAX BENEFIT
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "14px",
+                            color: "white",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {
+                            result.ai_intelligence.tax_strategy
+                              .bonus_depreciation_rate
+                          }{" "}
+                          Write-off
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#9ca3af",
+                            marginTop: "4px",
+                          }}
+                        >
+                          ~$
+                          {(
+                            result.ai_intelligence.tax_strategy.year_1_deduction /
+                            1000
+                          ).toFixed(0)}
+                          k Year 1
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Corrosion Risk Box */}
+                    {result.climate_exposure && (
+                      <div
+                        style={{
+                          padding: "16px",
+                          background:
+                            result.climate_exposure.salinity === "HIGH"
+                              ? "rgba(245, 158, 11, 0.1)"
+                              : "rgba(59, 130, 246, 0.1)",
+                          border: `1px solid ${result.climate_exposure.salinity === "HIGH" ? "rgba(245, 158, 11, 0.2)" : "rgba(59, 130, 246, 0.2)"}`,
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color:
+                              result.climate_exposure.salinity === "HIGH"
+                                ? "#fbbf24"
+                                : "#3b82f6",
+                            fontWeight: "bold",
+                            marginBottom: "4px",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Corrosion Risk
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "14px",
+                            color: "white",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                          }}
+                        >
+                          <div style={{ position: "relative", width: "48px", height: "24px", flexShrink: 0 }}>
+                            <svg viewBox="0 0 100 50" style={{ width: "100%", height: "100%" }}>
+                              <path
+                                d="M 10 45 A 40 40 0 0 1 90 45"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.1)"
+                                strokeWidth="8"
+                                strokeLinecap="round"
+                              />
+                              <path
+                                d="M 10 45 A 40 40 0 0 1 90 45"
+                                fill="none"
+                                stroke={result.climate_exposure.salinity === "HIGH" ? "#f59e0b" : "#10b981"}
+                                strokeWidth="8"
+                                strokeLinecap="round"
+                                strokeDasharray="126"
+                                strokeDashoffset={result.climate_exposure.salinity === "HIGH" ? "30" : "95"}
+                                style={{
+                                  transition: "all 1s ease-out",
+                                  filter: result.climate_exposure.salinity === "HIGH"
+                                    ? "drop-shadow(0 0 4px rgba(245, 158, 11, 0.6))"
+                                    : "drop-shadow(0 0 4px rgba(16, 185, 129, 0.4))"
+                                }}
+                              />
+                              <line
+                                x1="50"
+                                y1="45"
+                                x2="50"
+                                y2="15"
+                                stroke={result.climate_exposure.salinity === "HIGH" ? "#fbbf24" : "#34d399"}
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                style={{
+                                  transformOrigin: "50px 45px",
+                                  transform: result.climate_exposure.salinity === "HIGH"
+                                    ? "rotate(60deg)"
+                                    : "rotate(-60deg)",
+                                  transition: "all 1s ease-out"
+                                }}
+                              />
+                              <circle
+                                cx="50"
+                                cy="45"
+                                r="3"
+                                fill={result.climate_exposure.salinity === "HIGH" ? "#f59e0b" : "#10b981"}
+                                style={{
+                                  animation: result.climate_exposure.salinity === "HIGH" ? "pulse 2s infinite" : "none"
+                                }}
+                              />
+                            </svg>
+                          </div>
+                          <div>
+                            {result.climate_exposure.salinity === "HIGH"
+                              ? "HIGH RISK"
+                              : "NOMINAL"}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "12px",
+                            color: "#9ca3af",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {result.climate_exposure.salinity === "HIGH"
+                            ? "High-salinity zone"
+                            : "Protected environment"}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Fleet Reliability Analysis */}
+                {result.fleet_reliability && result.fleet_reliability.top_reliability_issues && (
+                  <div style={{ marginTop: "16px", padding: "16px", background: "rgba(0,0,0,0.3)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    <h4 style={{ color: "#a855f7", fontWeight: "bold", marginBottom: "12px", fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
+                      Global Fleet Reliability
+                    </h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "8px" }}>
+                      {result.fleet_reliability.top_reliability_issues.map((issue, idx) => (
+                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px" }}>
+                          <div>
+                            <div style={{ color: "white", fontSize: "13px", fontWeight: "bold" }}>{issue.component}</div>
+                            <div style={{ color: "#9ca3af", fontSize: "11px" }}>Avg Failure Age: {issue.avg_age} years</div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ color: "#f87171", fontSize: "13px", fontWeight: "bold" }}>{issue.count} Reports</div>
+                            <div style={{ color: "#6b7280", fontSize: "10px" }}>{issue.frequency_pct}% of fleet</div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

@@ -18,7 +18,7 @@ export default function RoleGateway() {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
 
-    // Track mouse for gradient effect
+    // Track mouse for gradient effect (Original Logic)
     useEffect(() => {
         const handleMouseMove = (e) => {
             setMousePosition({ x: e.clientX, y: e.clientY });
@@ -45,6 +45,7 @@ export default function RoleGateway() {
         navigateToRole();
     };
 
+    // Original Lens Data (Restored for Colors/Gradient Logic) but with updated Labels if needed
     const lenses = [
         {
             id: 'radar',
@@ -71,110 +72,53 @@ export default function RoleGateway() {
 
     const activeLens = lenses.find(l => l.id === lens) || lenses[0];
 
-    // Role-specific benefits for each pillar
     const pillars = [
         {
             title: 'Predictive Maintenance',
             subtitle: 'The "Future-Proof" Audit',
+            pitch: '"Stop looking at what was fixed. See what\'s about to break."',
+            data: 'Our AI cross-references millions of SDR (Service Difficulty Reports) and CADORS logs to identify failure patterns for your specific make and model.',
+            value: 'We predict major maintenance events—like landing gear actuators or engine overhauls—before they happen, giving you a 200-hour "Early Warning System".',
             icon: Eye,
-            color: '#10b981',
-            benefits: {
-                radar: {
-                    pitch: '"Know what breaks before you buy."',
-                    data: 'AI cross-references millions of SDR reports to predict failure patterns for your specific make/model.',
-                    value: 'Avoid buying a plane 200 hours from a $150k engine overhaul. See major maintenance events before they happen.'
-                },
-                vault: {
-                    pitch: '"Prove your plane is low-maintenance."',
-                    data: 'Show buyers your aircraft has fewer predicted issues than comparable models in the fleet.',
-                    value: 'Command premium pricing by demonstrating predictive health scores that beat market averages.'
-                },
-                tools: {
-                    pitch: '"Plan your shop schedule 6 months ahead."',
-                    data: 'Get early warnings on components likely to fail based on fleet-wide failure patterns.',
-                    value: 'Order parts before they\'re needed, reduce AOG time, and keep customers happy with proactive service.'
-                }
-            }
+            color: '#10b981'
         },
         {
             title: 'Market Alpha',
             subtitle: 'The "Fair Deal" Finder',
+            pitch: '"Stop guessing the value. Know the score."',
+            data: 'We rank the aircraft against the entire global fleet based on its equipment, airframe time, and verified maintenance health.',
+            value: 'Instantly see if a tail is a "Hidden Gem" or a "Money Pit" with a single, data-backed score.',
             icon: BarChart3,
-            color: '#3b82f6',
-            benefits: {
-                radar: {
-                    pitch: '"Is this a steal or a trap?"',
-                    data: 'Ranks the aircraft against the entire global fleet based on equipment, airframe time, and verified health.',
-                    value: 'Instantly see if you\'re looking at a "Hidden Gem" or a "Money Pit" with a single data-backed score.'
-                },
-                vault: {
-                    pitch: '"Price it right, sell it fast."',
-                    data: 'See exactly where your aircraft ranks in the market based on real-time fleet comparisons.',
-                    value: 'Justify your asking price with objective data that shows buyers why your plane is worth more.'
-                },
-                tools: {
-                    pitch: '"Know which planes need the most work."',
-                    data: 'Identify aircraft with below-average market scores that likely need more frequent service.',
-                    value: 'Target high-maintenance aircraft owners for recurring service contracts and parts sales.'
-                }
-            }
+            color: '#3b82f6'
         },
         {
             title: 'Risk Radar',
             subtitle: 'The "Blocked" Status Check',
+            pitch: '"Identify red flags before you call the broker."',
+            data: 'A 24/7 forensic scan of global sanction lists, theft registries, and unreported incident databases.',
+            value: 'Instantly see if a plane is "Blocked" due to legal liens, safety issues, or compliance gaps.',
             icon: Lock,
-            color: '#ef4444',
-            benefits: {
-                radar: {
-                    pitch: '"Don\'t call the broker until you run this."',
-                    data: '24/7 forensic scan of global sanction lists, theft registries, and unreported incident databases.',
-                    value: 'Avoid wasting time on aircraft with hidden liens, safety issues, or compliance gaps that kill deals.'
-                },
-                vault: {
-                    pitch: '"Prove your plane is clean."',
-                    data: 'Generate a verified "Clean Title" report showing zero liens, incidents, or legal blocks.',
-                    value: 'Close deals faster by eliminating buyer concerns about hidden legal or safety issues.'
-                },
-                tools: {
-                    pitch: '"Know if a plane is airworthy before you touch it."',
-                    data: 'Check for outstanding ADs, compliance gaps, and safety directives before accepting work.',
-                    value: 'Protect your shop from liability by refusing work on aircraft with unresolved safety issues.'
-                }
-            }
+            color: '#ef4444'
         },
         {
             title: 'Mission Fit',
             subtitle: 'Personalized Flight Plan',
+            pitch: '"The right plane for your life, not just the brochure."',
+            data: 'A real-world payload-to-fuel simulation based on your standard passengers and frequent routes.',
+            value: 'Ensure your typical mission (e.g., Teterboro to Palm Beach) is achievable with your typical layout.',
             icon: PlaneTakeoff,
-            color: '#a855f7',
-            benefits: {
-                radar: {
-                    pitch: '"Will it actually fly your routes?"',
-                    data: 'Real-world payload-to-fuel simulation based on your typical passengers and frequent routes.',
-                    value: 'Ensure your typical mission (e.g., Teterboro to Palm Beach) is achievable before you buy.'
-                },
-                vault: {
-                    pitch: '"Show buyers it fits their life."',
-                    data: 'Demonstrate real-world range and payload for common routes your buyers actually fly.',
-                    value: 'Convert more leads by proving your aircraft can handle their specific mission profile.'
-                },
-                tools: {
-                    pitch: '"Optimize service for how they actually fly."',
-                    data: 'See typical routes and usage patterns to recommend the right maintenance intervals.',
-                    value: 'Provide smarter service recommendations based on actual flight profiles, not generic schedules.'
-                }
-            }
+            color: '#a855f7'
         }
     ];
 
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center relative overflow-x-hidden">
 
-            {/* Premium Background Effects */}
+            {/* Premium Background Effects (Original) */}
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
                 <div
-                    className="hidden md:block absolute w-[800px] h-[800px] rounded-full blur-[120px] opacity-10 transition-all duration-1000"
+                    className="absolute w-[800px] h-[800px] rounded-full blur-[120px] opacity-10 transition-all duration-1000"
                     style={{
                         background: `radial-gradient(circle, ${activeLens.color}, transparent)`,
                         left: `${mousePosition.x - 400}px`,
@@ -186,7 +130,7 @@ export default function RoleGateway() {
             {/* Main Hero & Console Section */}
             <div className="relative z-10 w-full max-w-6xl px-4 flex flex-col items-center">
 
-                {/* Hero Section */}
+                {/* Hero Section (Original) */}
                 <div className="text-center pt-16 md:pt-24 pb-8 md:pb-12 animate-fade-in-down w-full">
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6 md:mb-8">
                         <div className="flex items-center gap-2">
@@ -204,14 +148,14 @@ export default function RoleGateway() {
                     </div>
                 </div>
 
-                {/* Intelligence Console */}
+                {/* Intelligence Console (COCKPIT MODE) */}
                 <div className="w-full max-w-4xl mb-24 md:mb-32 cockpit-panel rounded-[30px] md:rounded-[40px] p-4 md:p-6 shadow-3xl relative overflow-hidden">
 
                     {/* Cockpit Glare Effect */}
                     <div className="absolute inset-x-0 top-0 h-[1px] bg-white/20 z-20"></div>
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_70%)] pointer-events-none"></div>
 
-                    {/* Command Input */}
+                    {/* NEW: Command Input Style (Avionics) */}
                     <div className="mb-6 relative z-10">
                         <div className="flex items-end justify-between mb-2">
                             <label className="text-[10px] font-mono cyan-glow uppercase tracking-widest flex items-center gap-2">
@@ -222,7 +166,11 @@ export default function RoleGateway() {
                                     <button
                                         key={l.id}
                                         type="button"
-                                        onClick={() => setLens(l.id)}
+                                        onClick={() => {
+                                            setLens(l.id);
+                                            // Optional: Focus input on tab switch
+                                            // document.querySelector('input[name="tailNumber"]')?.focus(); 
+                                        }}
                                         className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider rounded-t transition-all ${lens === l.id
                                             ? 'bg-cyan-500 text-black shadow-[0_-2px_10px_rgba(0,255,255,0.3)]'
                                             : 'bg-white/5 text-slate-500 hover:text-slate-300 hover:bg-white/10'
@@ -255,7 +203,7 @@ export default function RoleGateway() {
                         </form>
                     </div>
 
-                    {/* Mode Selection */}
+                    {/* NEW: Mode Selection Keys Style (Avionics Buttons) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 relative z-10">
                         {lenses.map((l) => (
                             <button
@@ -276,9 +224,10 @@ export default function RoleGateway() {
                         ))}
                     </div>
 
+
                 </div>
 
-                {/* MISSION BRIEFING */}
+                {/* MISSION BRIEFING (Separate Section) */}
                 <div className="w-full max-w-4xl mb-24 md:mb-32">
                     <div className="relative p-8 rounded-[24px] border border-white/5 bg-black/40 backdrop-blur-sm">
                         <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-8 block text-center">
@@ -291,6 +240,7 @@ export default function RoleGateway() {
                                 { step: '03', title: 'RECEIVE INTEL', desc: 'Get instant forensic risk analysis' }
                             ].map((item, i) => (
                                 <div key={i} className="flex flex-col items-center text-center relative group">
+                                    {/* Connector Line (Desktop Only) */}
                                     {i < 2 && (
                                         <div className="hidden md:block absolute top-[14px] left-[60%] w-[80%] h-[1px] bg-gradient-to-r from-cyan-900/50 to-transparent z-0"></div>
                                     )}
@@ -306,7 +256,9 @@ export default function RoleGateway() {
                     </div>
                 </div>
 
-                {/* THE 4 PILLARS SECTION - NOW WITH ROLE-SPECIFIC BENEFITS */}
+
+
+                {/* THE 4 PILLARS SECTION (Original) */}
                 <div className="w-full mb-32 md:mb-48 pt-12 md:pt-24 border-t border-white/5">
                     <div className="mb-16 md:mb-24 text-center">
                         <h2 className="text-3xl md:text-6xl font-black text-white tracking-tighter uppercase italic mb-4 md:mb-6 px-4">
@@ -318,7 +270,7 @@ export default function RoleGateway() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-24 md:mb-32">
                         {/* THE X-RAY IMAGE */}
                         <div className="relative group perspective-1000 px-2 h-[400px] md:h-auto">
-                            <div className="absolute inset-0 bg-cyan-500/20 blur-[30px] md:blur-[100px] rounded-full group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
+                            <div className="absolute inset-0 bg-cyan-500/20 blur-[60px] md:blur-[100px] rounded-full group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
                             <img
                                 src={xrayImage}
                                 alt="Aircraft X-Ray"
@@ -341,9 +293,14 @@ export default function RoleGateway() {
                                         className="absolute flex items-center gap-2 animate-fade-in-up"
                                         style={{ top: point.top, left: point.left, animationDelay: point.delay }}
                                     >
+                                        {/* Dot */}
                                         <div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_cyan] animate-ping absolute"></div>
                                         <div className="w-2 h-2 bg-cyan-400 rounded-full relative z-10"></div>
+
+                                        {/* Line */}
                                         <div className="w-8 h-[1px] bg-cyan-500/50"></div>
+
+                                        {/* Label Box */}
                                         <div className="bg-black/80 border border-cyan-500/30 p-2 rounded backdrop-blur-sm">
                                             <div className="text-[8px] text-slate-400 font-mono tracking-widest uppercase mb-0.5">{point.label}</div>
                                             <div className={`text-[10px] font-bold font-mono ${point.color === 'emerald' ? 'text-emerald-400' : 'text-cyan-400'}`}>{point.value}</div>
@@ -352,6 +309,8 @@ export default function RoleGateway() {
                                 ))}
                             </div>
                         </div>
+
+
 
                         <div className="space-y-6 md:space-y-8 px-4">
                             <h3 className="text-2xl md:text-5xl font-black text-white italic tracking-tighter leading-tight mb-2 md:mb-4">
@@ -382,87 +341,50 @@ export default function RoleGateway() {
                         </div>
                     </div>
 
-                    {/* ROLE SELECTOR TABS - Directly Above Benefit Boxes */}
-                    <div className="mb-8 md:mb-12 px-2 md:px-0">
-                        <div className="text-center mb-6">
-                            <p className="text-sm md:text-base text-slate-400 font-mono mb-4">
-                                See how each feature benefits different roles:
-                            </p>
-                        </div>
-                        <div className="flex justify-center gap-2 md:gap-4">
-                            {lenses.map((l) => (
-                                <button
-                                    key={l.id}
-                                    onClick={() => setLens(l.id)}
-                                    className={`group relative px-6 md:px-10 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold uppercase tracking-wider text-sm md:text-base transition-all duration-300 ${lens === l.id
-                                        ? 'bg-gradient-to-br from-cyan-500 to-cyan-600 text-black shadow-[0_0_30px_rgba(0,255,255,0.4)] scale-105'
-                                        : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/10'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2 md:gap-3">
-                                        <l.icon className={`w-4 h-4 md:w-5 md:h-5 ${lens === l.id ? 'text-black' : 'text-slate-500 group-hover:text-cyan-400'}`} />
-                                        <span>{l.label}</span>
-                                    </div>
-                                    {lens === l.id && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="text-center mt-4">
-                            <p className="text-xs text-cyan-500/60 font-mono uppercase tracking-widest">
-                                ↓ Content below updates for {activeLens.label} ↓
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* ROLE-SPECIFIC BENEFIT CARDS */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-2 md:px-0">
-                        {pillars.map((p, idx) => {
-                            const benefit = p.benefits[lens];
-                            return (
-                                <div key={idx} className="group relative p-6 md:p-12 rounded-[24px] md:rounded-[40px] cockpit-panel border-[0.5px] border-white/10 hover:border-cyan-500/30 transition-all duration-500 overflow-hidden shadow-2xl">
-                                    {/* Glass Glare */}
-                                    <div className="absolute inset-x-0 top-0 h-[1px] bg-white/10 z-20"></div>
-                                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.02)_0%,transparent_100%)] pointer-events-none"></div>
+                        {pillars.map((p, idx) => (
+                            <div key={idx} className="group relative p-6 md:p-12 rounded-[24px] md:rounded-[40px] cockpit-panel border-[0.5px] border-white/10 hover:border-cyan-500/30 transition-all duration-500 overflow-hidden shadow-2xl">
+                                {/* Glass Glare */}
+                                <div className="absolute inset-x-0 top-0 h-[1px] bg-white/10 z-20"></div>
+                                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.02)_0%,transparent_100%)] pointer-events-none"></div>
 
-                                    <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-all" style={{ background: `linear-gradient(135deg, ${p.color}, transparent)` }}></div>
+                                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-all" style={{ background: `linear-gradient(135deg, ${p.color}, transparent)` }}></div>
 
-                                    <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8 relative z-10">
-                                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center relative shrink-0 bg-black/50 border border-white/10 shadow-inner">
-                                            <p.icon className="w-6 h-6 md:w-8 md:h-8" style={{ color: p.color }} />
-                                        </div>
-                                        <div>
-                                            <div className="text-[8px] md:text-[10px] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1 text-slate-500 group-hover:text-cyan-500/80 transition-colors">{p.subtitle}</div>
-                                            <h4 className="text-xl md:text-3xl font-registration text-white uppercase tracking-wider">{p.title}</h4>
-                                        </div>
+                                <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8 relative z-10">
+                                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center relative shrink-0 bg-black/50 border border-white/10 shadow-inner">
+                                        <p.icon className="w-6 h-6 md:w-8 md:h-8" style={{ color: p.color }} />
                                     </div>
-
-                                    <div className="space-y-4 md:space-y-6 relative z-10">
-                                        <p className="text-lg md:text-xl font-mono text-slate-300">{benefit.pitch}</p>
-
-                                        <div className="p-4 rounded-xl md:rounded-2xl bg-black/60 border border-white/5 relative overflow-hidden">
-                                            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500/30"></div>
-                                            <span className="text-[9px] md:text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                                <Database className="w-3 h-3" /> For {activeLens.label}
-                                            </span>
-                                            <p className="text-xs md:text-sm text-slate-400 font-mono leading-relaxed">{benefit.data}</p>
-                                        </div>
-
-                                        <div className="p-4 rounded-xl md:rounded-2xl bg-cyan-900/10 border border-cyan-500/10">
-                                            <span className="text-[9px] md:text-[10px] font-mono text-cyan-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                                <Shield className="w-3 h-3" /> Your Benefit
-                                            </span>
-                                            <p className="text-xs md:text-sm text-cyan-100 font-mono leading-relaxed">{benefit.value}</p>
-                                        </div>
+                                    <div>
+                                        <div className="text-[8px] md:text-[10px] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1 text-slate-500 group-hover:text-cyan-500/80 transition-colors">{p.subtitle}</div>
+                                        <h4 className="text-xl md:text-3xl font-registration text-white uppercase tracking-wider">{p.title}</h4>
                                     </div>
                                 </div>
-                            );
-                        })}
+
+                                <div className="space-y-4 md:space-y-6 relative z-10">
+                                    <p className="text-lg md:text-xl font-mono text-slate-300">{p.pitch}</p>
+
+                                    <div className="p-4 rounded-xl md:rounded-2xl bg-black/60 border border-white/5 relative overflow-hidden">
+                                        {/* Tech Corner Accent */}
+                                        <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500/30"></div>
+                                        <span className="text-[9px] md:text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
+                                            <Database className="w-3 h-3" /> The Intelligence Source
+                                        </span>
+                                        <p className="text-xs md:text-sm text-slate-400 font-mono leading-relaxed">{p.data}</p>
+                                    </div>
+
+                                    <div className="p-4 rounded-xl md:rounded-2xl bg-cyan-900/10 border border-cyan-500/10">
+                                        <span className="text-[9px] md:text-[10px] font-mono text-cyan-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
+                                            <Shield className="w-3 h-3" /> Forensic Value
+                                        </span>
+                                        <p className="text-xs md:text-sm text-cyan-100 font-mono leading-relaxed">{p.value}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* Final CTA */}
+                {/* Final CTA (Original) */}
                 <div className="w-full max-w-2xl text-center pb-24 md:pb-48 px-4">
                     <h5 className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em] mb-6 md:mb-8">Ready to audit?</h5>
                     <button

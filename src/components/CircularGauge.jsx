@@ -23,16 +23,15 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12, mod
     // Color based on mode and score
     const getColor = () => {
         if (mode === 'risk') {
-            // For Risk: Low (0-30) is Green, Medium (31-60) is Yellow, High (>60) is Red
-            if (score <= 30) return { start: '#10b981', end: '#34d399' }; // Green
-            if (score <= 60) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
-            return { start: '#ef4444', end: '#f87171' }; // Red
+            if (score <= 30) return { start: '#00FF00', end: '#00DD00' }; // Green
+            if (score <= 60) return { start: '#FFCC00', end: '#EEBB00' }; // Yellow
+            return { start: '#FF0000', end: '#CC0000' }; // Red
         } else {
             // For Fit: High (90-100) is Green, Low (0-40) is Red
-            if (score >= 90) return { start: '#10b981', end: '#34d399' }; // Green
-            if (score >= 70) return { start: '#f59e0b', end: '#fbbf24' }; // Yellow
-            if (score >= 50) return { start: '#f97316', end: '#fb923c' }; // Orange
-            return { start: '#ef4444', end: '#f87171' }; // Red
+            if (score >= 90) return { start: '#00FF00', end: '#00DD00' }; // Green
+            if (score >= 70) return { start: '#00FFFF', end: '#00DDDD' }; // Cyan (Standard)
+            if (score >= 50) return { start: '#FFCC00', end: '#EEBB00' }; // Amber (Caution)
+            return { start: '#FF0000', end: '#CC0000' }; // Red
         }
     };
 

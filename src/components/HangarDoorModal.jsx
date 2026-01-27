@@ -11,7 +11,9 @@ export default function HangarDoorModal({ isOpen, searchHistory = [], onClose })
 
     const handleEmailLogin = async () => {
         // DEVELOPER BYPASS
-        if (email.toLowerCase() === 'admin@gotailscan.com' || email.toLowerCase() === 'seller@gotailscan.com') {
+        // DEVELOPER BYPASS (Use this if Email Limits hit)
+        if (email.toLowerCase().includes('@gotailscan.com')) {
+            console.log('Admin Bypass Triggered');
             localStorage.setItem('demo_mode', 'true');
             localStorage.removeItem('guest_searches');
             window.location.reload();
@@ -24,11 +26,14 @@ export default function HangarDoorModal({ isOpen, searchHistory = [], onClose })
         }
         setLoading(true);
         try {
+            // Store return path
+            localStorage.setItem('redirect_after_login', window.location.pathname);
+
             const { error } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
-                    // Redirect to Root (safer for whitelist)
-                    emailRedirectTo: window.location.origin
+                    // FORCE LOCALHOST:3000 to match the Supabase Whitelist
+                    emailRedirectTo: 'http://localhost:3000'
                 }
             });
             if (error) throw error;
@@ -106,22 +111,22 @@ export default function HangarDoorModal({ isOpen, searchHistory = [], onClose })
                 {/* Premium Header Section */}
                 <div style={{
                     padding: '40px 40px 32px',
-                    background: 'radial-gradient(circle at top center, rgba(16, 185, 129, 0.15), transparent 70%)',
+                    background: 'radial-gradient(circle at top center, rgba(0, 255, 255, 0.15), transparent 70%)',
                     borderBottom: '1px solid rgba(255,255,255,0.05)'
                 }}>
                     <div style={{
                         width: '64px',
                         height: '64px',
                         borderRadius: '20px',
-                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 78, 59, 0.2))',
-                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(6, 78, 59, 0.2))',
+                        border: '1px solid rgba(0, 255, 255, 0.3)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         margin: '0 auto 24px',
-                        boxShadow: '0 0 20px rgba(16, 185, 129, 0.2)'
+                        boxShadow: '0 0 20px rgba(0, 255, 255, 0.2)'
                     }}>
-                        <Lock size={28} className="text-emerald-400" />
+                        <Lock size={28} className="text-cyan-400" />
                     </div>
 
                     <h2 style={{
@@ -141,7 +146,7 @@ export default function HangarDoorModal({ isOpen, searchHistory = [], onClose })
                         maxWidth: '320px',
                         margin: '0 auto'
                     }}>
-                        You've reached the guest limit. Sign in to analyze unlimited aircraft and access <span style={{ color: '#10b981', fontWeight: 'bold' }}>Market Alpha</span> insights.
+                        You've reached the guest limit. Sign in to analyze unlimited aircraft and access <span style={{ color: '#00FFFF', fontWeight: 'bold' }}>Market Alpha</span> insights.
                     </p>
                 </div>
 
@@ -207,8 +212,8 @@ export default function HangarDoorModal({ isOpen, searchHistory = [], onClose })
                                     transition: 'all 0.2s'
                                 }}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#10b981';
-                                    e.target.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.1)';
+                                    e.target.style.borderColor = '#00FFFF';
+                                    e.target.style.boxShadow = '0 0 0 4px rgba(0, 255, 255, 0.1)';
                                 }}
                                 onBlur={(e) => {
                                     e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
@@ -247,10 +252,10 @@ export default function HangarDoorModal({ isOpen, searchHistory = [], onClose })
                         <div style={{
                             marginTop: '20px',
                             padding: '12px',
-                            background: 'rgba(16, 185, 129, 0.1)',
+                            background: 'rgba(0, 255, 255, 0.1)',
                             borderRadius: '8px',
-                            border: '1px solid rgba(16, 185, 129, 0.2)',
-                            color: '#34d399',
+                            border: '1px solid rgba(0, 255, 255, 0.2)',
+                            color: '#00FFFF',
                             fontSize: '13px',
                             fontWeight: '500'
                         }}>

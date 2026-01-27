@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import RoleGateway from './components/RoleGateway';
 import MinimalBuyerTest from './components/MinimalBuyerTest';
 import SellerDashboardStandalone from './components/SellerDashboardStandalone';
@@ -7,10 +7,12 @@ import MechanicDashboardStandalone from './components/MechanicDashboardStandalon
 import VerificationGrid from './components/VerificationGrid';
 import './index.css';
 
-import { useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 
-function App() {
+function AuthHandler() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
@@ -31,14 +33,30 @@ function App() {
           // Clear guest limit to unlock dashboard
           localStorage.removeItem('guest_searches');
         }
+
+        // REDIRECT LOGIC
+        // If we have a stored return path, go there.
+        const returnPath = localStorage.getItem('redirect_after_login');
+        if (returnPath) {
+          localStorage.removeItem('redirect_after_login');
+          navigate(returnPath);
+        } else if (location.pathname === '/') {
+          // If landing on root after login, default to Seller Dashboard
+          navigate('/seller');
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate, location]);
 
+  return null;
+}
+
+function App() {
   return (
     <Router>
+      <AuthHandler />
       <div className="min-h-screen bg-background">
         <Routes>
           <Route path="/" element={<RoleGateway />} />

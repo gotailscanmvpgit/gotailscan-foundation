@@ -23,7 +23,7 @@ echo.
 echo ========================================
 echo SQL Migration Content:
 echo ========================================
-type supabase\migrations\20260118000000_optimize_aircraft_registry.sql
+type supabase\migrations\20260126023000_smart_reliability_view.sql
 echo.
 echo ========================================
 echo.

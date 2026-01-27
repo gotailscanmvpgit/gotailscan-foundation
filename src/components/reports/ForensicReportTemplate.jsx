@@ -8,7 +8,7 @@ const tw = createTw({
     theme: {
         extend: {
             colors: {
-                accent: '#FF5F1F', // Safety Orange
+                accent: '#008b8b', // Brand Dark Cyan (Readable on White)
                 dark: '#050505',
                 card: '#121212',
                 gray: '#71717a',
@@ -254,7 +254,7 @@ const PageThree = ({ data }) => (
         {(data.source_data?.cadors || []).map((r, i) => (
             <View key={`cadors-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
                 <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.id || `CADORS-S-${i}`}</Text>
-                <Text style={tw('text-[8px] text-orange-600 font-bold w-24 text-center')}>INCIDENT (CA)</Text>
+                <Text style={tw('text-[8px] text-warn font-bold w-24 text-center')}>INCIDENT (CA)</Text>
                 <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.date}</Text>
             </View>
         ))}

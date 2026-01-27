@@ -91,19 +91,19 @@ export default function MechanicDashboard() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
             {/* Header - Industrial/Tablet Optimized */}
-            <div className="border-b-2 border-orange-500/30 bg-black/60 backdrop-blur-md sticky top-0 z-50">
+            <div className="border-b-2 border-cyan-500/30 bg-black/60 backdrop-blur-md sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-400 hover:text-white h-8">
                             <ArrowLeft className="w-4 h-4 mr-1" />
                             Exit
                         </Button>
-                        <div className="border-l-2 border-orange-500/30 pl-3">
-                            <div className="text-[9px] text-orange-400 font-bold uppercase tracking-widest">A&P Mode</div>
+                        <div className="border-l-2 border-cyan-500/30 pl-3">
+                            <div className="text-[9px] text-cyan-400 font-bold uppercase tracking-widest">A&P Mode</div>
                             <h1 className="text-lg font-black text-white uppercase tracking-tight">Logbook Audit Console</h1>
                         </div>
                     </div>
-                    <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs">
+                    <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs">
                         <Wrench className="w-3 h-3 mr-1" />
                         IAR Certified
                     </Badge>
@@ -129,7 +129,7 @@ export default function MechanicDashboard() {
                                     <Button
                                         onClick={handleAudit}
                                         disabled={loading}
-                                        className="bg-orange-600 hover:bg-orange-700 px-6 h-12 text-sm font-bold"
+                                        className="bg-cyan-600 hover:bg-cyan-700 px-6 h-12 text-sm font-bold"
                                     >
                                         {loading ? 'SCANNING...' : 'AUDIT'}
                                     </Button>
@@ -141,7 +141,7 @@ export default function MechanicDashboard() {
                                 <label className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Upload Scanned Logbooks (PDF/JPG)</label>
                                 <Button
                                     variant="outline"
-                                    className="w-full h-12 border-2 border-dashed border-orange-500/30 hover:border-orange-500/60 hover:bg-orange-500/10 text-orange-400"
+                                    className="w-full h-12 border-2 border-dashed border-cyan-500/30 hover:border-cyan-500/60 hover:bg-cyan-500/10 text-cyan-400"
                                     onClick={() => alert('Upload initialized to bucket \'logbooks\'. OCR processing queued.')}
                                 >
                                     <Upload className="w-4 h-4 mr-2" />
@@ -155,10 +155,10 @@ export default function MechanicDashboard() {
                 {result && (
                     <div className="space-y-6">
                         {/* Aircraft Identity Card */}
-                        <Card className="border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/10 to-transparent backdrop-blur-md">
+                        <Card className="border-2 border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-transparent backdrop-blur-md">
                             <CardContent className="p-6">
-                                <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-orange-500/20">
-                                    <Wrench className="w-6 h-6 text-orange-400" />
+                                <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-cyan-500/20">
+                                    <Wrench className="w-6 h-6 text-cyan-400" />
                                     <h3 className="text-2xl font-black text-white uppercase">Aircraft Identity</h3>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -171,9 +171,9 @@ export default function MechanicDashboard() {
                                     </div>
 
                                     {/* Make/Model */}
-                                    <div className="bg-black/60 p-4 rounded-lg border-2 border-orange-500/30">
+                                    <div className="bg-black/60 p-4 rounded-lg border-2 border-cyan-500/30">
                                         <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Make/Model</div>
-                                        <div className="text-xl font-black text-orange-400 uppercase break-words">
+                                        <div className="text-xl font-black text-cyan-400 uppercase break-words">
                                             {result.aircraft_details?.make_model || 'UNKNOWN'}
                                         </div>
                                         {result.aircraft_details?.manufacturer_code && (
@@ -198,8 +198,8 @@ export default function MechanicDashboard() {
                             {/* Logbook OCR Analysis */}
                             <Card className="border-2 border-white/20 bg-black/80 backdrop-blur-md">
                                 <CardContent className="p-5">
-                                    <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-orange-500/20">
-                                        <FileText className="w-6 h-6 text-orange-400" />
+                                    <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-cyan-500/20">
+                                        <FileText className="w-6 h-6 text-cyan-400" />
                                         <h3 className="text-xl font-black text-white uppercase">Logbook Analysis</h3>
                                     </div>
 
@@ -218,7 +218,7 @@ export default function MechanicDashboard() {
                                             </div>
 
                                             {/* Continuity Score */}
-                                            <div className="bg-gradient-to-r from-orange-500/10 to-transparent p-4 rounded border-2 border-orange-500/30">
+                                            <div className="bg-gradient-to-r from-cyan-500/10 to-transparent p-4 rounded border-2 border-cyan-500/30">
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                                                     <div style={{ flex: '0 0 auto' }}>
                                                         <CircularGauge score={analysis.continuity_score} size={100} strokeWidth={10} mode="fit" />
@@ -228,7 +228,7 @@ export default function MechanicDashboard() {
                                                         <div className="text-xl font-black text-white uppercase">
                                                             {analysis.continuity_score > 90 ? 'EXCELLENT' : analysis.continuity_score > 70 ? 'STABLE' : 'UNRELIABLE'}
                                                         </div>
-                                                        <div className="text-[10px] text-orange-400 mt-1">Based on {analysis.pages_scanned} processed pages</div>
+                                                        <div className="text-[10px] text-cyan-400 mt-1">Based on {analysis.pages_scanned} processed pages</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -274,8 +274,8 @@ export default function MechanicDashboard() {
                             {/* AD Compliance Checklist */}
                             <Card className="border-2 border-white/20 bg-black/80 backdrop-blur-md">
                                 <CardContent className="p-5">
-                                    <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-orange-500/20">
-                                        <AlertTriangle className="w-6 h-6 text-orange-400" />
+                                    <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-cyan-500/20">
+                                        <AlertTriangle className="w-6 h-6 text-cyan-400" />
                                         <h3 className="text-xl font-black text-white uppercase">AD Compliance</h3>
                                     </div>
 
@@ -290,7 +290,7 @@ export default function MechanicDashboard() {
                                                     VERIFIED: { color: 'emerald', icon: CheckCircle },
                                                     PENDING: { color: 'yellow', icon: AlertTriangle },
                                                     OVERDUE: { color: 'red', icon: AlertTriangle },
-                                                    CHECK: { color: 'orange', icon: Search },
+                                                    CHECK: { color: 'cyan', icon: Search },
                                                     UNKNOWN: { color: 'gray', icon: Search }
                                                 };
                                                 const config = statusConfig[ad.status] || statusConfig.UNKNOWN;
@@ -319,9 +319,9 @@ export default function MechanicDashboard() {
                                                             };
                                                         case 'CHECK':
                                                             return {
-                                                                card: 'p-3 rounded border-l-4 bg-orange-500/5 border-orange-500',
-                                                                icon: 'w-4 h-4 text-orange-400',
-                                                                badge: 'bg-orange-500/20 text-orange-400 border-orange-500/30 text-[9px] font-black shrink-0'
+                                                                card: 'p-3 rounded border-l-4 bg-cyan-500/5 border-cyan-500',
+                                                                icon: 'w-4 h-4 text-cyan-400',
+                                                                badge: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[9px] font-black shrink-0'
                                                             };
                                                         default:
                                                             return {
@@ -382,8 +382,8 @@ export default function MechanicDashboard() {
                         {/* Sign-Off Recommendation */}
                         <Card className="border-2 border-white/20 bg-black/80 backdrop-blur-md">
                             <CardContent className="p-5">
-                                <div className="flex items-center gap-3 mb-3 pb-3 border-b-2 border-orange-500/20">
-                                    <CheckCircle className="w-5 h-5 text-orange-400" />
+                                <div className="flex items-center gap-3 mb-3 pb-3 border-b-2 border-cyan-500/20">
+                                    <CheckCircle className="w-5 h-5 text-cyan-400" />
                                     <h3 className="text-lg font-black text-white uppercase">Sign-Off Recommendation</h3>
                                 </div>
                                 <div className="text-sm text-gray-300 font-mono leading-relaxed">

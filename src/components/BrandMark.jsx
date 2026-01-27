@@ -23,7 +23,7 @@ const BrandMark = ({ className = "w-12 h-12" }) => {
                 {/* 2. The "Scan" element: A digital cut/strike through the form */}
                 <path
                     d="M15 55H85"
-                    stroke="#FF5F1F"
+                    stroke="#00FFFF"
                     strokeWidth="6"
                     strokeLinecap="round"
                 />

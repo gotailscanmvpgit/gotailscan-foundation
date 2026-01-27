@@ -757,6 +757,20 @@ export default function SellerDashboardStandalone() {
                       </span>{" "}
                       {getCleanMakeModel()}
                     </div>
+                    <div
+                      style={{
+                        padding: "6px 12px",
+                        background: "rgba(255,255,255,0.05)",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        color: "#94a3b8",
+                      }}
+                    >
+                      <span style={{ color: "#64748b", marginRight: "4px" }}>
+                        S/N:
+                      </span>{" "}
+                      {result.aircraft_details?.serial || "N/A"}
+                    </div>
                   </div>
                 </div>
 
@@ -1014,102 +1028,126 @@ export default function SellerDashboardStandalone() {
                   </div>
 
                   <div style={{ display: "grid", gap: "16px" }}>
-                    {result.predictive_maintenance.alerts.map((alert, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          padding: "20px",
-                          background: "rgba(0,0,0,0.4)",
-                          borderRadius: "12px",
-                          border: `1px solid ${alert.risk === "NOMINAL" ? "rgba(16, 185, 129, 0.3)" : "rgba(59, 130, 246, 0.2)"}`,
-                        }}
-                      >
+                    {(
+                      result.predictive_maintenance.forecast ||
+                      result.predictive_maintenance.alerts ||
+                      []
+                    ).map((alert, i) => {
+                      const component = alert.component || alert.part;
+                      const probability = alert.health_pct
+                        ? 100 - alert.health_pct
+                        : alert.probability;
+                      const risk =
+                        alert.status === "URGENT" || alert.risk === "HIGH"
+                          ? "HIGH"
+                          : "NOMINAL";
+                      const advisory = alert.label || alert.advisory;
+                      const timeframe = alert.est_hours_remaining
+                        ? `${alert.est_hours_remaining} hrs`
+                        : alert.timeframe;
+                      const source = alert.source || "System";
+                      const avgAge = alert.avg_age
+                        ? `Avg Failure Age: ${alert.avg_age}y`
+                        : null;
+
+                      return (
                         <div
+                          key={i}
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "start",
-                            marginBottom: "12px",
+                            padding: "20px",
+                            background: "rgba(0,0,0,0.4)",
+                            borderRadius: "12px",
+                            border: `1px solid ${risk === "NOMINAL" ? "rgba(16, 185, 129, 0.3)" : "rgba(59, 130, 246, 0.2)"}`,
                           }}
                         >
-                          <div>
-                            <div
-                              style={{
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                color: "white",
-                                marginBottom: "4px",
-                              }}
-                            >
-                              {alert.component}
-                            </div>
-                            <div style={{ fontSize: "11px", color: "#9ca3af" }}>
-                              Analysis Source: {alert.source}
-                            </div>
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <div
-                              style={{
-                                fontSize: "18px",
-                                fontWeight: "900",
-                                color:
-                                  alert.risk === "NOMINAL"
-                                    ? "#10b981"
-                                    : "#3b82f6",
-                              }}
-                            >
-                              {alert.risk === "NOMINAL"
-                                ? "HEALTHY"
-                                : `${alert.probability}%`}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "9px",
-                                color: "#6b7280",
-                                textTransform: "uppercase",
-                              }}
-                            >
-                              Reliability Rating
-                            </div>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "#d1d5db",
-                            lineHeight: "1.6",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          {alert.advisory}
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            fontSize: "10px",
-                          }}
-                        >
-                          <span
-                            style={{ color: "#3b82f6", fontWeight: "bold" }}
-                          >
-                            Operational Window: {alert.timeframe}
-                          </span>
-                          <span
+                          <div
                             style={{
-                              color:
-                                alert.risk === "NOMINAL"
-                                  ? "#10b981"
-                                  : "#fbbf24",
-                              fontWeight: "bold",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "start",
+                              marginBottom: "12px",
                             }}
                           >
-                            Status: {alert.risk}
-                          </span>
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  color: "white",
+                                  marginBottom: "4px",
+                                }}
+                              >
+                                {component}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "11px",
+                                  color: "#9ca3af",
+                                }}
+                              >
+                                Analysis Source: {source}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <div
+                                style={{
+                                  fontSize: "18px",
+                                  fontWeight: "900",
+                                  color:
+                                    risk === "NOMINAL" ? "#10b981" : "#3b82f6",
+                                }}
+                              >
+                                {risk === "NOMINAL"
+                                  ? "HEALTHY"
+                                  : `${probability}%`}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "9px",
+                                  color: "#6b7280",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Reliability Rating
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#d1d5db",
+                              lineHeight: "1.6",
+                              marginBottom: "12px",
+                            }}
+                          >
+                            {advisory}
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              fontSize: "10px",
+                            }}
+                          >
+                            <span
+                              style={{ color: "#3b82f6", fontWeight: "bold" }}
+                            >
+                              Window: {timeframe} {avgAge && `| ${avgAge}`}
+                            </span>
+                            <span
+                              style={{
+                                color:
+                                  risk === "NOMINAL" ? "#10b981" : "#fbbf24",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              Status: {risk}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <div

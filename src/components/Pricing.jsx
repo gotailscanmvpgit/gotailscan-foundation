@@ -96,7 +96,7 @@ const Pricing = ({ onSelect }) => {
                     className="h-full relative"
                 >
                     {/* Glow and Pulse Effects */}
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-accent to-orange-600 rounded-xl blur-lg opacity-20 group-hover:opacity-40 animate-pulse"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-accent to-purple-600 rounded-xl blur-lg opacity-20 group-hover:opacity-40 animate-pulse"></div>
 
                     <Card className="h-full border-accent bg-black border-2 flex flex-col relative overflow-hidden pt-8 shadow-2xl shadow-accent/20">
                         <div className="absolute top-0 right-0">
@@ -136,7 +136,7 @@ const Pricing = ({ onSelect }) => {
                         <CardFooter className="pt-6 pb-8 bg-accent/5 border-t border-accent/20">
                             <Button
                                 onClick={() => onSelect('pro')}
-                                className="w-full py-8 bg-accent hover:bg-white text-white hover:text-black text-xs font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(255,95,31,0.3)] transform hover:scale-[1.02]"
+                                className="w-full py-8 bg-accent hover:bg-white text-white hover:text-black text-xs font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(255,0,255,0.3)] transform hover:scale-[1.02]"
                             >
                                 Get Pro Intelligence
                             </Button>

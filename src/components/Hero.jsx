@@ -37,7 +37,7 @@ const TacticalHeatmap = ({ className = '' }) => (
             ))}
             <defs>
                 <radialGradient id="heatGradient">
-                    <stop offset="0%" stopColor="#FF5F1F" />
+                    <stop offset="0%" stopColor="#00FFFF" />
                     <stop offset="100%" stopColor="transparent" />
                 </radialGradient>
             </defs>
@@ -58,7 +58,7 @@ const SignalStabilityGraph = ({ className = '' }) => {
                 <motion.path
                     d={d}
                     fill="none"
-                    stroke="#FF5F1F"
+                    stroke="#00FFFF"
                     strokeWidth="1.5"
                     initial={{ pathLength: 0, opacity: 0 }}
                     animate={{ pathLength: 1, opacity: [0.2, 0.8, 0.2] }}
@@ -67,7 +67,7 @@ const SignalStabilityGraph = ({ className = '' }) => {
                 <motion.path
                     d={d}
                     fill="none"
-                    stroke="#FF5F1F"
+                    stroke="#00FFFF"
                     strokeWidth="0.5"
                     opacity="0.3"
                     animate={{ x: [0, -5, 0] }}
@@ -181,7 +181,7 @@ const AircraftSilhouette = ({ makeModel = '', className = '' }) => {
             <motion.div
                 animate={{ top: ['10%', '90%', '10%'] }}
                 transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
-                className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-accent/40 to-transparent z-10 pointer-events-none opacity-50 shadow-[0_0_10px_rgba(255,95,31,0.5)]"
+                className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-accent/40 to-transparent z-10 pointer-events-none opacity-50 shadow-[0_0_10px_rgba(0,255,255,0.5)]"
             />
         </div>
     );
@@ -430,7 +430,7 @@ const Hero = () => {
                 <div
                     className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[140%] h-[60vh] opacity-35"
                     style={{
-                        background: 'radial-gradient(ellipse at center, #FF5F1F 0%, transparent 60%)',
+                        background: 'radial-gradient(ellipse at center, #00FFFF 0%, transparent 60%)',
                         filter: 'blur(100px)',
                         zIndex: 0
                     }}
@@ -460,7 +460,7 @@ const Hero = () => {
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-                        className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(255,95,31,0.05)_10%,transparent_20%)] origin-center"
+                        className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(0,255,255,0.05)_10%,transparent_20%)] origin-center"
                     />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,#050505_70%)]"></div>
                 </div>
@@ -494,7 +494,7 @@ const Hero = () => {
                             {[
                                 { tail: 'N172SP', msg: 'CLEAN REGISTRY MATCH [US]', color: 'text-green-500' },
                                 { tail: 'VH-OEK', msg: 'DORMANCY ALERT [AU]', color: 'text-warning' },
-                                { tail: 'XA-VIF', msg: 'HIGH SALINITY RISK [MX]', color: 'text-orange-500' },
+                                { tail: 'XA-VIF', msg: 'CORROSION RISK [MX]', color: 'text-cyan-500' },
                                 { tail: 'G-BOAC', msg: 'SHADOW TRACKING DETECTED [UK]', color: 'text-red-500' },
                                 { tail: 'N450GA', msg: 'MARKET LIQUIDITY HIGH [US]', color: 'text-accent' },
                                 { tail: 'C-GCHX', msg: 'NTSB CLEARANCE VERIFIED [CA]', color: 'text-green-500' },
@@ -521,7 +521,7 @@ const Hero = () => {
                         <motion.div
                             animate={{ opacity: [1, 0, 1] }}
                             transition={{ repeat: Infinity, duration: 1, ease: "steps(2)" }}
-                            className="w-2 h-6 md:h-8 bg-orange-500"
+                            className="w-2 h-6 md:h-8 bg-cyan-500"
                         />
                     </div>
                 </motion.div>
@@ -539,7 +539,7 @@ const Hero = () => {
                         <div className="bg-white/5 border border-white/10 p-1 rounded-xl flex gap-1">
                             <button
                                 onClick={() => setSearchMode('standard')}
-                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${searchMode === 'standard' ? 'bg-accent text-white shadow-[0_0_15px_rgba(255,95,31,0.3)]' : 'text-gray-500 hover:text-white'} `}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${searchMode === 'standard' ? 'bg-accent text-white shadow-[0_0_15px_rgba(0,255,255,0.3)]' : 'text-gray-500 hover:text-white'} `}
                             >
                                 Registry Search
                             </button>
@@ -554,7 +554,7 @@ const Hero = () => {
 
                     <div className="relative group">
                         {/* Search Input - Refined for clarity and high-tech feel */}
-                        <div className={`flex items-center backdrop-blur-xl border-[1.5px] transition-all duration-500 rounded-xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8)] ${searching ? (searchMode === 'ai' ? 'border-violet-500 animate-pulse shadow-[0_0_50px_rgba(124,58,237,0.4)] bg-black/90' : 'border-accent animate-pulse shadow-[0_0_50px_rgba(255,95,31,0.4)] bg-black/90') : isInputFocused ? (searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_40px_rgba(124,58,237,0.2)] bg-black/80' : 'border-accent shadow-[0_0_40px_rgba(255,95,31,0.2)] bg-black/80') : 'border-white/10 bg-black/40'} `}>
+                        <div className={`flex items-center backdrop-blur-xl border-[1.5px] transition-all duration-500 rounded-xl overflow-hidden shadow-[0_30px_100px_rgba(0,0,0,0.8)] ${searching ? (searchMode === 'ai' ? 'border-violet-500 animate-pulse shadow-[0_0_50px_rgba(124,58,237,0.4)] bg-black/90' : 'border-accent animate-pulse shadow-[0_0_50px_rgba(0,255,255,0.4)] bg-black/90') : isInputFocused ? (searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_40px_rgba(124,58,237,0.2)] bg-black/80' : 'border-accent shadow-[0_0_40px_rgba(0,255,255,0.2)] bg-black/80') : 'border-white/10 bg-black/40'} `}>
                             <input
                                 type="text"
                                 placeholder={searchMode === 'ai' ? "DESCRIBE THE AIRCRAFT OR INCIDENT..." : "ENTER TAIL #, MODEL, OR OWNER..."}
@@ -583,7 +583,7 @@ const Hero = () => {
                                     {searchMode === 'ai' && (
                                         <div className="text-[10px] font-black text-violet-500 uppercase tracking-widest animate-pulse">Neural Processing...</div>
                                     )}
-                                    <div className={`w-6 h-6 border-2 ${searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_10px_#7C3AED]' : 'border-accent shadow-[0_0_10px_#FF5F1F]'} border-t-transparent rounded-full animate-spin`}></div>
+                                    <div className={`w-6 h-6 border-2 ${searchMode === 'ai' ? 'border-violet-500 shadow-[0_0_10px_#7C3AED]' : 'border-accent shadow-[0_0_10px_#00FFFF]'} border-t-transparent rounded-full animate-spin`}></div>
                                 </div>
                             )}
                         </div>
@@ -625,7 +625,7 @@ const Hero = () => {
 
                     {error && (
                         <div className="absolute -bottom-12 left-0 w-full text-center animate-shake">
-                            <span className="text-[#FF5F1F] font-bold bg-black/90 px-6 py-2 rounded-full border border-[#FF5F1F] text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(255,95,31,0.4)]">
+                            <span className="text-[#00FFFF] font-bold bg-black/90 px-6 py-2 rounded-full border border-[#00FFFF] text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,255,0.4)]">
                                 ⚠️ {error}
                             </span>
                         </div>
@@ -816,14 +816,14 @@ const Hero = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="w-full max-w-4xl mx-auto mb-32"
                     >
-                        <div className="glass-card border-orange-500/30 p-12 text-left relative overflow-hidden group">
+                        <div className="glass-card border-cyan-500/30 p-12 text-left relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
-                                <AlertTriangle className="w-32 h-32 text-orange-500" />
+                                <AlertTriangle className="w-32 h-32 text-cyan-500" />
                             </div>
 
                             <div className="relative z-10">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <div className="px-3 py-1 bg-orange-500/20 rounded border border-orange-500/30 text-[10px] text-orange-400 font-black tracking-widest uppercase">
+                                    <div className="px-3 py-1 bg-cyan-500/20 rounded border border-cyan-500/30 text-[10px] text-cyan-400 font-black tracking-widest uppercase">
                                         Registry Intelligence Void
                                     </div>
                                     <div className="px-3 py-1 bg-white/5 rounded border border-white/10 text-[10px] text-gray-500 font-black tracking-widest uppercase italic">
@@ -833,23 +833,23 @@ const Hero = () => {
 
                                 <h2 className="text-3xl font-avionics font-bold text-white mb-8 tracking-widest uppercase">Record Not Identified</h2>
                                 <p className="text-xl text-gray-300 leading-relaxed mb-10">
-                                    Our intelligence network has performed a real-time audit across <span className="text-white font-bold underline decoration-orange-500/50">FAA (US)</span>, <span className="text-white font-bold underline decoration-orange-500/50">TC (CA)</span>, <span className="text-white font-bold underline decoration-orange-500/50">CAA (UK)</span>, <span className="text-white font-bold underline decoration-orange-500/50">EASA (EU)</span>, <span className="text-white font-bold underline decoration-orange-500/50">CASA (AU)</span>, and <span className="text-white font-bold underline decoration-orange-500/50">AFAC (MX)</span> civil registries. No active or historical record exists for <span className="text-orange-500 font-black text-2xl px-2">{notFoundResult.nNumber}</span>.
+                                    Our intelligence network has performed a real-time audit across <span className="text-white font-bold underline decoration-cyan-500/50">FAA (US)</span>, <span className="text-white font-bold underline decoration-cyan-500/50">TC (CA)</span>, <span className="text-white font-bold underline decoration-cyan-500/50">CAA (UK)</span>, <span className="text-white font-bold underline decoration-cyan-500/50">EASA (EU)</span>, <span className="text-white font-bold underline decoration-cyan-500/50">CASA (AU)</span>, and <span className="text-white font-bold underline decoration-cyan-500/50">AFAC (MX)</span> civil registries. No active or historical record exists for <span className="text-cyan-500 font-black text-2xl px-2">{notFoundResult.nNumber}</span>.
                                 </p>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-xl">
-                                        <h4 className="text-[10px] text-orange-400 font-black uppercase tracking-widest mb-3">Probable Causes</h4>
+                                        <h4 className="text-[10px] text-cyan-400 font-black uppercase tracking-widest mb-3">Probable Causes</h4>
                                         <ul className="space-y-2">
                                             <li className="text-[11px] text-gray-400 flex items-start gap-2">
-                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span className="text-cyan-500 mt-1">•</span>
                                                 <span>Aircraft registered under a different sovereignty (e.g. Mexico, Bahamas).</span>
                                             </li>
                                             <li className="text-[11px] text-gray-400 flex items-start gap-2">
-                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span className="text-cyan-500 mt-1">•</span>
                                                 <span>Recent de-registration due to export or total loss destruction.</span>
                                             </li>
                                             <li className="text-[11px] text-gray-400 flex items-start gap-2">
-                                                <span className="text-orange-500 mt-1">•</span>
+                                                <span className="text-cyan-500 mt-1">•</span>
                                                 <span>Experimental or Military aircraft outside civil registry scope.</span>
                                             </li>
                                         </ul>
@@ -857,7 +857,7 @@ const Hero = () => {
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-xl flex flex-col justify-center">
                                         <h4 className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-4">Deep Intelligence Required?</h4>
                                         <p className="text-[11px] text-gray-500 leading-relaxed mb-6 italic">If you believe this record is being obfuscated or hidden through a privacy program (LADD/PIA), our specialists can initiate a deep-link audit.</p>
-                                        <button className="w-full py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded transition-all hover:bg-orange-500 hover:text-white">Request Forensic Specialist</button>
+                                        <button className="w-full py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded transition-all hover:bg-cyan-500 hover:text-white">Request Forensic Specialist</button>
                                     </div>
                                 </div>
                             </div>
@@ -938,7 +938,7 @@ const Hero = () => {
                                     >
                                         {[...result.master_advisory_feed, ...result.master_advisory_feed].map((adv, i) => (
                                             <div key={i} className="flex items-center gap-3">
-                                                <span className={`text-[9px] font-black tracking-widest ${adv.type === 'CAUTION' ? 'text-orange-500' : adv.type === 'VERIFIED' ? 'text-green-500' : 'text-blue-400'} `}>
+                                                <span className={`text-[9px] font-black tracking-widest ${adv.type === 'CAUTION' ? 'text-amber-500' : adv.type === 'VERIFIED' ? 'text-green-500' : 'text-blue-400'} `}>
                                                     [{adv.type}] {adv.msg}
                                                 </span>
                                                 <div className="w-1 h-1 bg-white/20 rounded-full"></div>
@@ -1001,7 +1001,7 @@ const Hero = () => {
                                                 </div>
                                                 <div className="flex justify-between text-[10px]">
                                                     <span className="text-gray-400">Dormancy Risk</span>
-                                                    <span className={ac.dormancy_analysis?.dormancy_risk === 'LOW' ? 'text-green-500' : 'text-orange-500'}>{ac.dormancy_analysis?.status_label || 'N/A'}</span>
+                                                    <span className={ac.dormancy_analysis?.dormancy_risk === 'LOW' ? 'text-green-500' : 'text-amber-500'}>{ac.dormancy_analysis?.status_label || 'N/A'}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1105,7 +1105,7 @@ const Hero = () => {
                                                 {
                                                     label: viewMode === 'seller' ? 'Resale Demand' : 'Market Value',
                                                     value: result.risk_metrics.commercial,
-                                                    color: 'bg-orange-500',
+                                                    color: 'bg-cyan-500',
                                                     desc: viewMode === 'seller' ? 'Is it easy to sell?' : 'Is it holding value?'
                                                 }
                                             ].map((m, idx) => (
@@ -1136,7 +1136,7 @@ const Hero = () => {
                                                 <div className="space-y-3 pb-4">
                                                     {result.audit_results?.map((res, i) => (
                                                         <div key={i} className="flex gap-3 items-start group">
-                                                            <div className={`mt-1.5 w-1 h-1 rounded-full ${res.status === 'positive' ? 'bg-green-500' : res.status === 'negative' ? 'bg-red-500' : 'bg-orange-500'} `}></div>
+                                                            <div className={`mt-1.5 w-1 h-1 rounded-full ${res.status === 'positive' ? 'bg-green-500' : res.status === 'negative' ? 'bg-red-500' : 'bg-amber-500'} `}></div>
                                                             <div className="text-left">
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-[10px] text-white font-black uppercase tracking-tight">{res.reason}</span>
@@ -1154,16 +1154,73 @@ const Hero = () => {
                                             {/* Atmosphere & Transparency Row */}
                                             <div className="grid grid-cols-2 gap-3 pt-4">
                                                 <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                                                    <div className="text-[7px] text-gray-500 font-black uppercase tracking-widest mb-1">Atmospheric Exposure</div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${result.climate_exposure?.salinity === 'HIGH' ? 'bg-orange-500 animate-pulse' : 'bg-green-500'} `}></div>
-                                                        <span className="text-[10px] text-white font-black">{result.climate_exposure?.salinity === 'HIGH' ? 'COASTAL / SALINE' : 'INLAND / STABLE'}</span>
+                                                    <div className="text-[7px] text-gray-500 font-black uppercase tracking-widest mb-2">Corrosion Risk</div>
+                                                    <div className="flex items-center gap-3">
+                                                        {/* Animated Dial Gauge */}
+                                                        <div className="relative w-12 h-6 flex-shrink-0">
+                                                            {/* Background Arc */}
+                                                            <svg viewBox="0 0 100 50" className="w-full h-full">
+                                                                <path
+                                                                    d="M 10 45 A 40 40 0 0 1 90 45"
+                                                                    fill="none"
+                                                                    stroke="rgba(255,255,255,0.1)"
+                                                                    strokeWidth="8"
+                                                                    strokeLinecap="round"
+                                                                />
+                                                                {/* Animated Risk Arc */}
+                                                                <path
+                                                                    d="M 10 45 A 40 40 0 0 1 90 45"
+                                                                    fill="none"
+                                                                    stroke={result.climate_exposure?.salinity === 'HIGH' ? '#f59e0b' : '#10b981'}
+                                                                    strokeWidth="8"
+                                                                    strokeLinecap="round"
+                                                                    strokeDasharray="126"
+                                                                    strokeDashoffset={result.climate_exposure?.salinity === 'HIGH' ? '30' : '95'}
+                                                                    className="transition-all duration-1000 ease-out"
+                                                                    style={{
+                                                                        filter: result.climate_exposure?.salinity === 'HIGH'
+                                                                            ? 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.6))'
+                                                                            : 'drop-shadow(0 0 4px rgba(16, 185, 129, 0.4))'
+                                                                    }}
+                                                                />
+                                                                {/* Animated Needle */}
+                                                                <line
+                                                                    x1="50"
+                                                                    y1="45"
+                                                                    x2="50"
+                                                                    y2="15"
+                                                                    stroke={result.climate_exposure?.salinity === 'HIGH' ? '#fbbf24' : '#34d399'}
+                                                                    strokeWidth="2"
+                                                                    strokeLinecap="round"
+                                                                    className="transition-all duration-1000 ease-out"
+                                                                    style={{
+                                                                        transformOrigin: '50px 45px',
+                                                                        transform: result.climate_exposure?.salinity === 'HIGH'
+                                                                            ? 'rotate(60deg)'
+                                                                            : 'rotate(-60deg)'
+                                                                    }}
+                                                                />
+                                                                {/* Center Dot */}
+                                                                <circle
+                                                                    cx="50"
+                                                                    cy="45"
+                                                                    r="3"
+                                                                    fill={result.climate_exposure?.salinity === 'HIGH' ? '#f59e0b' : '#10b981'}
+                                                                    className={result.climate_exposure?.salinity === 'HIGH' ? 'animate-pulse' : ''}
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <span className={`text-[10px] font-black uppercase ${result.climate_exposure?.salinity === 'HIGH' ? 'text-amber-400' : 'text-green-400'}`}>
+                                                                {result.climate_exposure?.salinity === 'HIGH' ? 'HIGH RISK' : 'NOMINAL'}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="bg-white/5 p-3 rounded-lg border border-white/5">
                                                     <div className="text-[7px] text-gray-500 font-black uppercase tracking-widest mb-1">Ownership Entity</div>
                                                     <div className="flex items-center gap-2">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${result.transparency_audit?.score < 50 ? 'bg-red-500' : result.transparency_audit?.score < 80 ? 'bg-orange-500' : 'bg-green-500'} `}></div>
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${result.transparency_audit?.score < 50 ? 'bg-red-500' : result.transparency_audit?.score < 80 ? 'bg-amber-500' : 'bg-green-500'} `}></div>
                                                         <span className="text-[10px] text-white font-black">{result.transparency_audit?.label || 'UNKNOWN'}</span>
                                                     </div>
                                                 </div>
@@ -2042,7 +2099,7 @@ const Hero = () => {
                                 <CardContent className="p-8">
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
-                                            <div className="text-[10px] text-orange-400 font-black tracking-widest uppercase mb-2 flex items-center gap-2">
+                                            <div className="text-[10px] text-cyan-400 font-black tracking-widest uppercase mb-2 flex items-center gap-2">
                                                 <Microscope className="w-3 h-3" />
                                                 Corrosion Forensic
                                             </div>
@@ -2059,7 +2116,7 @@ const Hero = () => {
                                     <div className="space-y-4">
                                         <div className="h-4 w-full bg-white/10 rounded-full overflow-hidden">
                                             <div
-                                                className={`h-full ${result.hangar_queen_index.score > 80 ? 'bg-red-600' : (result.hangar_queen_index.score > 40 ? 'bg-orange-500' : 'bg-green-500')}`}
+                                                className={`h-full ${result.hangar_queen_index.score > 80 ? 'bg-red-600' : (result.hangar_queen_index.score > 40 ? 'bg-amber-500' : 'bg-green-500')}`}
                                                 style={{ width: `${result.hangar_queen_index.score}%` }}
                                             ></div>
                                         </div>
@@ -2520,7 +2577,7 @@ const Hero = () => {
                                     </div>
 
                                     {/* Risk Corridors (Heatmaps) - Higher Visibility */}
-                                    <div className="absolute inset-x-0 bottom-0 h-32 bg-orange-500/10 blur-[80px] pointer-events-none" title="High Salinity Risk Zone"></div>
+                                    <div className="absolute inset-x-0 bottom-0 h-32 bg-amber-500/10 blur-[80px] pointer-events-none" title="High Salinity Risk Zone"></div>
                                     <div className="absolute inset-x-0 top-[35%] h-24 bg-purple-500/10 blur-[80px] pointer-events-none" title="Intense UV Exposure Corridor"></div>
 
                                     {/* Tactical Loitering Zones (Dynamic Heatmap) */}
@@ -2559,7 +2616,7 @@ const Hero = () => {
                                                         <div className="w-[1px] h-12 bg-accent/50 absolute left-1/2 -top-6"></div>
 
                                                         <div className="w-4 h-4 bg-accent rounded-full animate-ping absolute"></div>
-                                                        <div className="w-4 h-4 bg-accent rounded-full relative z-10 shadow-[0_0_20px_#FF5F1F]"></div>
+                                                        <div className="w-4 h-4 bg-accent rounded-full relative z-10 shadow-[0_0_20px_#00FFFF]"></div>
 
                                                         {/* Floating Tactical Tag */}
                                                         <motion.div
@@ -2569,7 +2626,7 @@ const Hero = () => {
                                                             className="absolute top-10 left-1/2 -translate-x-1/2 bg-black/95 border border-white/20 p-3 rounded-lg backdrop-blur-xl whitespace-nowrap shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-t-accent/40"
                                                         >
                                                             <div className="flex items-center gap-2 mb-1.5">
-                                                                <div className="w-1.5 h-1.5 bg-accent animate-pulse rounded-full shadow-[0_0_5px_#FF5F1F]"></div>
+                                                                <div className="w-1.5 h-1.5 bg-accent animate-pulse rounded-full shadow-[0_0_5px_#00FFFF]"></div>
                                                                 <span className="text-[8px] font-mono text-accent font-black uppercase tracking-[0.2em]">GEOSPATIAL_LOCK</span>
                                                             </div>
                                                             <div className="text-sm font-mono text-white font-black tracking-tighter">
@@ -2577,7 +2634,7 @@ const Hero = () => {
                                                             </div>
                                                             <div className="flex items-center gap-3 mt-2 border-t border-white/10 pt-2">
                                                                 <div className="text-[7px] text-gray-400 font-bold uppercase">Zone:</div>
-                                                                <div className={`text-[7px] font-black uppercase tracking-widest ${result.climate_exposure?.salinity === 'HIGH' ? 'text-orange-500' : 'text-green-500'} `}>
+                                                                <div className={`text-[7px] font-black uppercase tracking-widest ${result.climate_exposure?.salinity === 'HIGH' ? 'text-amber-500' : 'text-green-500'} `}>
                                                                     {result.climate_exposure?.salinity === 'HIGH' ? 'COASTAL_SALINE' : 'INLAND_STABLE'}
                                                                 </div>
                                                             </div>
@@ -2609,16 +2666,6 @@ const Hero = () => {
                                     <h3 className="text-3xl font-black text-white uppercase mb-6 leading-tight">Exposure<br />Environment</h3>
                                     <div className="space-y-5">
                                         <div className="p-4 bg-white/5 border border-white/10 rounded-xl group hover:border-accent/30 transition-colors">
-                                            <div className="text-[10px] text-gray-500 font-bold uppercase mb-2 tracking-widest">Salinity Profile</div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="text-[11px] font-black text-white uppercase flex items-center gap-2">
-                                                    <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_8px] ${result.climate_exposure?.salinity === 'HIGH' ? 'bg-orange-500 shadow-orange-500/50 pulse' : 'bg-green-500 shadow-green-500/50'} `}></div>
-                                                    {result.climate_exposure?.salinity === 'HIGH' ? 'Coastal Saline' : 'Inland Stable'}
-                                                </div>
-                                                <Badge className="bg-white/5 text-[8px] border-white/10">{result.climate_exposure?.salinity === 'HIGH' ? 'RISK' : 'SAFE'}</Badge>
-                                            </div>
-                                        </div>
-                                        <div className="p-4 bg-white/5 border border-white/10 rounded-xl group hover:border-accent/30 transition-colors">
                                             <div className="text-[10px] text-gray-500 font-bold uppercase mb-2 tracking-widest">UV Exposure</div>
                                             <div className="flex items-center justify-between">
                                                 <div className="text-[11px] font-black text-white uppercase flex items-center gap-2">
@@ -2644,7 +2691,7 @@ const Hero = () => {
                                             </div>
                                             <div className="mt-4 flex justify-between items-center border-t border-white/5 pt-3">
                                                 <span className="text-[9px] text-gray-600 font-black uppercase">Intl Exposure</span>
-                                                <span className={`text-[9px] font-black ${result.geofence_audit?.intl_exposure === 'HIGH' ? 'text-orange-500' : 'text-blue-400'} `}>
+                                                <span className={`text-[9px] font-black ${result.geofence_audit?.intl_exposure === 'HIGH' ? 'text-amber-500' : 'text-blue-400'} `}>
                                                     {result.geofence_audit?.intl_exposure}
                                                 </span>
                                             </div>
@@ -2725,7 +2772,7 @@ const Hero = () => {
                                         {[
                                             { label: 'REG_HOPS', val: result.custody_forensic?.registry_hops || 0, color: 'text-white' },
                                             { label: 'AVG_CYC', val: (result.custody_forensic?.average_ownership_duration || 5) + ' YRS', color: 'text-white' },
-                                            { label: 'JUR_CHURN', val: result.custody_forensic?.jurisdiction_shifts || 'STABLE', color: result.custody_forensic?.jurisdiction_shifts === 'INTERNATIONAL_CHURN' ? 'text-orange-500' : 'text-blue-400' },
+                                            { label: 'JUR_CHURN', val: result.custody_forensic?.jurisdiction_shifts || 'STABLE', color: result.custody_forensic?.jurisdiction_shifts === 'INTERNATIONAL_CHURN' ? 'text-amber-500' : 'text-blue-400' },
                                             { label: 'IA_VALID', val: result.custody_forensic?.verification_status || 'PENDING', color: 'text-green-500' }
                                         ].map((item, i) => (
                                             <div key={i} className="flex justify-between items-center text-[10px] border-b border-white/[0.03] pb-1.5">
@@ -2826,7 +2873,7 @@ const Hero = () => {
                                                 </div>
                                                 <div className="flex justify-between items-end">
                                                     <span className="text-[10px] text-gray-400">Operational Bias</span>
-                                                    <span className={`text-[10px] font-black uppercase ${result.engine_diagnostics?.cycle_assessment === 'OPTIMAL' ? 'text-green-500' : 'text-orange-500'} `}>
+                                                    <span className={`text-[10px] font-black uppercase ${result.engine_diagnostics?.cycle_assessment === 'OPTIMAL' ? 'text-green-500' : 'text-amber-500'} `}>
                                                         {result.engine_diagnostics?.cycle_assessment?.replace('_', ' ')}
                                                     </span>
                                                 </div>
@@ -2881,7 +2928,7 @@ const Hero = () => {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-4 bg-white/5 border border-white/5 rounded-lg text-center">
                                                 <div className="text-[10px] text-gray-500 uppercase mb-1">Maint. Index</div>
-                                                <div className={`text-sm font-black ${result.fleet_benchmarking?.maintenance_freq_delta?.startsWith('-') ? 'text-green-500' : 'text-orange-500'} `}>
+                                                <div className={`text-sm font-black ${result.fleet_benchmarking?.maintenance_freq_delta?.startsWith('-') ? 'text-green-500' : 'text-amber-500'} `}>
                                                     {result.fleet_benchmarking?.maintenance_freq_delta}
                                                 </div>
                                                 <div className="text-[7px] text-gray-700 font-bold uppercase">Vs Fleet Avg</div>
@@ -3101,7 +3148,7 @@ const Hero = () => {
                                                     <div className="flex items-center justify-between mb-4">
                                                         <div className="flex items-center gap-2">
                                                             <div className="text-[10px] text-accent font-black tracking-[0.4em] uppercase">Forensic Intelligence Analyst v2.0</div>
-                                                            {!isPaid && <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[8px] h-4">PREVIEW</Badge>}
+                                                            {!isPaid && <Badge className="bg-cyan-500/10 text-cyan-500 border-cyan-500/20 text-[8px] h-4">PREVIEW</Badge>}
                                                         </div>
                                                         <Badge className="bg-accent/20 text-accent border border-accent/30 rounded-sm font-bold tracking-widest px-3">
                                                             {result.ai_intelligence.risk_profile}

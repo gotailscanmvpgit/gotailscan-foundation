@@ -10,9 +10,9 @@ export default {
     theme: {
         extend: {
             colors: {
-                background: '#0A0A0A', // Deep Charcoal
-                primary: '#FF5F1F',    // Safety Orange
-                accent: '#FF5F1F',     // Safety Orange (redundant but keeps compatibility)
+                background: '#000000', // G1000 Black
+                primary: '#00FFFF',    // G1000 Cyan
+                accent: '#FF00FF',     // G1000 Magenta
             },
             fontFamily: {
                 mono: ['Geist Mono', 'Roboto Mono', 'monospace'],

@@ -1,14 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabaseClient';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-// Initialize Supabase Client (Frontend)
-const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 // --- LOGIC REPLICATION (Frontend Fallback) --- 
 // In a real app, this logic lives in the backend, but we replicate the resolver here 

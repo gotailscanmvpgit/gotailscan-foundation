@@ -155,6 +155,9 @@ async function lookupBySerialNumber(serialNumber) {
     }
 
     // Then try database
+    // [FIX] Disabled strict DB lookup until 'aircraft_reference' table is fully migrated
+    // This prevents 404 errors in the console.
+    /*
     try {
         const { data, error } = await supabase
             .from('aircraft_reference')
@@ -168,6 +171,8 @@ async function lookupBySerialNumber(serialNumber) {
         // Table might not exist yet, or no match found
         return null;
     }
+    */
+    return null;
 }
 
 /**

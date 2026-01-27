@@ -12,7 +12,7 @@ app.use(cors());
 // Route for creating checkout session
 app.post('/api/create-checkout-session', createCheckoutSession);
 
-const PORT = 3000;
+const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
