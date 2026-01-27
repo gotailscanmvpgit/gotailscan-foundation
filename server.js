@@ -18,6 +18,9 @@ app.get('/api/arla', arlaHandler);
 import riskRadarHandler from './api/risk_radar.js';
 app.get('/api/risk_radar', riskRadarHandler);
 
+import marketAlphaHandler from './api/market_alpha.js';
+app.get('/api/market_alpha', marketAlphaHandler);
+
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
