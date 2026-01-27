@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import scraperService from '../services/scraperService';
+import MarketAlphaWidget from './MarketAlphaWidget';
 
 export default function BuyerDashboard() {
     const navigate = useNavigate();
@@ -106,47 +107,55 @@ export default function BuyerDashboard() {
 
                 {result && (
                     <div className="space-y-6">
-                        {/* Hero Metric: Risk Score */}
-                        <Card className="border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 overflow-hidden relative">
-                            <div className={
-                                riskLevel === 'HIGH' ? 'absolute inset-0 bg-red-500/5' :
-                                    riskLevel === 'MEDIUM' ? 'absolute inset-0 bg-yellow-500/5' :
-                                        'absolute inset-0 bg-emerald-500/5'
-                            }></div>
-                            <CardContent className="p-8 relative z-10">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Hero Metric</div>
-                                        <h2 className="text-3xl font-black text-white uppercase">Risk Assessment</h2>
+                        {/* Scores Grid: Risk & Market Value */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Hero Metric: Risk Score */}
+                            <Card className="lg:col-span-2 border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 overflow-hidden relative">
+                                <div className={
+                                    riskLevel === 'HIGH' ? 'absolute inset-0 bg-red-500/5' :
+                                        riskLevel === 'MEDIUM' ? 'absolute inset-0 bg-yellow-500/5' :
+                                            'absolute inset-0 bg-emerald-500/5'
+                                }></div>
+                                <CardContent className="p-8 relative z-10">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Hero Metric</div>
+                                            <h2 className="text-3xl font-black text-white uppercase">Risk Assessment</h2>
+                                        </div>
+                                        <Target className={
+                                            riskLevel === 'HIGH' ? 'w-16 h-16 text-red-500 opacity-20' :
+                                                riskLevel === 'MEDIUM' ? 'w-16 h-16 text-yellow-500 opacity-20' :
+                                                    'w-16 h-16 text-emerald-500 opacity-20'
+                                        } />
                                     </div>
-                                    <Target className={
-                                        riskLevel === 'HIGH' ? 'w-16 h-16 text-red-500 opacity-20' :
-                                            riskLevel === 'MEDIUM' ? 'w-16 h-16 text-yellow-500 opacity-20' :
-                                                'w-16 h-16 text-emerald-500 opacity-20'
-                                    } />
-                                </div>
-                                <div className="flex items-baseline gap-4">
-                                    <div className={
-                                        riskLevel === 'HIGH' ? 'text-7xl font-black text-red-500' :
-                                            riskLevel === 'MEDIUM' ? 'text-7xl font-black text-yellow-500' :
-                                                'text-7xl font-black text-emerald-500'
-                                    }>{riskScore}</div>
-                                    <div>
-                                        <div className="text-2xl font-bold text-gray-400">/100</div>
-                                        <Badge className={
-                                            riskLevel === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500/30 mt-2' :
-                                                riskLevel === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 mt-2' :
-                                                    'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 mt-2'
-                                        }>
-                                            {riskLevel} RISK
-                                        </Badge>
+                                    <div className="flex items-baseline gap-4">
+                                        <div className={
+                                            riskLevel === 'HIGH' ? 'text-7xl font-black text-red-500' :
+                                                riskLevel === 'MEDIUM' ? 'text-7xl font-black text-yellow-500' :
+                                                    'text-7xl font-black text-emerald-500'
+                                        }>{riskScore}</div>
+                                        <div>
+                                            <div className="text-2xl font-bold text-gray-400">/100</div>
+                                            <Badge className={
+                                                riskLevel === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500/30 mt-2' :
+                                                    riskLevel === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 mt-2' :
+                                                        'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 mt-2'
+                                            }>
+                                                {riskLevel} RISK
+                                            </Badge>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="mt-4 text-sm text-gray-400">
-                                    {result.ai_intelligence?.risk_profile || 'Calculating...'}
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    <div className="mt-4 text-sm text-gray-400">
+                                        {result.ai_intelligence?.risk_profile || 'Calculating risk vectors based on forensic record data...'}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Market Alpha Widget */}
+                            <div className="lg:col-span-1">
+                                <MarketAlphaWidget tailNumber={tailNumber.toUpperCase()} />
+                            </div>
+                        </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Red Flags Panel */}
