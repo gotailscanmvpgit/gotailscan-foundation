@@ -15,6 +15,9 @@ app.post('/api/create-checkout-session', createCheckoutSession);
 import arlaHandler from './api/arla.js';
 app.get('/api/arla', arlaHandler);
 
+import riskRadarHandler from './api/risk_radar.js';
+app.get('/api/risk_radar', riskRadarHandler);
+
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
