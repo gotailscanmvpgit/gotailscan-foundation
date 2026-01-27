@@ -12,6 +12,9 @@ app.use(cors());
 // Route for creating checkout session
 app.post('/api/create-checkout-session', createCheckoutSession);
 
+import arlaHandler from './api/arla.js';
+app.get('/api/arla', arlaHandler);
+
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
