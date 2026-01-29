@@ -38,12 +38,102 @@ serve(async (req) => {
             })
         }
 
-        // 4. API Fallback (FlightAware AeroAPI)
+        // 3. API Option A: OAG (Enterprise / Premium)
+        const OAG_API_KEY = Deno.env.get('OAG_API_KEY');
+        const FLIGHTLABS_API_KEY = Deno.env.get('FLIGHTLABS_API_KEY');
         const FLIGHTAWARE_API_KEY = Deno.env.get('FLIGHTAWARE_API_KEY');
         const FORCE_MOCK = Deno.env.get('FORCE_MOCK_FLIGHT_DATA') === 'true';
+
         let finalFlightData = null;
 
-        if (FLIGHTAWARE_API_KEY && !FORCE_MOCK) {
+        if (OAG_API_KEY && !FORCE_MOCK) {
+            console.log(`[OAG] Fetching premium flight status for ${tail_number}`);
+            try {
+                // OAG Flight Status API (Tail Lookup)
+                const response = await fetch(`https://api.oag.com/flight-status/current/tail-number/${tail_number}`, {
+                    method: 'GET',
+                    headers: {
+                        'Subscription-Key': OAG_API_KEY,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const json = await response.json();
+                    const data = json.data || []; // Assuming standard OAG envelope
+
+                    if (data.length > 0) {
+                        const mappedFlights = data.slice(0, 5).map((f: any) => ({
+                            origin: f.departure?.airportCode || '---',
+                            destination: f.arrival?.airportCode || '---',
+                            filed_altitude: 0, // OAG often focuses on schedule/gate times over telemetry
+                            filed_ete: f.durationMinutes || 60,
+                            date: f.departure?.actualTime ? new Date(f.departure.actualTime).toLocaleDateString() : 'Scheduled',
+                            duration: (f.durationMinutes / 60).toFixed(1) + ' hrs',
+                            status: f.status // 'Landed', 'Scheduled'
+                        }));
+
+                        finalFlightData = {
+                            total_hours_12m: data.length * 2.5, // Heuristic
+                            last_tracked: new Date().toISOString(),
+                            data_source: 'oag_verified',
+                            raw_json: { flights: mappedFlights, provider: 'OAG' }
+                        };
+                        console.log(`[OAG] Success: ${data.length} records retrieved.`);
+                    }
+                } else {
+                    console.warn(`[OAG] API Error: ${response.status}`);
+                }
+            } catch (err) {
+                console.error("[OAG] Request Failed:", err);
+            }
+        }
+
+        // 3.1 API Option B: FlightLabs / AviationEdge
+
+        if (FLIGHTLABS_API_KEY && !FORCE_MOCK) {
+            console.log(`[FlightLabs] Fetching tracking data for ${tail_number}`);
+            try {
+                // FlightLabs / AviationEdge style endpoint
+                const response = await fetch(`https://app.goflightlabs.com/flights?access_key=${FLIGHTLABS_API_KEY}&reg_number=${tail_number}`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    const json = await response.json();
+                    const flights = json.data || [];
+
+                    if (flights.length > 0) {
+                        const mappedFlights = flights.slice(0, 10).map((f: any) => ({
+                            origin: f.departure?.iataCode || f.departure?.icaoCode || '---',
+                            destination: f.arrival?.iataCode || f.arrival?.icaoCode || '---',
+                            filed_altitude: f.flight?.altitude || 0,
+                            filed_ete: 60, // Estimate if missing
+                            date: f.departure?.scheduledTime ? new Date(f.departure.scheduledTime).toLocaleDateString() : 'Recent',
+                            duration: '0.0 hrs', // Often missing in basic tier
+                            status: f.status
+                        }));
+
+                        finalFlightData = {
+                            total_hours_12m: flights.length * 1.5, // Rough estimate based on flight count
+                            last_tracked: new Date().toISOString(),
+                            data_source: 'flightlabs_live',
+                            raw_json: { flights: mappedFlights, provider: 'flightlabs' }
+                        };
+                        console.log(`[FlightLabs] Success: ${flights.length} flights found`);
+                    } else {
+                        console.log(`[FlightLabs] No flights found for ${tail_number}`);
+                    }
+                } else {
+                    console.warn(`[FlightLabs] API Error: ${response.status}`);
+                }
+            } catch (err) {
+                console.error("[FlightLabs] Request Failed:", err);
+            }
+        }
+
+        // 4. API Option B: FlightAware AeroAPI (Fallback)
+        if (!finalFlightData && FLIGHTAWARE_API_KEY && !FORCE_MOCK) {
             console.log(`[AeroAPI] Fetching real tracking data for ${tail_number}`);
             try {
                 const response = await fetch(`https://aeroapi.flightaware.com/aeroapi/flights/${tail_number}`, {
@@ -96,8 +186,20 @@ serve(async (req) => {
                     raw_json: { flights: [], message: "No public ADS-B activity detected in the last 12 months. This often indicates the aircraft is either dormant or participating in FAA privacy programs (LADD/PIA)." }
                 };
             } else {
-                // TRUE MOCKING (No key or explicit force)
-                console.log(`[FlightAware] Generating Simulated Data for ${tail_number}`);
+                // TRUE MOCKING (Smart Simulation)
+                console.log(`[FlightAware] Generating Smart Simulation for ${tail_number}`);
+
+                // 1. Get Aircraft Type Context
+                const { data: acContext } = await supabase
+                    .from('mv_aircraft_summary')
+                    .select('mfr_mdl_code, model, engine_type')
+                    .or(`n_number.eq.${tail_number},n_number.eq.N${tail_number}`)
+                    .maybeSingle();
+
+                const modelUpper = (acContext?.model || '').toUpperCase();
+                const isJet = modelUpper.includes('JET') || modelUpper.includes('LLEAR') || modelUpper.includes('CITATION') || modelUpper.includes('GULFSTREAM') || modelUpper.includes('FALCON') || modelUpper.includes('CHALLENGER');
+                const isTurboprop = modelUpper.includes('KING AIR') || modelUpper.includes('PC-12') || modelUpper.includes('TBM');
+
                 const seed = tail_number.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
                 const random = (offset = 0) => {
                     const x = Math.sin(seed + offset) * 10000;
@@ -105,8 +207,43 @@ serve(async (req) => {
                 };
 
                 const isDormant = random(10) > 0.85;
-                const totalHours = isDormant ? Math.floor(random(11) * 8) : Math.floor(random(12) * 350) + 40;
-                const lastTrackedDate = new Date(Date.now() - ((isDormant ? 70 : 1) * 86400000)).toISOString();
+                // Jets fly more hours generally
+                const baseHours = isJet ? 250 : (isTurboprop ? 180 : 80);
+                const totalHours = isDormant ? Math.floor(random(11) * 8) : Math.floor(random(12) * baseHours) + 40;
+
+                // Generate realistic routes
+                let flights = [];
+                if (totalHours > 0) {
+                    const routes = isJet
+                        ? [ // Jet Routes
+                            { o: 'KTEB', d: 'KVNY', alt: 410, ete: 330 }, // Teterboro -> Van Nuys
+                            { o: 'KPBI', d: 'KTEB', alt: 390, ete: 145 }, // West Palm -> Teterboro
+                            { o: 'EGLL', d: 'KBED', alt: 430, ete: 400 }, // London -> Bedford
+                            { o: 'KDAL', d: 'KASE', alt: 360, ete: 110 }  // Dallas -> Aspen
+                        ]
+                        : [ // GA/Prop Routes
+                            { o: 'KAPA', d: 'KCOS', alt: 85, ete: 40 },   // Centennial -> Springs
+                            { o: 'KVNY', d: 'KSBA', alt: 65, ete: 35 },   // Van Nuys -> Santa Barbara
+                            { o: 'KFXE', d: 'KEYW', alt: 75, ete: 55 },   // Fort Lauderdale -> Key West
+                            { o: 'KSDL', d: 'KSEZ', alt: 95, ete: 45 }    // Scottsdale -> Sedona
+                        ];
+
+                    // Pick 1-2 flights deterministically
+                    const numFlights = Math.floor(random(99) * 2) + 1;
+                    for (let i = 0; i < numFlights; i++) {
+                        const route = routes[Math.floor(random(i + 55) * routes.length)];
+                        flights.push({
+                            origin: route.o,
+                            destination: route.d,
+                            filed_altitude: route.alt * 100,
+                            filed_ete: route.ete,
+                            date: new Date(Date.now() - (i * 86400000 * 2)).toLocaleDateString(),
+                            duration: (route.ete / 60).toFixed(1) + ' hrs'
+                        });
+                    }
+                }
+
+                const lastTrackedDate = flights.length > 0 ? new Date().toISOString() : new Date(Date.now() - ((isDormant ? 70 : 1) * 86400000)).toISOString();
 
                 // Generate Monthly Pulse (12 months)
                 const monthlyHours = Array(12).fill(0).map((_, i) => {
@@ -121,9 +258,8 @@ serve(async (req) => {
                     data_source: 'adsb_simulated',
                     monthly_hours: monthlyHours,
                     raw_json: {
-                        flights: totalHours > 0 ? [
-                            { origin: 'KLAX', destination: 'KSFO', filed_altitude: 350, filed_ete: 55, date: new Date().toLocaleDateString(), duration: '1.2 hrs' }
-                        ] : []
+                        flights: flights,
+                        message: "Viewing simulated demo data. Add API Key for live tracking."
                     }
                 };
             }

@@ -1,0 +1,32 @@
+﻿Starting Buyer Critical Alert Stress Test...
+
+-----------------------------------------
+Testing N799PC (Known Accident History Injection) [N799PC]...
+- Status: 200 OK
+- Safety Score: 50/100
+- NTSB Records Found: 1
+- Compliance: CLEARED
+- Alert Verdict: SEVERE ACCIDENT HISTORY
+- Risk Profile: WALK AWAY
+Γ£à Alert System Triggered (Risk identified)
+
+-----------------------------------------
+Testing Random Tail (Baseline) [N12345]...
+- Status: 200 OK
+- Safety Score: 100/100
+- NTSB Records Found: 0
+- Compliance: CLEARED
+- Alert Verdict: CLEAN GENEALOGY
+- Risk Profile: INVESTIGATE
+
+-----------------------------------------
+Testing High Risk Random (Simulated) [N999XX]...
+- Status: 200 OK
+- Safety Score: 100/100
+- NTSB Records Found: 0
+- Compliance: CLEARED
+- Alert Verdict: CLEAN GENEALOGY
+- Risk Profile: INVESTIGATE
+
+-----------------------------------------
+Stress Test Complete.

@@ -716,10 +716,10 @@ export const scraperService = {
 
         // 2. CADORS Occurrence Scan (Canadian Only logic)
         if (nNumber.startsWith('C-')) {
-            if (rawData.cadors_data.length > 0) {
-                auditResults.push({ reason: 'Safety Occurrence (CADORS)', points: '-20', status: 'negative', significance: 'Recent safety occurrences or operational deviations recorded.' });
+            if (rawData.cadors_data && rawData.cadors_data.length > 0) {
+                auditResults.push({ reason: 'Transport Canada (TC) Incident', points: '-20', status: 'negative', significance: 'Recent safety occurrences or operational deviations recorded in TC CADORS.' });
             } else {
-                auditResults.push({ reason: 'CADORS Safety Audit', points: 'VERIFIED', status: 'positive', significance: 'Clean operational safety record within Canadian airspace.' });
+                auditResults.push({ reason: 'Transport Canada (TC) Safety Audit', points: 'VERIFIED', status: 'positive', significance: 'Clean operational safety record within Canadian airspace.' });
             }
         }
 

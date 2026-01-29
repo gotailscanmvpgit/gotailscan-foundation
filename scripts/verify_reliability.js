@@ -1,36 +1,42 @@
 
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-    console.error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('Missing Supabase keys in environment.');
     process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function verify() {
-    console.log('Querying mv_fleet_reliability...');
+async function verifyReliabilityView() {
+    console.log('Verifying mv_fleet_reliability view...');
+    try {
+        const { data, error } = await supabase
+            .from('mv_fleet_reliability')
+            .select('*')
+            .limit(1);
 
-    // Get one row to verify
-    const { data, error } = await supabase
-        .from('mv_fleet_reliability')
-        .select('*')
-        .limit(1);
+        if (error) {
+            console.error('Error querying mv_fleet_reliability:', error.message);
+            if (error.code === '42P01') {
+                console.error('VERDICT: View DOES NOT EXIST. Please run the migration.');
+            } else {
+                console.error('VERDICT: View exists but returned error.');
+            }
+        } else {
+            console.log('Success! View exists and is queryable.');
+            console.log('Sample Data:', data);
+            console.log('VERDICT: DATABASE READY.');
+        }
 
-    if (error) {
-        console.error('Error querying view:', error);
-        return;
-    }
-
-    if (data && data.length > 0) {
-        console.log('Successfully retrieved data from mv_fleet_reliability:');
-        console.log(JSON.stringify(data[0], null, 2));
-    } else {
-        console.log('View is empty or no data returned.');
+    } catch (e) {
+        console.error('Exception:', e);
     }
 }
 
-verify();
+verifyReliabilityView();

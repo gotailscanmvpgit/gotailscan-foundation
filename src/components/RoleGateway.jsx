@@ -1,479 +1,292 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radar, TrendingUp, Wrench, ArrowRight, Camera, Zap, Target, Eye, BarChart3, Lock, PlaneTakeoff, Terminal, Shield, Database } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import xrayImage from '../assets/xray.png';
-import authorityLogos from '../assets/authority_logos.png';
+import { Radar, TrendingUp, Wrench, Shield, Compass, LayoutGrid, Zap, Loader2, Plane, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Footer from './Footer';
-import { normalizeTailNumber } from '../utils/tailNumberHelper';
+
+const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 12h16" />
+        <path d="M14 6l6 6-6 6" />
+        <rect x="3" y="7" width="10" height="10" rx="1" fill="black" stroke={color} />
+        <text x="5" y="15" fontSize="10" fontWeight="900" fill={color} stroke="none" style={{ fontFamily: 'Roboto Mono, monospace' }}>D</text>
+    </svg>
+);
 
 export default function RoleGateway() {
     const navigate = useNavigate();
-    const [tailNumber, setTailNumber] = useState('');
-    const [lens, setLens] = useState('radar');
-    const [hoveredLens, setHoveredLens] = useState(null);
-    const [isFocused, setIsFocused] = useState(false);
-    const [showCamera, setShowCamera] = useState(false);
-    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    const videoRef = useRef(null);
-    const streamRef = useRef(null);
+    const [isBooting, setIsBooting] = useState(true);
+    const [bootStep, setBootStep] = useState(0);
 
-    // Track mouse for gradient effect
+    const G3000 = {
+        WARNING: "#ef4444", CAUTION: "#f59e0b", ADVISORY: "#06b6d4", NORMAL: "#ffffff", BG: "#0b0f19", BEZEL: "#1e293b", GRID: "rgba(255, 255, 255, 0.05)"
+    };
+
+    const bootSequence = [
+        "INITIALIZING CORE AVIONICS...",
+        "SYNCING WITH GLOBAL FEEDER NETWORK...",
+        "CONNECTING TO NTSB FORENSIC DATABASE...",
+        "AUTHENTICATING DATA SOURCE ALPHA...",
+        "SYSTEMS NOMINAL - AWAITING MISSION SELECTION"
+    ];
+
     useEffect(() => {
-        const handleMouseMove = (e) => {
-            setMousePosition({ x: e.clientX, y: e.clientY });
-        };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
-
-    const navigateToRole = (roleId) => {
-        const targetLens = roleId || lens;
-        let path = '/buyer';
-        if (targetLens === 'vault') path = '/seller';
-        if (targetLens === 'tools') path = '/mechanic';
-
-        if (tailNumber.trim()) {
-            navigate(`${path}?tail=${normalizeTailNumber(tailNumber)}&autostart=true`);
+        if (bootStep < bootSequence.length) {
+            const timer = setTimeout(() => setBootStep(bootStep + 1), 600);
+            return () => clearTimeout(timer);
         } else {
-            navigate(path);
+            const timer = setTimeout(() => setIsBooting(false), 500);
+            return () => clearTimeout(timer);
         }
+    }, [bootStep]);
+
+    const navigateToRole = (path) => {
+        navigate(path);
     };
 
-    const handleSearchSubmit = (e) => {
-        if (e) e.preventDefault();
-        navigateToRole();
-    };
-
-    const lenses = [
+    const roles = [
         {
-            id: 'radar',
+            id: 'buyer',
+            title: 'BUYER AUDIT',
+            subtitle: 'RISK RADAR & FORENSIC HISTORY',
             icon: Radar,
-            label: 'Buyer Audit',
-            color: '#00FF00',
-            desc: 'Risk Analysis & Forensic History'
+            color: G3000.ADVISORY,
+            desc: 'Analyze aircraft risk profiles and maintenance continuity before purchase.',
+            sources: 'FAA / NTSB / TRANSPORT CANADA (TC) / SDR',
+            path: '/buyer'
         },
         {
-            id: 'vault',
+            id: 'seller',
+            title: 'SELLER VAULT',
+            subtitle: 'MARKET ALPHA & EQUITY SHIELDS',
             icon: TrendingUp,
-            label: 'Seller Valuation',
-            color: '#FF00FF',
-            desc: 'Market Equity & Liquidity'
+            color: G3000.ADVISORY,
+            desc: 'Maximize asset valuation with verified forensic quality markers.',
+            sources: 'MARKET VELOCITY / PROPRIETARY AI PRICING ALPHA',
+            path: '/seller'
         },
         {
-            id: 'tools',
+            id: 'mechanic',
+            title: 'MECHANIC CONSOLE',
+            subtitle: 'LOGBOOK FORENSICS & COMPLIANCE',
             icon: Wrench,
-            label: 'Mechanic Log',
-            color: '#00FFFF',
-            desc: 'Maintenance Compliance'
+            color: G3000.ADVISORY,
+            desc: 'A&P grade tools for logbook OCR, AD compliance, and predictive maintenance.',
+            sources: 'LOGBOOK OCR / AD COMPLIANCE REGISTRY / C3 AI',
+            path: '/mechanic'
         }
     ];
 
-    const activeLens = lenses.find(l => l.id === lens) || lenses[0];
-
-    // Role-specific benefits for each pillar
-    const pillars = [
-        {
-            title: 'Predictive Maintenance',
-            subtitle: 'The "Future-Proof" Audit',
-            icon: Eye,
-            color: '#10b981',
-            benefits: {
-                radar: {
-                    pitch: '"Know what breaks before you buy."',
-                    data: 'AI cross-references millions of SDR reports to predict failure patterns for your specific make/model.',
-                    value: 'Avoid buying a plane 200 hours from a $150k engine overhaul. See major maintenance events before they happen.'
-                },
-                vault: {
-                    pitch: '"Prove your plane is low-maintenance."',
-                    data: 'Show buyers your aircraft has fewer predicted issues than comparable models in the fleet.',
-                    value: 'Command premium pricing by demonstrating predictive health scores that beat market averages.'
-                },
-                tools: {
-                    pitch: '"Plan your shop schedule 6 months ahead."',
-                    data: 'Get early warnings on components likely to fail based on fleet-wide failure patterns.',
-                    value: 'Order parts before they\'re needed, reduce AOG time, and keep customers happy with proactive service.'
-                }
-            }
-        },
-        {
-            title: 'Market Alpha',
-            subtitle: 'The "Fair Deal" Finder',
-            icon: BarChart3,
-            color: '#3b82f6',
-            benefits: {
-                radar: {
-                    pitch: '"Is this a steal or a trap?"',
-                    data: 'Ranks the aircraft against the entire global fleet based on equipment, airframe time, and verified health.',
-                    value: 'Instantly see if you\'re looking at a "Hidden Gem" or a "Money Pit" with a single data-backed score.'
-                },
-                vault: {
-                    pitch: '"Price it right, sell it fast."',
-                    data: 'See exactly where your aircraft ranks in the market based on real-time fleet comparisons.',
-                    value: 'Justify your asking price with objective data that shows buyers why your plane is worth more.'
-                },
-                tools: {
-                    pitch: '"Know which planes need the most work."',
-                    data: 'Identify aircraft with below-average market scores that likely need more frequent service.',
-                    value: 'Target high-maintenance aircraft owners for recurring service contracts and parts sales.'
-                }
-            }
-        },
-        {
-            title: 'Risk Radar',
-            subtitle: 'The "Blocked" Status Check',
-            icon: Lock,
-            color: '#ef4444',
-            benefits: {
-                radar: {
-                    pitch: '"Don\'t call the broker until you run this."',
-                    data: '24/7 forensic scan of global sanction lists, theft registries, and unreported incident databases.',
-                    value: 'Avoid wasting time on aircraft with hidden liens, safety issues, or compliance gaps that kill deals.'
-                },
-                vault: {
-                    pitch: '"Prove your plane is clean."',
-                    data: 'Generate a verified "Clean Title" report showing zero liens, incidents, or legal blocks.',
-                    value: 'Close deals faster by eliminating buyer concerns about hidden legal or safety issues.'
-                },
-                tools: {
-                    pitch: '"Know if a plane is airworthy before you touch it."',
-                    data: 'Check for outstanding ADs, compliance gaps, and safety directives before accepting work.',
-                    value: 'Protect your shop from liability by refusing work on aircraft with unresolved safety issues.'
-                }
-            }
-        },
-        {
-            title: 'Mission Fit',
-            subtitle: 'Personalized Flight Plan',
-            icon: PlaneTakeoff,
-            color: '#a855f7',
-            benefits: {
-                radar: {
-                    pitch: '"Will it actually fly your routes?"',
-                    data: 'Real-world payload-to-fuel simulation based on your typical passengers and frequent routes.',
-                    value: 'Ensure your typical mission (e.g., Teterboro to Palm Beach) is achievable before you buy.'
-                },
-                vault: {
-                    pitch: '"Show buyers it fits their life."',
-                    data: 'Demonstrate real-world range and payload for common routes your buyers actually fly.',
-                    value: 'Convert more leads by proving your aircraft can handle their specific mission profile.'
-                },
-                tools: {
-                    pitch: '"Optimize service for how they actually fly."',
-                    data: 'See typical routes and usage patterns to recommend the right maintenance intervals.',
-                    value: 'Provide smarter service recommendations based on actual flight profiles, not generic schedules.'
-                }
-            }
-        }
-    ];
+    if (isBooting) {
+        return (
+            <div style={{ height: "100vh", width: "100vw", background: "black", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: G3000.ADVISORY, fontFamily: "'Roboto Mono', monospace" }}>
+                <div style={{ width: "300px", height: "2px", background: "rgba(6, 182, 212, 0.1)", marginBottom: "20px", position: "relative" }}>
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(bootStep / bootSequence.length) * 100}%` }}
+                        style={{ height: "100%", background: G3000.ADVISORY, boxShadow: "0 0 10px #06b6d4" }}
+                    />
+                </div>
+                <div style={{ fontSize: "10px", fontWeight: "900", letterSpacing: "2px", textTransform: "uppercase" }}>
+                    {bootSequence[bootStep] || "READY"}
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center relative overflow-x-hidden">
-
-            {/* Premium Background Effects */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
-                <div
-                    className="hidden md:block absolute w-[800px] h-[800px] rounded-full blur-[120px] opacity-10 transition-all duration-1000"
-                    style={{
-                        background: `radial-gradient(circle, ${activeLens.color}, transparent)`,
-                        left: `${mousePosition.x - 400}px`,
-                        top: `${mousePosition.y - 400}px`,
-                    }}
-                ></div>
+        <div className="gateway-viewport" style={{
+            height: "100vh",
+            width: "100vw",
+            background: G3000.BG,
+            color: G3000.NORMAL,
+            overflowX: "hidden",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            fontFamily: "'Inter', sans-serif"
+        }}>
+            {/* TOP STATUS BAR - STICKY */}
+            <div style={{
+                height: "44px",
+                background: "#1e293b",
+                display: "flex",
+                alignItems: "center",
+                padding: "0 20px",
+                justifyContent: "space-between",
+                borderBottom: "1px solid rgba(255,255,255,0.1)",
+                zIndex: 100,
+                position: "sticky",
+                top: 0,
+                width: "100%"
+            }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: "900", display: "flex", alignItems: "center", gap: "6px", letterSpacing: "1px" }}>
+                        <Shield size={14} color={G3000.ADVISORY} />
+                        <span className="status-label">AVIONICS</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div className="led-pulse" style={{ width: "6px", height: "6px", background: "#10b981", borderRadius: "50%", boxShadow: "0 0 8px #10b981" }} />
+                        <div style={{ fontSize: "10px", color: "#10b981", fontWeight: "bold" }}>READY</div>
+                    </div>
+                </div>
+                <div style={{ fontSize: "11px", opacity: 0.6, fontWeight: "bold", fontFamily: "'Roboto Mono', monospace" }}>121.50 MHz</div>
             </div>
 
-            {/* Main Hero & Console Section */}
-            <div className="relative z-10 w-full max-w-6xl px-4 flex flex-col items-center">
-
-                {/* Hero Section */}
-                <div className="text-center pt-16 md:pt-24 pb-8 md:pb-12 animate-fade-in-down w-full">
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6 md:mb-8">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-4xl sm:text-6xl md:text-7xl font-registration text-white tracking-widest text-center">
-                                goTailScan
-                            </h1>
-                            <div className="w-3 h-8 md:h-12 bg-cyan-500 animate-pulse"></div>
-                        </div>
-                    </div>
-                    <div className="space-y-4 px-2">
-                        <p className="text-xl md:text-3xl text-slate-300 font-light tracking-tight max-w-2xl mx-auto leading-tight">
-                            See what others miss. <span className="font-black text-white italic underline decoration-cyan-500 underline-offset-8">Audit the Present & Future</span> of any aircraft.
-                        </p>
-                        <p className="text-slate-500 text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] md:tracking-[0.4em]">Forensic Aviation Intelligence Engine</p>
-                    </div>
-                </div>
-
-                {/* Intelligence Console */}
-                <div className="w-full max-w-4xl mb-24 md:mb-32 cockpit-panel rounded-[30px] md:rounded-[40px] p-4 md:p-6 shadow-3xl relative overflow-hidden">
-
-                    {/* Cockpit Glare Effect */}
-                    <div className="absolute inset-x-0 top-0 h-[1px] bg-white/20 z-20"></div>
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_70%)] pointer-events-none"></div>
-
-                    {/* Command Input */}
-                    <div className="mb-6 relative z-10">
-                        <div className="flex items-end justify-end mb-2">
-                            <div className="flex gap-1">
-                                {lenses.map((l) => (
-                                    <button
-                                        key={l.id}
-                                        type="button"
-                                        onClick={() => setLens(l.id)}
-                                        className={`px-3 py-1 text-[9px] font-bold uppercase tracking-wider rounded-t transition-all ${lens === l.id
-                                            ? 'bg-cyan-500 text-black shadow-[0_-2px_10px_rgba(0,255,255,0.3)]'
-                                            : 'bg-white/5 text-slate-500 hover:text-slate-300 hover:bg-white/10'
-                                            }`}
-                                    >
-                                        {l.label.split(' ')[0]}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleSearchSubmit} className="relative group">
-                            <div className="relative flex items-center bg-black/80 border border-cyan-500/30 rounded-lg rounded-tr-none p-1 shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
-                                <span className="pl-4 text-cyan-500 font-mono text-xl animate-pulse">{'>'}</span>
-                                <input
-                                    name="tailNumber"
-                                    type="text"
-                                    value={tailNumber}
-                                    onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
-                                    onFocus={() => setIsFocused(true)}
-                                    onBlur={() => setIsFocused(false)}
-                                    placeholder={`ENTER TAIL FOR ${activeLens.label.toUpperCase()}...`}
-                                    className="w-full bg-transparent border-none text-cyan-100 font-mono text-xl lg:text-3xl p-4 focus:outline-none uppercase placeholder:text-cyan-900/50"
-                                    autoFocus
-                                />
-                                <Button type="submit" className="bg-cyan-600/90 hover:bg-cyan-500 text-black font-black font-mono uppercase tracking-widest h-auto py-3 px-4 md:px-6 rounded-md border-l border-cyan-500/50 min-w-fit whitespace-nowrap">
-                                    <span className="md:hidden">SCAN</span>
-                                    <span className="hidden md:inline">INITIALIZE {activeLens.label.split(' ')[0]}</span>
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* Mode Selection */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 relative z-10">
-                        {lenses.map((l) => (
-                            <button
-                                key={l.id}
-                                onClick={() => { setLens(l.id); navigateToRole(l.id); }}
-                                className={`relative p-4 border rounded-lg text-left transition-all group overflow-hidden ${lens === l.id
-                                    ? `border-cyan-500/50 bg-cyan-500/10 shadow-[0_0_15px_rgba(0,255,255,0.2)]`
-                                    : 'border-white/5 hover:border-white/20 bg-black/40'
-                                    }`}
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <l.icon className={`w-5 h-5 ${lens === l.id ? 'text-cyan-400' : 'text-slate-600'}`} />
-                                    {lens === l.id && <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse box-shadow-[0_0_5px_#00FFFF]"></div>}
-                                </div>
-                                <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${lens === l.id ? 'text-cyan-100' : 'text-slate-400'}`}>{l.label}</div>
-                                <div className="text-[9px] text-cyan-500/60 font-mono uppercase leading-tight">{l.desc}</div>
-                            </button>
-                        ))}
-                    </div>
-
-                </div>
-
-                {/* MISSION BRIEFING */}
-                <div className="w-full max-w-4xl mb-24 md:mb-32">
-                    <div className="relative p-8 rounded-[24px] border border-white/5 bg-black/40 backdrop-blur-sm">
-                        <label className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-8 block text-center">
-                            // MISSION_PROTOCOL
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-0">
-                            {[
-                                { step: '01', title: 'INPUT IDENTIFIER', desc: 'Enter any Tail Number (e.g., N12345)' },
-                                { step: '02', title: 'SELECT MISSION', desc: 'Choose Audit, Valuation, or Tech Log' },
-                                { step: '03', title: 'RECEIVE INTEL', desc: 'Get instant forensic risk analysis' }
-                            ].map((item, i) => (
-                                <div key={i} className="flex flex-col items-center text-center relative group">
-                                    {i < 2 && (
-                                        <div className="hidden md:block absolute top-[14px] left-[60%] w-[80%] h-[1px] bg-gradient-to-r from-cyan-900/50 to-transparent z-0"></div>
-                                    )}
-
-                                    <div className="w-8 h-8 rounded-md border border-cyan-500/30 bg-cyan-950/30 flex items-center justify-center text-[11px] font-mono text-cyan-400 font-bold mb-4 relative z-10 shadow-[0_0_15px_rgba(0,255,255,0.15)] group-hover:bg-cyan-500/20 transition-colors">
-                                        {item.step}
-                                    </div>
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-2">{item.title}</h4>
-                                    <p className="text-[10px] text-slate-400 font-mono tracking-wide">{item.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* THE 4 PILLARS SECTION - NOW WITH ROLE-SPECIFIC BENEFITS */}
-                <div className="w-full mb-32 md:mb-48 pt-12 md:pt-24 border-t border-white/5">
-                    <div className="mb-16 md:mb-24 text-center">
-                        <h2 className="text-3xl md:text-6xl font-black text-white tracking-tighter uppercase italic mb-4 md:mb-6 px-4">
-                            Deep Forensic Infrastructure
-                        </h2>
-                        <div className="w-16 md:w-24 h-1 bg-cyan-500 mx-auto"></div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center mb-24 md:mb-32">
-                        {/* THE X-RAY IMAGE */}
-                        <div className="relative group perspective-1000 px-2 h-[400px] md:h-auto">
-                            <div className="absolute inset-0 bg-cyan-500/20 blur-[30px] md:blur-[100px] rounded-full group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
-                            <img
-                                src={xrayImage}
-                                alt="Aircraft X-Ray"
-                                className="relative z-10 w-full h-full object-contain rounded-2xl md:rounded-[32px] border border-white/10 shadow-3xl transform md:rotate-1 group-hover:rotate-0 transition-all duration-700"
-                            />
-
-                            {/* Scanning Effect */}
-                            {/* Scanning Effect Removed as per request */}
-                            {/* <div className="absolute top-0 left-0 w-full h-px bg-cyan-500 shadow-[0_0_20px_cyan-500] z-20 animate-scanline"></div> */}
-
-                            {/* Tech Data Overlays */}
-                            <div className="absolute inset-0 z-30 pointer-events-none">
-                                {[
-                                    { top: '20%', left: '10%', label: 'AVIONICS HEALTH', value: '98.4%', delay: '1s' },
-                                    { top: '45%', left: '50%', label: 'WING SPAR INTEGRITY', value: 'NO CORROSION', delay: '2.5s' },
-                                    { top: '70%', left: '20%', label: 'ENGINE CYCLES', value: '1,420 TIS', delay: '1.5s' },
-                                    { top: '30%', left: '70%', label: 'NTSB RECORDS', value: 'CLEAN', delay: '3s', color: 'emerald' }
-                                ].map((point, i) => (
-                                    <div
-                                        key={i}
-                                        className="absolute flex items-center gap-2 animate-fade-in-up"
-                                        style={{ top: point.top, left: point.left, animationDelay: point.delay }}
-                                    >
-                                        <div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_cyan] animate-ping absolute"></div>
-                                        <div className="w-2 h-2 bg-cyan-400 rounded-full relative z-10"></div>
-                                        <div className="w-8 h-[1px] bg-cyan-500/50"></div>
-                                        <div className="bg-black/80 border border-cyan-500/30 p-2 rounded backdrop-blur-sm">
-                                            <div className="text-[8px] text-slate-400 font-mono tracking-widest uppercase mb-0.5">{point.label}</div>
-                                            <div className={`text-[10px] font-bold font-mono ${point.color === 'emerald' ? 'text-emerald-400' : 'text-cyan-400'}`}>{point.value}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-6 md:space-y-8 px-4">
-                            <h3 className="text-2xl md:text-5xl font-black text-white italic tracking-tighter leading-tight mb-2 md:mb-4">
-                                "X-Ray Vision for your next Acquisition."
-                            </h3>
-                            <p className="text-lg md:text-xl text-slate-400 leading-relaxed font-light">
-                                goTailScan doesn't just read the logbooks—it reconstructs the aircraft's entire lifecycle using global multi-source data feeds.
-                            </p>
-                            <div className="flex flex-wrap gap-3 mt-6">
-                                <div className="flex -space-x-2">
-                                    {[
-                                        { lbl: 'FAA', bg: 'bg-[#003366]', border: 'border-blue-400/30' },
-                                        { lbl: 'NTSB', bg: 'bg-[#1a1a1a]', border: 'border-amber-500/50' },
-                                        { lbl: 'TCCA', bg: 'bg-[#880000]', border: 'border-red-500/40' },
-                                        { lbl: 'EASA', bg: 'bg-[#003399]', border: 'border-yellow-400/40' },
-                                        { lbl: 'CAA', bg: 'bg-[#002244]', border: 'border-sky-400/30' }
-                                    ].map((agency, i) => (
-                                        <div key={i} className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${agency.bg} border ${agency.border} flex items-center justify-center text-[8px] md:text-[9px] font-black text-white shadow-lg z-${10 - i} hover:z-20 hover:scale-110 transition-transform cursor-help`} title={agency.lbl}>
-                                            {agency.lbl}
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="ml-4 flex flex-col justify-center">
-                                    <span className="text-white font-mono text-[10px] tracking-widest">LIVE FEEDS</span>
-                                    <span className="text-cyan-500 text-[9px] font-bold animate-pulse">SECURE CONNECTION</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ROLE SELECTOR TABS - Directly Above Benefit Boxes */}
-                    <div className="mb-8 md:mb-12 px-2 md:px-0">
-                        <div className="text-center mb-6">
-                            <p className="text-sm md:text-base text-slate-400 font-mono mb-4">
-                                See how each feature benefits different roles:
-                            </p>
-                        </div>
-                        <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-4">
-                            {lenses.map((l) => (
-                                <button
-                                    key={l.id}
-                                    onClick={() => setLens(l.id)}
-                                    className={`group relative px-6 md:px-10 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold uppercase tracking-wider text-sm md:text-base transition-all duration-300 ${lens === l.id
-                                        ? 'bg-gradient-to-br from-cyan-500 to-cyan-600 text-black shadow-[0_0_30px_rgba(0,255,255,0.4)] scale-105'
-                                        : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/10'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2 md:gap-3">
-                                        <l.icon className={`w-4 h-4 md:w-5 md:h-5 ${lens === l.id ? 'text-black' : 'text-slate-500 group-hover:text-cyan-400'}`} />
-                                        <span>{l.label}</span>
-                                    </div>
-                                    {lens === l.id && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="text-center mt-4">
-                            <p className="text-xs text-cyan-500/60 font-mono uppercase tracking-widest">
-                                ↓ Content below updates for {activeLens.label} ↓
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* ROLE-SPECIFIC BENEFIT CARDS */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 px-2 md:px-0">
-                        {pillars.map((p, idx) => {
-                            const benefit = p.benefits[lens];
-                            return (
-                                <div key={idx} className="group relative p-6 md:p-12 rounded-[24px] md:rounded-[40px] cockpit-panel border-[0.5px] border-white/10 hover:border-cyan-500/30 transition-all duration-500 overflow-hidden shadow-2xl">
-                                    {/* Glass Glare */}
-                                    <div className="absolute inset-x-0 top-0 h-[1px] bg-white/10 z-20"></div>
-                                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.02)_0%,transparent_100%)] pointer-events-none"></div>
-
-                                    <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-all" style={{ background: `linear-gradient(135deg, ${p.color}, transparent)` }}></div>
-
-                                    <div className="flex items-start gap-4 md:gap-6 mb-6 md:mb-8 relative z-10">
-                                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center relative shrink-0 bg-black/50 border border-white/10 shadow-inner">
-                                            <p.icon className="w-6 h-6 md:w-8 md:h-8" style={{ color: p.color }} />
-                                        </div>
-                                        <div>
-                                            <div className="text-[8px] md:text-[10px] font-mono tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1 text-slate-500 group-hover:text-cyan-500/80 transition-colors">{p.subtitle}</div>
-                                            <h4 className="text-xl md:text-3xl font-registration text-white uppercase tracking-wider">{p.title}</h4>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4 md:space-y-6 relative z-10">
-                                        <p className="text-lg md:text-xl font-mono text-slate-300">{benefit.pitch}</p>
-
-                                        <div className="p-4 rounded-xl md:rounded-2xl bg-black/60 border border-white/5 relative overflow-hidden">
-                                            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-cyan-500/30"></div>
-                                            <span className="text-[9px] md:text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                                <Database className="w-3 h-3" /> For {activeLens.label}
-                                            </span>
-                                            <p className="text-xs md:text-sm text-slate-400 font-mono leading-relaxed">{benefit.data}</p>
-                                        </div>
-
-                                        <div className="p-4 rounded-xl md:rounded-2xl bg-cyan-900/10 border border-cyan-500/10">
-                                            <span className="text-[9px] md:text-[10px] font-mono text-cyan-500 tracking-widest uppercase mb-2 block flex items-center gap-2">
-                                                <Shield className="w-3 h-3" /> Your Benefit
-                                            </span>
-                                            <p className="text-xs md:text-sm text-cyan-100 font-mono leading-relaxed">{benefit.value}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Final CTA */}
-                <div className="w-full max-w-2xl text-center pb-24 md:pb-48 px-4">
-                    <h5 className="text-xl md:text-2xl font-black text-white uppercase tracking-[0.2em] mb-6 md:mb-8">Ready to audit?</h5>
-                    <button
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        className="group flex items-center gap-3 md:gap-4 mx-auto px-6 md:px-10 py-4 md:py-6 bg-cyan-500 rounded-full text-black font-black text-lg md:text-xl uppercase italic tracking-tighter hover:scale-105 transition-all shadow-2xl shadow-cyan-500/20"
+            {/* MAIN SELECTION GRID */}
+            <div className="mission-grid" style={{ flex: 1, padding: "24px" }}>
+                {roles.map((role) => (
+                    <motion.div
+                        key={role.id}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigateToRole(role.path)}
+                        className="mission-card"
+                        style={{
+                            background: "black",
+                            borderRadius: "12px",
+                            border: `4px solid ${G3000.BEZEL}`,
+                            outline: "1px solid #2D333B",
+                            boxShadow: "inset 0 0 60px rgba(0,0,0,0.9), 0 10px 30px rgba(0,0,0,0.5)",
+                            cursor: "pointer",
+                            position: "relative",
+                            overflow: "hidden",
+                            display: "flex",
+                            flexDirection: "column",
+                            padding: "40px 30px",
+                            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                        }}
                     >
-                        START YOUR FIRST SCAN <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform" />
-                    </button>
-                    <p className="mt-6 md:mt-8 text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-widest leading-relaxed">No Credit Card Required<br className="md:hidden" /> for Guest Forensic Lookup</p>
+                        {/* PFD EFFECT */}
+                        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${G3000.ADVISORY}08 0%, transparent 100%)` }} />
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "1px", background: "rgba(255,255,255,0.1)" }} />
+
+                        <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+                            {/* GTC ICON CONTAINER */}
+                            <div style={{
+                                width: "80px",
+                                height: "80px",
+                                borderRadius: "20px",
+                                background: "#05070a",
+                                border: `1px solid rgba(6, 182, 212, 0.2)`,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                marginBottom: "24px",
+                                color: G3000.ADVISORY,
+                                boxShadow: "inset 0 4px 10px rgba(0,0,0,0.5)"
+                            }}>
+                                <role.icon size={40} strokeWidth={1.5} />
+                            </div>
+
+                            <div style={{ fontSize: "11px", color: G3000.ADVISORY, fontWeight: "900", letterSpacing: "3px", marginBottom: "8px" }}>MISSION SELECT</div>
+                            <h2 style={{ fontSize: "32px", fontWeight: "900", textAlign: "center", marginBottom: "4px", color: "white", letterSpacing: "-0.5px" }}>{role.title}</h2>
+                            <div style={{ fontSize: "13px", color: G3000.ADVISORY, fontWeight: "800", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "24px", textAlign: "center" }}>{role.subtitle}</div>
+
+                            <p style={{ textAlign: "center", fontSize: "16px", color: "#94a3b8", lineHeight: "1.6", maxWidth: "320px", marginBottom: "32px", flex: 1 }}>{role.desc}</p>
+
+                            <div style={{ marginBottom: "24px", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                                <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", fontWeight: "900", letterSpacing: "1px" }}>VERIFIED DATA STREAM</div>
+                                <div style={{ fontSize: "11px", color: G3000.ADVISORY, opacity: 0.8, fontWeight: "bold", fontFamily: "'Roboto Mono', monospace", textAlign: "center" }}>
+                                    {role.sources}
+                                </div>
+                            </div>
+
+                            <div style={{ width: "100%", height: "1px", background: "rgba(255,255,255,0.05)", margin: "0 0 32px 0" }} />
+
+                            {/* ENTER CONSOLE BUTTON */}
+                            <div style={{
+                                width: "100%",
+                                maxWidth: "240px",
+                                padding: "14px 20px",
+                                borderRadius: "4px",
+                                background: G3000.ADVISORY,
+                                color: "black",
+                                fontWeight: "950",
+                                fontSize: "14px",
+                                letterSpacing: "1.5px",
+                                transition: "all 0.2s ease",
+                                border: "1px solid rgba(255,255,255,0.3)",
+                                boxShadow: "0 0 0 1px rgba(6, 182, 212, 0.4), 0 0 15px 2px rgba(6, 182, 212, 0.3)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "10px"
+                            }}>
+                                ENTER CONSOLE
+                                <Compass size={16} />
+                            </div>
+                        </div>
+
+                        {/* BOTTOM SOFTKEYS DECORATION */}
+                        <div style={{ position: "absolute", bottom: "10px", left: "10px", right: "10px", display: "flex", justifyContent: "space-around" }}>
+                            {[1, 2, 3, 4, 5, 6].map(i => <div key={i} style={{ width: "20px", height: "4px", background: "rgba(255,255,255,0.08)", borderRadius: "2px" }} />)}
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* FLIGHTAWARE-STYLE LOGO */}
+            <div style={{ textAlign: "center", padding: "20px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <div style={{ position: "relative", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {/* FlightAware inspired climbing aero icon */}
+                    <svg viewBox="0 0 24 24" fill="none" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 0 8px rgba(0, 160, 226, 0.4))" }}>
+                        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" fill="#00a0e2" />
+                        <path d="M12 18V2" stroke="#ffffff20" strokeWidth="0.5" />
+                    </svg>
                 </div>
-            </div >
+                <div style={{ fontFamily: "'Roboto', sans-serif", fontSize: "22px", letterSpacing: "-0.5px", display: "flex", alignItems: "baseline" }}>
+                    <span style={{ fontWeight: "900", color: "#ffffff" }}>goTail</span>
+                    <span style={{ fontWeight: "300", color: "#00a0e2", marginLeft: "1px" }}>Scan</span>
+                </div>
+            </div>
+
+            <style>{`
+                body {
+                    margin: 0;
+                    background: black;
+                }
+                * {
+                    box-sizing: border-box;
+                }
+                .gateway-viewport::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .gateway-viewport::-webkit-scrollbar-track {
+                    background: #0b1019;
+                }
+                .gateway-viewport::-webkit-scrollbar-thumb {
+                    background: #1e293b;
+                    border-radius: 3px;
+                }
+                .mission-grid {
+                    display: flex;
+                    gap: 20px;
+                }
+                .mission-card {
+                    flex: 1;
+                }
+                @media (max-width: 900px) {
+                    .mission-grid {
+                        flex-direction: column;
+                    }
+                    .mission-card {
+                        margin-bottom: 24px;
+                    }
+                    .status-label {
+                        display: none;
+                    }
+                }
+                @keyframes ledPulse {
+                    0% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.4; transform: scale(0.9); }
+                    100% { opacity: 1; transform: scale(1); }
+                }
+                .led-pulse {
+                    animation: ledPulse 2s infinite ease-in-out;
+                }
+            `}</style>
             <Footer />
-        </div >
+        </div>
     );
 }

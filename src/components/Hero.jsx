@@ -497,7 +497,7 @@ const Hero = () => {
                                 { tail: 'XA-VIF', msg: 'CORROSION RISK [MX]', color: 'text-cyan-500' },
                                 { tail: 'G-BOAC', msg: 'SHADOW TRACKING DETECTED [UK]', color: 'text-red-500' },
                                 { tail: 'N450GA', msg: 'MARKET LIQUIDITY HIGH [US]', color: 'text-accent' },
-                                { tail: 'C-GCHX', msg: 'NTSB CLEARANCE VERIFIED [CA]', color: 'text-green-500' },
+                                { tail: 'C-GCHX', msg: 'TC / TSB CLEARANCE VERIFIED [CA]', color: 'text-green-500' },
                                 { tail: 'HB-JFN', msg: 'OFF-BOOK MAINT. RISK [CH]', color: 'text-red-500' }
                             ].map((p, i) => (
                                 <div key={i} className="flex items-center gap-3">

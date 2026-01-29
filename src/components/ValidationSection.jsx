@@ -74,8 +74,8 @@ const ValidationSection = () => {
                     {/* Transport Canada Stylized */}
                     <div className="flex flex-col items-center gap-1 group">
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-0.5 bg-red-600"></div>
-                            <div className="text-[12px] font-black text-white tracking-widest group-hover:text-red-500 transition-colors">TRANSPORT CANADA</div>
+                            <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></div>
+                            <div className="text-[12px] font-black text-white tracking-widest group-hover:text-red-500 transition-colors uppercase">Transport Canada (TC)</div>
                         </div>
                         <div className="text-[7px] font-bold text-gray-600 tracking-[0.4em] uppercase">Security and Safety</div>
                     </div>

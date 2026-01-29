@@ -1,10 +1,24 @@
 {
   "version": "5",
+  "redirects": {
+    "https://esm.sh/@supabase/supabase-js@2": "https://esm.sh/@supabase/supabase-js@2.93.2",
+    "https://esm.sh/iceberg-js@^0.8.1?target=denonext": "https://esm.sh/iceberg-js@0.8.1?target=denonext"
+  },
   "remote": {
     "https://deno.land/std@0.192.0/fmt/colors.ts": "d67e3cd9f472535241a8e410d33423980bec45047e343577554d3356e1f0ef4e",
     "https://deno.land/std@0.192.0/testing/_diff.ts": "1a3c044aedf77647d6cac86b798c6417603361b66b54c53331b312caeb447aea",
     "https://deno.land/std@0.192.0/testing/_format.ts": "a69126e8a469009adf4cf2a50af889aca364c349797e63174884a52ff75cf4c7",
-    "https://deno.land/std@0.192.0/testing/asserts.ts": "e16d98b4d73ffc4ed498d717307a12500ae4f2cbe668f1a215632d19fcffc22f"
+    "https://deno.land/std@0.192.0/testing/asserts.ts": "e16d98b4d73ffc4ed498d717307a12500ae4f2cbe668f1a215632d19fcffc22f",
+    "https://esm.sh/@supabase/auth-js@2.93.2/denonext/auth-js.mjs": "e016afdd5511c2a3fcce7597db4cb35b74d5a94c11d06c876d923c07c8f4294c",
+    "https://esm.sh/@supabase/functions-js@2.93.2/denonext/functions-js.mjs": "0dad3943dd8124afc2a337f3e34e8e3b8579b6dd441d180b67b9889867d52dae",
+    "https://esm.sh/@supabase/postgrest-js@2.93.2/denonext/postgrest-js.mjs": "aa39c48e0c6a905b7ffc6487625d2ce2e65f3ad12d11f6120a9952da6b55ffee",
+    "https://esm.sh/@supabase/realtime-js@2.93.2/denonext/realtime-js.mjs": "c4830ec28db7279301ee71dd63b4450595380f5f2b2d6a3b19d42dbca5495ca4",
+    "https://esm.sh/@supabase/storage-js@2.93.2/denonext/storage-js.mjs": "87005b2cb983a4954c3c56a3fe75455c6d6e3198c37d21ed3281f4f8ee4d7f77",
+    "https://esm.sh/@supabase/supabase-js@2.93.2": "110762d3e483a8b61990c96be0e355ddafb3f5ba14ff3eeecf323e343b8bb1a0",
+    "https://esm.sh/@supabase/supabase-js@2.93.2/denonext/supabase-js.mjs": "71d3382a1f62429f6845e0209440fecb499e50bf408f437697fec6a2f562e15b",
+    "https://esm.sh/iceberg-js@0.8.1/denonext/iceberg-js.mjs": "d839d81a2e3966500ca2cdd0c1cb458e9608bacfc91f7bb67a69b2e878dcdb4f",
+    "https://esm.sh/iceberg-js@0.8.1?target=denonext": "58c849d7fe2bf4eca4a84eb501e83c161a7d8c34ca1bec15a962b3bec3062633",
+    "https://esm.sh/tslib@2.8.1/denonext/tslib.mjs": "c38da5dd6da6281964435002ce204cd586634fe3bdfb24a0ee116f48cf3292e9"
   },
   "workspace": {
     "packageJson": {
@@ -40,6 +54,8 @@
         "npm:jspdf-autotable@^5.0.7",
         "npm:jspdf@4",
         "npm:lucide-react@0.562",
+        "npm:mdb-reader@^3.1.0",
+        "npm:papaparse@^5.5.3",
         "npm:pg@^8.17.1",
         "npm:postcss@^8.5.6",
         "npm:react-dom@^19.2.0",
@@ -50,6 +66,7 @@
         "npm:tailwind-merge@^3.4.0",
         "npm:tailwindcss-animate@^1.0.7",
         "npm:tailwindcss@^4.1.18",
+        "npm:tesseract.js@7",
         "npm:v4@^0.0.1",
         "npm:vite@^7.2.4"
       ]

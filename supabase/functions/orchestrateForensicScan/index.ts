@@ -6,7 +6,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     // CORS Preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -27,6 +27,25 @@ serve(async (req) => {
 
         // IMPORT MAP DYNAMICALLY to avoid large file issues if bundler is strict
         const { parseAircraftMakeModel } = await import('./aircraftCodeMap.ts');
+        const {
+            createRandom,
+            getBasePrice,
+            getOperatingCosts,
+            getMarketVelocity,
+            getPerformanceProfile,
+            analyzeAvionics,
+            predictMaintenance,
+            generateMarketHistory,
+            getStateClimate,
+            getCoordinates
+        } = await import('./buyerLogic.ts');
+        const {
+            predictSalesLikelihood,
+            getTransparency,
+            getJurisdictionProfile,
+            calculateHQRI,
+            getTaxBenefits
+        } = await import('./sellerLogic.ts');
 
         let aircraft = null;
         let isRealData = false;
@@ -50,11 +69,7 @@ serve(async (req) => {
             }
         }
 
-        const seed = normalizedTail.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const random = (offset = 0) => {
-            const x = Math.sin(seed + offset) * 10000;
-            return x - Math.floor(x);
-        };
+        const random = createRandom(normalizedTail);
 
         console.log(`[Orchestrator] Scanning ${normalizedTail}...`)
 
@@ -64,13 +79,81 @@ serve(async (req) => {
             registryKey = normalizedTail.substring(1);
         }
 
-        // Try to fetch from Real DB (Check both with and without prefix)
-        const { data: realData } = await supabase
-            .from('mv_aircraft_summary')
-            .select('*')
-            .or(`n_number.eq.${registryKey},n_number.eq.${normalizedTail}`)
-            .limit(1)
-            .maybeSingle();
+        // 0. PRIMARY SEARCH LAYER: Arla API (https://arla.njf.dev/api)
+        // We check this first for the freshest FAA data.
+        let realData: any = null;
+
+        if (normalizedTail.startsWith('N')) {
+            try {
+                // Determine API URL (using v0/faa/registration/{tail})
+                const arlaUrl = `https://arla.njf.dev/api/v0/faa/registration/${normalizedTail}`;
+
+                // Set short timeout to avoid blocking main thread
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+
+                try {
+                    const res = await fetch(arlaUrl, {
+                        headers: { 'User-Agent': 'GoTailScan/1.0 (ForensicEngine)' },
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+
+                    if (res.ok) {
+                        const arlaJson = await res.json();
+
+                        // Map Arla/FAA JSON to our internal schema
+                        // Helper to get case-insensitive property
+                        const get = (k: string) => arlaJson[k] || arlaJson[k.toUpperCase()] || null;
+
+                        // Only accept if we got a valid N-number back
+                        if (get('n_number') || get('N-NUMBER')) {
+                            console.log(`[Orchestrator] Arla API Hit for ${normalizedTail}`);
+                            realData = {
+                                n_number: get('n_number') || normalizedTail,
+                                mfr_mdl_code: get('mfr_mdl_code') || get('mfr_mdl_code_cols'),
+                                year_mfr: parseInt(get('year_mfr') || get('year') || '0'),
+                                serial_number: get('serial_number') || get('serial'),
+                                owner_name: get('name') || get('owner'),
+                                city: get('city'),
+                                state: get('state'),
+                                zip_code: get('zip_code'),
+                                region: get('region'),
+                                county: get('county'),
+                                country: 'USA',
+                                kit_mfr: get('kit_mfr'),
+                                kit_model: get('kit_model'),
+                                eng_mfr_mdl: get('eng_mfr_mdl'),
+                                type_aircraft: get('type_aircraft'),
+                                type_engine: get('type_engine'),
+                                status_code: get('status_code')
+                            };
+                        }
+                    } else {
+                        // Silent fail for 404/500 to allow fallback
+                        console.log(`[Orchestrator] Arla API skipped (Status: ${res.status})`);
+                    }
+                } catch (fetchErr) {
+                    clearTimeout(timeoutId);
+                    // Ignore abort/network errors
+                }
+            } catch (err) {
+                // Global safety catch
+            }
+        }
+
+        // 1. LOCAL DB FALLBACK (If Arla failed or tail not N-reg)
+        if (!realData) {
+            const { data } = await supabase
+                .from('mv_aircraft_summary')
+                .select('*')
+                .or(`n_number.eq.${registryKey},n_number.eq.${normalizedTail}`)
+                .limit(1)
+                .maybeSingle();
+
+            realData = data;
+        }
 
 
 
@@ -163,6 +246,7 @@ serve(async (req) => {
         if (normalizedTail === 'N30HQ') {
             aircraft = {
                 year: 1999,
+                year_mfr: '1999',
                 make_model: 'DASSAULT FALCON 900EX',
                 serial: '900EX-45',
                 owner: 'HQ AVIATION INC',
@@ -177,6 +261,7 @@ serve(async (req) => {
         if (normalizedTail === 'N182MU') {
             aircraft = {
                 year: 2006,
+                year_mfr: '2006',
                 make_model: 'CESSNA 182T SKYLANE',
                 serial: '18281822',
                 owner: 'SKYLANE FLYERS LLC',
@@ -191,6 +276,7 @@ serve(async (req) => {
         if (normalizedTail === 'N650GF') {
             aircraft = {
                 year: 2019,
+                year_mfr: '2019',
                 make_model: 'GULFSTREAM AEROSPACE G650ER',
                 serial: '6355',
                 owner: 'GLOBAL FLIGHT ASSETS TRUST',
@@ -205,6 +291,7 @@ serve(async (req) => {
         if (normalizedTail === 'N700CJ') {
             aircraft = {
                 year: 2021,
+                year_mfr: '2021',
                 make_model: 'CESSNA CITATION LONGITUDE',
                 serial: '700-0034',
                 owner: 'TEXTRON AVIATION INC',
@@ -219,6 +306,7 @@ serve(async (req) => {
         if (normalizedTail === 'N300EM') {
             aircraft = {
                 year: 2022,
+                year_mfr: '2022',
                 make_model: 'EMBRAER PHENOM 300E',
                 serial: '50500652',
                 owner: 'EXECUTIVE JET MANAGEMENT',
@@ -234,6 +322,7 @@ serve(async (req) => {
         if (normalizedTail === 'N799PC') {
             aircraft = {
                 year: 1966,
+                year_mfr: '1966',
                 make_model: 'CESSNA T210 TURBO CENTURION',
                 serial: 'T210-0100',
                 owner: 'PRIVATE OWNER',
@@ -244,63 +333,68 @@ serve(async (req) => {
             console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
         }
 
-        // If still no aircraft, return Error (No Hallucinations)
+        // DEMO OVERRIDE: N000DQ -> Hangar Queen / Dormancy Test
+        if (normalizedTail === 'N000DQ') {
+            aircraft = {
+                year: 1978,
+                year_mfr: '1978',
+                make_model: 'PIPER PA-28-181 ARCHER II',
+                serial: '28-7890XXX',
+                owner: 'RELIANT AIR SERVICES',
+                city: 'VERO BEACH',
+                state: 'FL',
+                country: 'USA'
+            };
+            console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
+        }
+
+        // ---------------------------------------------------------
+        // EARLY FORENSIC LOOKUP (For Deregistered/Ghost Aircraft)
+        // ---------------------------------------------------------
+        // We fetch this early so that if the scraper fails (e.g. aircraft deregistered),
+        // we can still return a report if we have historical accident/mechanical data.
+        const { data: fetchNTSB } = await supabase.from('forensic_ntsb').select('*').eq('n_number', normalizedTail);
+        const { data: realSDR } = await supabase.from('forensic_sdr').select('*').eq('n_number', normalizedTail);
+        const { data: realCADORS } = await supabase.from('forensic_cadors').select('*').eq('n_number', normalizedTail);
+
+        let realNTSB = fetchNTSB;
+
+        // If still no aircraft, return Error (Unless we have forensics)
         if (!aircraft) {
-            console.log(`[Orchestrator] No registry record found for ${normalizedTail}. Aborting.`);
-            return new Response(JSON.stringify({
-                error: `Aircraft ${normalizedTail} not found in official registries (FAA/Transport Canada).`,
-                details: "We only provide forensics for registered aircraft to ensure 100% data integrity."
-            }), {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 404,
-            })
+            const hasForensics = (realSDR && realSDR.length > 0) || (realNTSB && realNTSB.length > 0) || (realCADORS && realCADORS.length > 0);
+
+            if (hasForensics) {
+                console.log(`[Orchestrator] Registry missing but FORENSIC DATA FOUND for ${normalizedTail}. Synthesizing Ghost Record.`);
+
+                // Try to find identity from NTSB records
+                const ntsbIden = (realNTSB && realNTSB.length > 0) ? realNTSB[0] : {};
+
+                // Create a placeholder aircraft object so the report generation can proceed
+                aircraft = {
+                    year: ntsbIden.acft_year || 1980,
+                    make_model: (ntsbIden.acft_make ? `${ntsbIden.acft_make} ${ntsbIden.acft_model}` : "DEREGISTERED / HISTORY ONLY").trim(),
+                    serial: ntsbIden.acft_serial_no || "UNKNOWN",
+                    owner: "FORMERLY REGISTERED",
+                    city: "UNKNOWN",
+                    state: "N/A",
+                    country: normalizedTail.startsWith('N') ? 'USA' : 'INTERNATIONAL',
+                    mfr_mdl_code: null
+                };
+            } else {
+                console.log(`[Orchestrator] No registry record found for ${normalizedTail}. Aborting.`);
+                return new Response(JSON.stringify({
+                    error: `Aircraft ${normalizedTail} not found in official registries (FAA/Transport Canada).`,
+                    details: "We only provide forensics for registered aircraft to ensure 100% data integrity."
+                }), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 404,
+                })
+            }
         }
 
         // ---------------------------------------------------------
         // 2. MARKET VALUE ALGORITHM
         // ---------------------------------------------------------
-
-        // Base Price based on Model Keywords
-        const getBasePrice = (makeModel: string) => {
-            const mm = makeModel.toUpperCase();
-            // Pistons
-            if (mm.includes('172')) return 185000;
-            if (mm.includes('182')) return 225000;
-            if (mm.includes('206')) return 450000;
-            if (mm.includes('210')) return 350000;
-            if (mm.includes('SR22')) return 650000;
-            if (mm.includes('SR20')) return 400000;
-            if (mm.includes('BONANZA') || mm.includes('A36')) return 380000;
-            if (mm.includes('BARON')) return 420000;
-            if (mm.includes('PA-46') || mm.includes('MALIBU') || mm.includes('MERIDIAN')) return 1200000;
-            if (mm.includes('MOONEY')) return 220000;
-            if (mm.includes('DIAMOND') && mm.includes('62')) return 950000;
-            if (mm.includes('DIAMOND') && mm.includes('42')) return 650000;
-
-            // Turboprops
-            if (mm.includes('KING AIR 350')) return 3500000;
-            if (mm.includes('KING AIR 200') || mm.includes('B200')) return 2200000;
-            if (mm.includes('KING AIR 90') || mm.includes('C90')) return 1500000;
-            if (mm.includes('KING AIR')) return 2000000; // Fallback
-            if (mm.includes('PILATUS') || mm.includes('PC-12')) return 4500000;
-            if (mm.includes('TBM')) return 3800000;
-            if (mm.includes('CARAVAN')) return 2200000;
-
-            // Jets
-            if (mm.includes('CITATION X') || mm.includes('TEN')) return 8000000;
-            if (mm.includes('CITATION SOVEREIGN')) return 6500000;
-            if (mm.includes('CITATION EXCEL') || mm.includes('XLS')) return 5500000;
-            if (mm.includes('CITATION CJ')) return 4500000;
-            if (mm.includes('CITATION')) return 3500000; // Fallback
-            if (mm.includes('PHENOM 300')) return 9500000;
-            if (mm.includes('PHENOM 100')) return 3500000;
-            if (mm.includes('CHALLENGER 3')) return 12000000;
-            if (mm.includes('CHALLENGER 6')) return 8000000;
-            if (mm.includes('GULFSTREAM')) return 15000000;
-            if (mm.includes('GLOBAL')) return 25000000;
-
-            return 250000; // Generic GA average
-        };
 
         const basePrice = getBasePrice(aircraft.make_model);
         let estimatedValue = basePrice;
@@ -329,125 +423,16 @@ serve(async (req) => {
         };
 
         // 3. OPERATING COST ESTIMATION (NEW)
-        const getOperatingCosts = (makeModel: string) => {
-            const mm = makeModel.toUpperCase();
-            let gph = 10;
-            let fuelType = 'Avgas';
-            let maintPerHour = 45;
-            let reservePerHour = 35;
-            let annualFixed = 12000;
-
-            if (mm.includes('CITATION') || mm.includes('CHALLENGER')) {
-                gph = 250; fuelType = 'Jet-A'; maintPerHour = 450; reservePerHour = 600; annualFixed = 85000;
-            } else if (mm.includes('KING AIR') || mm.includes('B200') || mm.includes('B300') || mm.includes('MERIDIAN')) {
-                gph = 100; fuelType = 'Jet-A'; maintPerHour = 250; reservePerHour = 300; annualFixed = 45000;
-            } else if (mm.includes('BARON') || mm.includes('310')) {
-                gph = 28; fuelType = 'Avgas'; maintPerHour = 95; reservePerHour = 80; annualFixed = 22000;
-            } else if (mm.includes('SR22') || mm.includes('210') || mm.includes('BONANZA') || mm.includes('SARATOGA')) {
-                gph = 16; fuelType = 'Avgas'; maintPerHour = 65; reservePerHour = 55; annualFixed = 15000;
-            } else if (mm.includes('172') || mm.includes('ARCHER') || mm.includes('MOONEY')) {
-                gph = 9; fuelType = 'Avgas'; maintPerHour = 40; reservePerHour = 30; annualFixed = 9000;
-            }
-
-            const fuelPrice = fuelType === 'Jet-A' ? 6.50 : 7.25;
-            const hourlyFuel = Math.round(gph * fuelPrice);
-            const totalHourly = hourlyFuel + maintPerHour + reservePerHour;
-
-            return {
-                hourly_fuel: hourlyFuel,
-                hourly_maintenance: maintPerHour,
-                hourly_reserve: reservePerHour,
-                total_hourly_direct: totalHourly,
-                annual_fixed_est: annualFixed,
-                fuel_type: fuelType,
-                gph_est: gph
-            };
-        };
-
         const costs = getOperatingCosts(aircraft.make_model);
 
         // 4. MARKET VELOCITY & LIQUIDITY (NEW)
-        const getMarketVelocity = (model: string) => {
-            const mm = model.toUpperCase();
-            if (mm.includes('172') || mm.includes('SR22')) return { days_on_market: 22, liquidity: 'HIGH' };
-            if (mm.includes('CITATION') || mm.includes('KING AIR')) return { days_on_market: 45, liquidity: 'MODERATE' };
-            return { days_on_market: 65, liquidity: 'STABLE' };
-        };
-
         const velocity = getMarketVelocity(aircraft.make_model);
 
         // 5. PERFORMANCE PROFILE (NEW for Mission Planner)
-        const getPerformanceProfile = (model: string) => {
-            const mm = model.toUpperCase();
-            // Defaults
-            let speed = 140; // kts
-            let range = 600; // nm
-            let useful_load = 800; // lbs
-
-            if (mm.includes('CIRRUS') || mm.includes('SR22')) { speed = 175; range = 900; useful_load = 1000; }
-            else if (mm.includes('SR20')) { speed = 150; range = 700; useful_load = 850; }
-            else if (mm.includes('172')) { speed = 120; range = 500; useful_load = 800; }
-            else if (mm.includes('182')) { speed = 140; range = 800; useful_load = 1100; }
-            else if (mm.includes('BONANZA') || mm.includes('A36')) { speed = 165; range = 850; useful_load = 1200; }
-            else if (mm.includes('BARON')) { speed = 190; range = 1000; useful_load = 1600; }
-            else if (mm.includes('MOONEY')) { speed = 160; range = 1000; useful_load = 900; }
-            else if (mm.includes('PA-46') || mm.includes('MALIBU') || mm.includes('MERIDIAN')) { speed = 260; range = 1000; useful_load = 1500; }
-            else if (mm.includes('KING AIR 350')) { speed = 310; range = 1500; useful_load = 3500; }
-            else if (mm.includes('KING AIR')) { speed = 270; range = 1200; useful_load = 2500; }
-            else if (mm.includes('PILATUS') || mm.includes('PC-12')) { speed = 280; range = 1600; useful_load = 2800; }
-            else if (mm.includes('CITATION') || mm.includes('CJ')) { speed = 380; range = 1300; useful_load = 3000; }
-            else if (mm.includes('CITATION X')) { speed = 525; range = 3000; useful_load = 5000; }
-            else if (mm.includes('GULFSTREAM')) { speed = 480; range = 4000; useful_load = 6000; }
-            else if (mm.includes('ROBINSON')) { speed = 110; range = 300; useful_load = 700; }
-
-            return { cruise_speed: speed, max_range: range, useful_load: useful_load };
-        };
         const performance = getPerformanceProfile(aircraft.make_model);
 
         // AVIONICS MODERNITY AUDIT
-        const analyzeAvionics = (yearStr, makeModel) => {
-            const year = parseInt(yearStr) || 1980;
-            const mm = (makeModel || '').toUpperCase();
-            let score = 30; // Base score for legacy
-            let type = "STEAM GAUGES";
-            let features = ["Analog Six-Pack", "Standard Radio"];
-            let verdict = "OBSOLETE";
-
-            const age = 2026 - year;
-
-            if (year >= 2018) {
-                score = 98; type = "TOUCHSCREEN GLASS"; features = ["Synthetic Vision", "Auto-Land Capable", "Connected Cockpit"]; verdict = "FUTURE-PROOF";
-            } else if (year >= 2011) {
-                score = 88; type = "INTEGRATED GLASS"; features = ["WAAS GPS", "ADS-B In/Out", "Digital Autopilot"]; verdict = "MODERN";
-            } else if (year >= 2004) {
-                score = 70; type = "EARLY GLASS"; features = ["Multi-Function Display", "GPS Navigation", "Traffic Advisory"]; verdict = "LEGACY GLASS";
-            } else if (year >= 1996) {
-                score = 55; type = "HYBRID PANEL"; features = ["Digital HSI", "Moving Map GPS", "Digital Engine Monitor"]; verdict = "TRANSITIONAL";
-            }
-
-            // Model Specific Intelligence
-            if (mm.includes('SR22') || mm.includes('SR20')) {
-                if (year >= 2003 && year < 2008) { type = "AVIDYNE ENTEGRA"; score = 72; features = ["Dual PFD/MFD", "Dual Garmin 430"]; verdict = "LEGACY GLASS"; }
-                if (year >= 2008) { type = "GARMIN PERSPECTIVE"; score = 94; features.push("Blue Button LvL", "Synthetic Vision"); verdict = "MARKET LEADER"; }
-            }
-            if (mm.includes('CITATION') || mm.includes('CJ')) {
-                if (score < 60) { type = "EFIS TUBE / FMS"; features = ["Honeywell SPZ", "Universal FMS"]; verdict = "DATED"; }
-            }
-            if (mm.includes('PILATUS')) {
-                if (year >= 2014) { type = "HONEYWELL APEX"; score = 96; verdict = "AIRLINER TECH"; }
-            }
-            if (mm.includes('ROBINSON')) {
-                if (year >= 2018) { type = "GARMIN HELI-GLASS"; features.push("Heli-SAS Autopilot"); }
-            }
-
-            // ADS-B Check (Simulated high probability for active aircraft)
-            if (random(25) > 0.1 || year > 2000) {
-                features.push("ADS-B Out Compliant");
-            }
-
-            return { score, type, features, verdict };
-        };
-        const avionics = analyzeAvionics(aircraft.year_mfr, aircraft.make_model);
+        const avionics = analyzeAvionics(aircraft.year_mfr, aircraft.make_model, random);
 
         // 4. FLEET-BASED PREDICTIVE MAINTENANCE (EMPIRICAL vs HEURISTIC)
         // -------------------------------------------------------------
@@ -463,135 +448,11 @@ serve(async (req) => {
             fleetStats = fs;
         }
 
-        const predictMaintenance = (makeModel, yearStr, fleetData) => {
-            // Priority 1: Use Real Fleet Data if available and significant
-            if (fleetData && fleetData.total_fleet_reports > 0 && fleetData.top_reliability_issues) {
-                console.log(`[Orchestrator] Using EMPIRICAL fleet data for ${makeModel}`);
-
-                const timeline = fleetData.top_reliability_issues.map((issue, i) => {
-                    const health = 100 - Math.min(90, (issue.frequency_pct * 3) + (random(i) * 20)); // Inverse of frequency
-                    let limit = "GREEN";
-                    let risk_label = "MONITOR";
-
-                    if (health < 40) { limit = "NEAR_TERM"; risk_label = "HIGH FAILURE RATE"; }
-                    if (health < 20) { limit = "URGENT"; risk_label = "CRITICAL FLEET ISSUE"; }
-
-                    return {
-                        part: issue.component,
-                        status: limit,
-                        health_pct: Math.floor(health),
-                        est_hours_remaining: Math.floor(random(i) * 500), // Cannot predict individual hours from fleet stats
-                        est_cost: 0, // We don't have cost in SDRs yet, frontend handles "Call for Quote"
-                        label: `${issue.count} SDR Reports (${issue.frequency_pct}%)`,
-                        source: "FLEET_AGGREGATE"
-                    };
-                });
-
-                return {
-                    system_type: "EMPIRICAL",
-                    forecast: timeline.slice(0, 5),
-                    note: `Based on analysis of ${fleetData.total_fleet_reports.toLocaleString()} service records for this model.`
-                };
-            }
-
-            // Priority 2: Fallback to Heuristic Simulation (Legacy Logic)
-            console.log(`[Orchestrator] Using READ HEURISTIC simulation for ${makeModel}`);
-            const mm = (makeModel || '').toUpperCase();
-            const year = parseInt(yearStr) || 1990;
-            const age = 2026 - year;
-            let type = "PISTON";
-            if (mm.includes('CITATION') || mm.includes('KING AIR') || mm.includes('PILATUS') || mm.includes('TBM') || mm.includes('JET')) {
-                type = "TURBINE";
-            }
-
-            // Component Library with Stats (Mean Time Between Failure - MTBF)
-            const partsLibrary = {
-                PISTON: [
-                    { name: "Vacuum Pump", mtbf: 500, cost: 800, critical: true },
-                    { name: "Alternator", mtbf: 1200, cost: 1200, critical: true },
-                    { name: "Magnetos", mtbf: 500, cost: 1500, critical: true },
-                    { name: "Fuel Servo", mtbf: 2000, cost: 2500, critical: false },
-                    { name: "Starter", mtbf: 1500, cost: 900, critical: false },
-                    { name: "Muffler/Exhaust", mtbf: 1000, cost: 3000, critical: true },
-                    { name: "Cylinder Head", mtbf: 1800, cost: 3500, critical: true }
-                ],
-                TURBINE: [
-                    { name: "Starter Generator", mtbf: 1000, cost: 8000, critical: true },
-                    { name: "FCU (Fuel Control)", mtbf: 2500, cost: 15000, critical: true },
-                    { name: "Igniters", mtbf: 600, cost: 2000, critical: false },
-                    { name: "Bleed Valve", mtbf: 1500, cost: 5000, critical: false },
-                    { name: "Brakes/Tires", mtbf: 400, cost: 12000, critical: false }
-                ]
-            };
-
-            const pool = type === "TURBINE" ? partsLibrary.TURBINE : partsLibrary.PISTON;
-            const timeline = [];
-
-            // Simulate wear state for each part
-            pool.forEach((part, i) => {
-                // Deterministic random State of Health (0-100%)
-                const health = Math.floor(random(100 + i) * 100);
-
-                let limit = "GREEN";
-                let est_hours = Math.floor((part.mtbf * (health / 100)));
-                let risk_label = "HEALTHY";
-
-                if (health < 15) {
-                    limit = "URGENT"; // 0-3 Months
-                    risk_label = "FAIL IMMINENT";
-                } else if (health < 40) {
-                    limit = "NEAR_TERM"; // 3-12 Months
-                    risk_label = "WEAR DETECTED";
-                } else {
-                    limit = "LONG_TERM";
-                }
-
-                if (limit !== "LONG_TERM" || random(i) > 0.7) { // Only showing relevant items
-                    timeline.push({
-                        part: part.name,
-                        status: limit,
-                        health_pct: health,
-                        est_hours_remaining: est_hours,
-                        est_cost: part.cost,
-                        label: risk_label
-                    });
-                }
-            });
-
-            // Sort by urgency (Health ascending)
-            timeline.sort((a, b) => a.health_pct - b.health_pct);
-
-            return {
-                system_type: type,
-                forecast: timeline.slice(0, 4) // Top 4 issues
-            };
-        };
-        const predictive_maintenance = predictMaintenance(aircraft.make_model, aircraft.year_mfr, fleetStats);
+        // 4. FLEET-BASED PREDICTIVE MAINTENANCE (EMPIRICAL vs HEURISTIC)
+        // Logic Moved to buyerLogic.ts
 
         // ASSET HISTORY GENERATOR (5-Year Trend)
-        const generateMarketHistory = (currentValuation: number) => {
-            const history: any[] = [];
-            const basePrice = currentValuation || 500000;
-            const currentYear = new Date().getFullYear(); // 2026
-
-            const trendMap = [
-                { year: currentYear, factor: 1.0 },
-                { year: currentYear - 1, factor: 0.98 }, // 2025
-                { year: currentYear - 2, factor: 1.05 }, // 2024
-                { year: currentYear - 3, factor: 1.15 }, // 2023
-                { year: currentYear - 4, factor: 0.85 }, // 2022
-                { year: currentYear - 5, factor: 0.70 }, // 2021
-            ];
-
-            trendMap.reverse().forEach(point => {
-                const noise = 1 + ((random(point.year) - 0.5) * 0.05);
-                const historicPrice = Math.round(basePrice * point.factor * noise);
-                history.push({ year: point.year, price: historicPrice });
-            });
-
-            return history;
-        };
-        const market_history = generateMarketHistory(valuation.estimated_value);
+        const market_history = generateMarketHistory(valuation.estimated_value, random);
 
         // 6. PRIVACY & DORMANCY SIGNALS (NEW)
         const privacy_audit = {
@@ -601,29 +462,32 @@ serve(async (req) => {
         };
 
         const dormancy_analysis = {
-            last_flight_gap: Math.floor(random(45) * 6) + 1, // months
+            last_flight_gap: normalizedTail === 'N000DQ' ? 18 : Math.floor(random(45) * 18), // 0 to 17 months
             dormancy_risk: 'LOW',
             status_label: 'ACTIVE ASSET'
         };
 
-        if (dormancy_analysis.last_flight_gap > 6) {
+        if (dormancy_analysis.last_flight_gap > 12) {
+            dormancy_analysis.dormancy_risk = 'HIGH';
+            dormancy_analysis.status_label = 'CRITICAL DORMANCY / HANGAR QUEEN';
+        } else if (dormancy_analysis.last_flight_gap > 6) {
             dormancy_analysis.dormancy_risk = 'MODERATE';
             dormancy_analysis.status_label = 'INACTIVE / DORMANT';
         }
+
+        // Pass dormancy_analysis to the new function (NOW SAFE)
+        const predictive_maintenance = predictMaintenance(aircraft.make_model, aircraft.year_mfr, fleetStats, dormancy_analysis);
 
         // ---------------------------------------------------------
         // 6. BUILD FORENSIC REPORT (Real Data Queries)
         // ---------------------------------------------------------
 
         // Try to fetch real forensic records if they exist in our mirrored tables
-        const { data: fetchNTSB } = await supabase.from('forensic_ntsb').select('*').eq('n_number', normalizedTail);
-        const { data: realSDR } = await supabase.from('forensic_sdr').select('*').eq('n_number', normalizedTail);
-        const { data: realCADORS } = await supabase.from('forensic_cadors').select('*').eq('n_number', normalizedTail);
-
-        let realNTSB = fetchNTSB;
+        // FORENSIC DATA FETCHED EARLY (See Line 247)
+        // ---------------------------------------------------------
 
         // DEMO BYPASS: Force NTSB Record for N799PC if not found
-        if (normalizedTail === 'N799PC' && (!realNTSB || realNTSB.length === 0)) {
+        if (normalizedTail === 'N799PC') {
             console.log('[Orchestrator] Injecting DEMO NTSB Report for N799PC');
             realNTSB = [{
                 event_id: 'DEMO-799PC',
@@ -636,135 +500,57 @@ serve(async (req) => {
             }];
         }
 
-        // 6. ATMOSPHERIC & ENTITY FORENSICS (NEW)
-        const getStateClimate = (state: string) => {
-            const coastal = ['FL', 'CA', 'TX', 'NC', 'SC', 'GA', 'NY', 'WA', 'BC', 'NSW', 'QLD'];
-            const southern = ['FL', 'TX', 'AZ', 'NM', 'QC', 'NSW', 'WA', 'MEXICO', 'AUSTRALIA'];
-            const st = (state || '').toUpperCase();
-            return {
-                salinity: coastal.some(c => st.includes(c)) ? 'HIGH' : 'LOW',
-                uv_index: southern.some(s => st.includes(s)) ? 'INTENSE' : 'MODERATE'
-            };
-        };
 
-        const getCoordinates = (state: string, country: string) => {
-            const st = (state || '').toUpperCase();
-            const ct = (country || '').toUpperCase();
-            const coordMap: Record<string, { lat: number; lng: number }> = {
-                'FL': { lat: 27.8, lng: -81.5 },
-                'CA': { lat: 36.1, lng: -119.6 },
-                'TX': { lat: 31.0, lng: -100.0 },
-                'AZ': { lat: 34.0, lng: -111.6 },
-                'NY': { lat: 43.0, lng: -75.0 },
-                'WA': { lat: 47.7, lng: -120.7 },
-                'BC': { lat: 53.7, lng: -127.6 },
-                'NSW': { lat: -31.2, lng: 146.9 },
-                'QLD': { lat: -20.9, lng: 142.7 },
-                'UNITED STATES': { lat: 39.8, lng: -98.6 },
-                'CANADA': { lat: 56.1, lng: -106.3 },
-                'AUSTRALIA': { lat: -25.2, lng: 133.7 },
-                'MEXICO': { lat: 23.6, lng: -102.5 },
-                'UNITED KINGDOM': { lat: 55.3, lng: -3.4 },
-                'GERMANY': { lat: 51.1, lng: 10.4 },
-                'FRANCE': { lat: 46.2, lng: 2.2 },
-            };
-            return coordMap[st] || coordMap[ct] || { lat: 39.8, lng: -98.6 };
-        };
 
-        const getTransparency = (owner: string) => {
-            const ow = (owner || '').toUpperCase();
-            if (ow.includes('TRUST')) return { score: 30, label: 'BLACK BOX', desc: 'Trustee-owned. Beneficial owner identity is legally shielded.' };
-            if (ow.includes('LLC') || ow.includes('HOLDINGS') || ow.includes('Pty')) return { score: 65, label: 'TINTED BOX', desc: 'Corporate entity. Ownership is layered through shell structuring.' };
-            return { score: 95, label: 'GLASS BOX', desc: 'Individual/Direct ownership. High transparency profile.' };
-        };
-
-        const climate = getStateClimate(aircraft.state);
         const transparency = getTransparency(aircraft.owner);
+        const climate = getStateClimate(aircraft.state);
         const coords = getCoordinates(aircraft.state, aircraft.country || 'UNITED STATES');
 
         // JURISDICTION & REGULATORY AUDIT (FAA vs NAV CANADA)
-        const getJurisdictionProfile = (tail) => {
-            if (tail.startsWith('C-')) {
-                return {
-                    authority: "TRANSPORT CANADA / NAV CANADA",
-                    flag: "🇨🇦",
-                    rules: "CARs (Canadian Aviation Regulations)",
-                    advisories: [
-                        "CROSS-BORDER: Import to US requires De-registration & Export CoA.",
-                        "TAX WARNING: GST/HST (5-15%) applies on Canadian transaction values.",
-                        "LIEN SEARCH: FAA Title Search does NOT cover Canada. Use Provincial PPSA search."
-                    ],
-                    link_status: "NAVCANADA DATA LINK: ACTIVE"
-                };
-            }
-            return {
-                authority: "FAA (USA)",
-                flag: "🇺🇸",
-                rules: "FARs (Federal Aviation Regulations)",
-                advisories: [
-                    "DOMESTIC: Standard FAA Title 14 rules apply.",
-                    "TAX: State Sales Tax applies based on hangar location."
-                ],
-                link_status: "FAA REGISTRY: ACTIVE"
-            };
-        };
         const jurisdiction = getJurisdictionProfile(tail_number);
 
         // HANGAR QUEEN RISK INDEX (HQRI)
-        const calculateHQRI = (dormancyMonths, climateData, makeModel) => {
-            let score = 0; // 0 = Pristine, 100 = Rotted
-            let triggers = [];
-            let riskLevel = "LOW";
-
-            // Base Dormancy Factor
-            if (dormancyMonths > 1) score += 10;
-            if (dormancyMonths > 3) score += 25;
-            if (dormancyMonths > 6) score += 40;
-            if (dormancyMonths > 12) score += 80;
-
-            // Environmental Multiplier
-            if (climateData.salinity === 'HIGH') {
-                score = Math.min(100, score * 1.5);
-                if (dormancyMonths > 2) triggers.push("SALT AIR CORROSION");
-            }
-            if (climateData.uv_index === 'INTENSE') {
-                score += 5; // Paint/Interior fade
-                triggers.push("UV EXPOSURE");
-            }
-
-            // Engine Susceptibility
-            const mm = (makeModel || '').toUpperCase();
-            const isTurbine = mm.includes('JET') || mm.includes('CITATION') || mm.includes('KING AIR');
-
-            if (!isTurbine && dormancyMonths > 4) {
-                score += 15; // Pistons rot faster (camshafts)
-                triggers.push("CAMSHAFT RUST RISK");
-            } else if (isTurbine && dormancyMonths > 12) {
-                score += 10; // Seal drying
-                triggers.push("SEAL DRY ROT");
-            }
-
-            // Normalize
-            score = Math.min(100, Math.round(score));
-
-            if (score > 80) riskLevel = "CRITICAL";
-            else if (score > 50) riskLevel = "HIGH";
-            else if (score > 20) riskLevel = "MODERATE";
-
-            return { score, level: riskLevel, triggers };
-        };
         const hqri = calculateHQRI(dormancy_analysis.last_flight_gap, climate, aircraft.make_model);
 
-        // 7. CALC RISK METRICS (BEFORE REPORT BUILD)
-        const ntsbCount = (realNTSB && realNTSB.length > 0) ? realNTSB.length : (tail_number.startsWith('N') ? (random(6) > 0.8 ? 1 : 0) : 0);
-        const cadorsCount = (realCADORS && realCADORS.length > 0) ? realCADORS.length : (tail_number.startsWith('C-') ? (random(20) > 0.7 ? 1 : 0) : 0);
-        const sdrCount = (realSDR && realSDR.length > 0) ? realSDR.length : (random(7) > 0.6 ? Math.floor(random(8) * 3) + 1 : 0);
+
+        // 7. CALC RISK METRICS (REFINED: REAL DATA FOCUS)
+        const ntsbCount = realNTSB ? realNTSB.length : 0;
+        const sdrCount = realSDR ? realSDR.length : 0;
+        const cadorsCount = realCADORS ? realCADORS.length : 0;
         const lienStatus = random(9) > 0.9;
         const isDormantAcft = dormancy_analysis.dormancy_risk !== 'LOW';
 
+        // Enhanced Safety Scoring (NTSB / CADORS)
+        let safetyScore = 100;
+        realNTSB?.forEach((r: any) => {
+            const damage = (r.aircraft_damage || '').toUpperCase();
+            if (damage.includes('DESTR')) safetyScore -= 80;
+            else if (damage.includes('SUBS')) safetyScore -= 40;
+            else safetyScore -= 15;
+
+            // Recency penalty
+            const eventYear = r.event_date ? new Date(r.event_date).getFullYear() : 0;
+            const currentYear = new Date().getFullYear();
+            if (currentYear - eventYear < 5) safetyScore -= 10;
+        });
+        safetyScore -= (cadorsCount * 12);
+        safetyScore = Math.max(5, safetyScore);
+
+        // Enhanced Mechanical Scoring (SDR)
+        let mechanicalScore = 100;
+        if (sdrCount > 0) {
+            mechanicalScore -= (sdrCount * 4);
+            const criticalParts = ['WING', 'SPAR', 'ENGINE', 'TURBINE', 'CRANKSHAFT', 'PROPELLER', 'CONTROL'];
+            realSDR.forEach((s: any) => {
+                const part = (s.part_name || '').toUpperCase();
+                if (criticalParts.some(cp => part.includes(cp))) mechanicalScore -= 8;
+            });
+        }
+        mechanicalScore = Math.max(10, mechanicalScore);
+
         const riskMetrics = {
-            safety: Math.max(10, 100 - (ntsbCount * 40) - (cadorsCount * 15)),
-            mechanical: Math.max(10, 100 - (sdrCount * 8)),
+            safety: safetyScore,
+            mechanical: mechanicalScore,
             financial: lienStatus ? 20 : 98,
             commercial: isDormantAcft ? 45 : 92
         };
@@ -805,7 +591,14 @@ serve(async (req) => {
                 source: "FAA NACO CHART DATA",
                 longest_runway: `${runway_len} ft`,
                 surface: random(10) > 1 ? "ASPHALT/CONCRETE" : "TURF/GRAVEL",
-                suitability: runway_len < 4000 ? "RESTRICTED (Short Field)" : "UNRESTRICTED"
+                suitability: (() => {
+                    const md = (aircraft.make_model || '').toUpperCase();
+                    let minReq = 2200; // Default Piston
+                    if (md.includes('JET') || md.includes('CITATION') || md.includes('GULFSTREAM') || md.includes('LEAR')) minReq = 4500;
+                    else if (md.includes('TURBO') || md.includes('KING AIR') || md.includes('PILATUS') || md.includes('TBM')) minReq = 3000;
+
+                    return runway_len < minReq ? `RESTRICTED (>${minReq}ft Req)` : "UNRESTRICTED";
+                })()
             },
             cross_border_mandates: {
                 source: "AIP CANADA / ICAO",
@@ -814,6 +607,56 @@ serve(async (req) => {
                 adsb_diversity: "RECOMMENDED (Space-Based Coverage)"
             }
         };
+
+        // 8. LIFECYCLE STRESS MATRIX (NEW: "How hard was it flown?")
+        // Moved here to ensure runway_len is defined
+        const calculateStressMatrix = () => {
+            let score = 50; // Base "Normal Use"
+            const factors: string[] = [];
+
+            // 1. Runway Utilization Stress (Braking/Thrust Intensity)
+            const md = (aircraft.make_model || '').toUpperCase();
+            let minReq = 2200; // Default Piston
+            if (md.includes('JET')) minReq = 4500;
+            else if (md.includes('TURBO') || md.includes('KING AIR') || md.includes('PILATUS') || md.includes('TBM')) minReq = 3000;
+
+            const margin = runway_len - minReq;
+            if (margin < 500) {
+                score += 20;
+                factors.push("SHORT FIELD OPS (High Brake/Thrust Wear)");
+            } else if (margin > 3000) {
+                score -= 10;
+                factors.push("GENERALLY LONG RUNWAYS (Low Stress)");
+            }
+
+            // 2. Operator Profile (Training vs Transport)
+            const ow = (aircraft.owner || '').toUpperCase();
+            if (ow.includes('SCHOOL') || ow.includes('ACADEMY') || ow.includes('UNIV') || ow.includes('FLYING CLUB')) {
+                score += 30;
+                factors.push("FLIGHT TRAINING ASSET (High Cycle/Hard Landings)");
+            } else if (ow.includes('INC') || ow.includes('LLC') || ow.includes('CORP')) {
+                score -= 5;
+                factors.push("CORPORATE FLOWN (Pro Pilot Managed)");
+            }
+
+            // 3. Density Altitude / Terrain Stress
+            const highElev = ['CO', 'UT', 'WY', 'MT', 'ID', 'NM'];
+            if (aircraft.state && highElev.includes(aircraft.state)) {
+                score += 10;
+                factors.push("HIGH DENSITY ALTITUDE BASE (Engine Thermal Stress)");
+            }
+
+            // Normalization
+            score = Math.min(100, Math.max(0, score));
+
+            let label = "NORMAL UTILITY";
+            if (score > 80) label = "SEVERE / TRAINING";
+            else if (score > 65) label = "HIGH INTENSITY";
+            else if (score < 35) label = "GENTLE / HIGHWAY";
+
+            return { score, label, factors };
+        };
+        const stress_matrix = calculateStressMatrix();
 
         const fleet_comparison = {
             mechanical_delta: -10 - Math.floor(random(25)), // e.g. -15% better than fleet
@@ -906,9 +749,11 @@ serve(async (req) => {
 
         const logbook_audit = analyzeLogbooks(aircraft.year, tail_number);
 
+
+
         // COMPLIANCE WATCHDOG (OFAC / LIEN / INTERPOL)
         // COMPLIANCE WATCHDOG (OFAC / LIEN / INTERPOL) - CASTELLUM.AI INTEGRATION
-        const checkCompliance = async (ownerName) => {
+        const checkCompliance = async (ownerName: string) => {
             const castellumApiKey = Deno.env.get('CASTELLUM_API_KEY');
             let realHits = [];
             let isClean = true;
@@ -973,57 +818,12 @@ serve(async (req) => {
         const compliance_audit = await checkCompliance(aircraft.owner?.name || "Unknown");
 
         // PRE-MARKET ACQUISITION ALGO (The 'Hunter')
-        const predictSalesLikelihood = (dormancyMonths, ownershipYears, acftAge, daysOnMarket) => {
-            let score = 15; // Baseline churn
-            let signals = [];
-            let label = "HOLDING";
-
-            // 1. Owner Disengagement (Strongest Signal)
-            if (dormancyMonths >= 6) {
-                score += 45;
-                signals.push("Owner Disengagement (Dormant >6mo)");
-            } else if (dormancyMonths >= 3) {
-                score += 20;
-                signals.push("Usage Decline");
-            }
-
-            // 2. Lifecycle Events
-            if (ownershipYears > 20) {
-                score += 25;
-                signals.push("Generational Exit (20yr+ Owner)");
-            } else if (ownershipYears < 1) {
-                score += 15;
-                signals.push("Potential Flip / Bridge");
-            }
-
-            // 3. Market Pressure
-            if (daysOnMarket < 45) { // Hot market
-                score += 10;
-                signals.push("High Market Demand");
-            }
-
-            // Cap and Label
-            score = Math.min(99, Math.round(score));
-
-            if (score > 75) label = "LIKELY LISTING SOON";
-            else if (score > 50) label = "POSSIBLE CHURN";
-            else label = "LONG TERM HOLD";
-
-            const channel = {
-                method: score > 60 ? "DIRECT_TO_OWNER" : "BROKER_PROXY",
-                status: "ACTIVE_CHANNEL",
-                proxy_email: `acquisitions+${aircraft.serial}@gotailscan.com`,
-                unlock_fee: score > 80 ? "$450.00" : "$0.00 (Standard)",
-                blind_offer_allowed: score > 70
-            };
-
-            return { score, label, signals, channel };
-        };
         const acquisition_signal = predictSalesLikelihood(
             dormancy_analysis.last_flight_gap,
             custody.average_ownership_duration,
             Math.max(0, new Date().getFullYear() - (aircraft.year || 1990)), // Inline Calculation
-            velocity.days_on_market
+            velocity.days_on_market,
+            aircraft.serial || 'UNKNOWN'
         );
 
         // 8. INTELLIGENT VALUATION ADJUSTMENT (The "Brain" Adjustment)
@@ -1160,6 +960,7 @@ serve(async (req) => {
             predictive_maintenance: predictive_maintenance,
             market_history: market_history,
             hangar_queen_index: hqri,
+            stress_matrix: stress_matrix,
             acquisition_signal: acquisition_signal,
             jurisdiction_profile: jurisdiction,
             market_velocity: velocity,
@@ -1187,9 +988,11 @@ serve(async (req) => {
                 real_cadors: realCADORS || []
             },
             ai_intelligence: {
-                audit_verdict: "",
-                risk_profile: "",
-                technical_advisory: ""
+                audit_verdict: "", // These will be filled later by generateVerdict
+                risk_profile: "",  // These will be filled later by generateVerdict
+                technical_advisory: "", // These will be filled later by generateVerdict
+                confidence_score: confScore,
+                tax_strategy: undefined as any // Placeholder, will be filled by generateVerdict
             }
         };
 
@@ -1200,57 +1003,50 @@ serve(async (req) => {
         const isDormant = report.dormancy_analysis.dormancy_risk !== 'LOW';
 
         // CF0 / TAX INTELLIGENCE
-        const getTaxBenefits = (price) => {
-            const currentYear = new Date().getFullYear();
-            const rate = currentYear === 2025 ? 0.40 : (currentYear === 2026 ? 0.20 : 0.0);
-            const deduction = price * rate;
-            return {
-                bonus_depreciation_rate: `${(rate * 100).toFixed(0)}%`,
-                year_1_deduction: deduction,
-                strategy: "Part 135 Leaseback Program"
-            };
-        };
         const tax_smart = getTaxBenefits(report.valuation.estimated_value);
 
         // GENERATE NARRATIVE VERDICT
         const generateVerdict = () => {
-            let score = report.confidence_score;
-            let narrative = [];
-            let risk = "GOOD TO BUY";
-            let verdict_label = "CLEAN AIRFRAME";
+            let score = 95;
+            let risk = "INVESTIGATE";
+            let verdict_label = "CLEAN GENEALOGY";
+            const narrative: string[] = [];
 
-            // 1. HARD STOPS (Legal/Safety)
+            // 1. FATAL/SAFETY RISKS
             if (report.compliance_audit && report.compliance_audit.status === 'FLAGGED') {
                 score = 0;
                 risk = "BLOCKED";
                 verdict_label = "SANCTIONS HIT";
                 narrative.push("CRITICAL: Transaction BLOCKED. Sanctions or Lien Detected.");
             }
-            else if (ntsb > 0) {
-                score -= 40;
+            else if (report.risk_metrics.safety < 70) {
                 risk = "WALK AWAY";
-                verdict_label = "ACCIDENT HISTORY";
-                narrative.push("WALK AWAY");
+                verdict_label = "SEVERE ACCIDENT HISTORY";
+                narrative.push("WALK AWAY: Significant airframe damage history detected (Destroyed/Substantial). Safety margin compromised.");
             }
-            else if (lien) {
-                narrative.push("Title issues detected (UCC Lien).");
+            else if (report.risk_metrics.safety < 90) {
+                risk = "CAUTION";
+                verdict_label = "INCIDENT HISTORY";
+                const nCount = report.forensic_records.ntsb_count;
+                narrative.push(`CAUTION: ${nCount} historical incident(s) detected. Airframe integrity requires IA verification.`);
             }
 
-            // 2. SOFT RISKS (Technical)
+            // 2. MECHANICAL RISKS (Technical)
+            if (report.risk_metrics.mechanical < 60) {
+                narrative.push("TECHNICAL WARNING: Pattern of critical component failures (SDRs) detected (Propulsion/Airframe).");
+            }
+
             if (report.logbook_audit && report.logbook_audit.findings && report.logbook_audit.findings.gaps.length > 0) {
-                score -= 15;
                 narrative.push("Logbook Gaps detected; verify specific annuals.");
             }
+
             if (isDormant) {
-                narrative.push(`Aircraft is dormant; engine corrosion likely.`);
-            }
-            if (report.infrastructure_audit && report.infrastructure_audit.home_base.suitability.includes('RESTRICTED')) {
-                narrative.push("Home base runway is marginal for this aircraft.");
+                narrative.push(`Aircraft is dormant (${report.dormancy_analysis.last_flight_gap}mo); internal engine corrosion likely.`);
             }
 
             // 3. OPPORTUNITIES (Financial/Market)
             if (report.acquisition_signal && report.acquisition_signal.score > 75) {
-                narrative.push("Strong Off-Market Acquisition Opportunity.");
+                narrative.push("PRO OPPORTUNITY: High acquisition signal due to motivating market factors.");
             }
 
             // 4. TAX STRATEGY
@@ -1260,44 +1056,31 @@ serve(async (req) => {
             if (narrative.length < 2) narrative.push("Asset shows clean forensic genealogy. Proceed to pre-buy.");
 
             return {
+                ...report.ai_intelligence,
                 risk_profile: risk,
                 audit_verdict: verdict_label,
                 technical_advisory: narrative.join(" "),
-                tax_strategy: tax_smart
+                tax_strategy: tax_smart,
+                confidence_score: score
             };
         };
 
         const intelligence_output = generateVerdict();
         report.ai_intelligence = intelligence_output;
 
-        // CRITICAL: Synchronize the final report confidence score with the AI's reasoned verdict
-        // This prevents the "Low Risk 10/100 but WALK AWAY" contradiction.
-        // FINAL SAFEGUARD: Force High Risk if NTSB history exists
-        if (report.forensic_records.ntsb_count > 0) {
-            // Force the confidence score to reflect high risk (max 30, so Risk Score is >= 70)
-            report.confidence_score = Math.min(report.confidence_score, 30);
-
-            // Ensure AI verdict matches
-            if (report.ai_intelligence) {
-                report.ai_intelligence.risk_profile = 'WALK AWAY';
-                report.ai_intelligence.audit_verdict = 'ACCIDENT HISTORY';
-            }
-        }
-        else if (intelligence_output.risk_profile === 'WALK AWAY' || intelligence_output.risk_profile === 'BLOCKED') {
-            // Force the confidence score to reflect high risk (e.g. max 30-40)
-            report.confidence_score = Math.min(report.confidence_score, 30);
-        } else if (intelligence_output.technical_advisory.includes('corrosion') || intelligence_output.technical_advisory.includes('Gaps')) {
-            // Moderate risk
-            report.confidence_score = Math.min(report.confidence_score, 65);
-        }
-
+        // Result synthesis complete.
         return new Response(JSON.stringify(report), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
         })
 
     } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
+        console.error('[Orchestrate] Fatal Error:', error);
+        return new Response(JSON.stringify({
+            error: error.message || "Unknown Runtime Error",
+            stack: error.stack || "No stack trace",
+            name: error.name
+        }), {
             headers: corsHeaders,
             status: 400,
         })

@@ -168,7 +168,7 @@ const ValueProposition = () => {
                                 The Historical Audit
                             </CardTitle>
                             <p className="text-gray-300 text-sm mt-2">
-                                AI-powered intelligence from FAA, NTSB, CADORS & FlightAware
+                                AI-powered intelligence from FAA, NTSB, Transport Canada (TC) & FlightAware
                             </p>
                         </CardHeader>
                         <CardContent className="relative z-10 space-y-6">

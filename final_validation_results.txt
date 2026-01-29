@@ -1,0 +1,24 @@
+﻿Starting Final Search Validation...
+
+[TEST] Known Accident (Injected) [N799PC]
+  - Make/Model: CESSNA T210 TURBO CENTURION
+  - Safety Score: 50/100
+  - Risk Profile: WALK AWAY
+  - Verdict: SEVERE ACCIDENT HISTORY
+  Γ£à PASS
+
+[TEST] Demo Override (Falcon 900) [N30HQ]
+  - Make/Model: DASSAULT FALCON 900EX
+  - Safety Score: 100/100
+  - Risk Profile: INVESTIGATE
+  - Verdict: CLEAN GENEALOGY
+  Γ£à PASS
+
+[TEST] Baseline (Random/Clean) [N12345]
+  - Make/Model: 06101YY
+  - Safety Score: 100/100
+  - Risk Profile: INVESTIGATE
+  - Verdict: CLEAN GENEALOGY
+  Γ£à PASS
+
+Validation Complete.

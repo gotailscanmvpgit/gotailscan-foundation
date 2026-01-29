@@ -1,22 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle, TrendingUp, Clock } from 'lucide-react';
+import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle, TrendingUp, Clock, Shield, LayoutGrid, ShieldCheck, Compass, Settings, Zap, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Footer from './Footer';
 import SplitScreenComparison from './SplitScreenComparison';
 import AircraftIdentityCard from './AircraftIdentityCard';
 import { logbookOCRService } from '../services/logbookOCRService';
 
-const Badge = ({ children, className }) => (
-    <div className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${className}`}>
-        {children}
-    </div>
+const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 12h16" />
+        <path d="M14 6l6 6-6 6" />
+        <rect x="3" y="7" width="10" height="10" rx="1" fill="black" stroke={color} />
+        <text x="5" y="15" fontSize="10" fontWeight="900" fill={color} stroke="none" style={{ fontFamily: 'Roboto Mono, monospace' }}>D</text>
+    </svg>
 );
 
 export default function MechanicDashboardStandalone() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState("AUDIT");
     const [tailNumber, setTailNumber] = useState(searchParams.get('tail') || '');
-    // PREVENT FLASH: If autostarting, set loading to true immediately
     const [loading, setLoading] = useState(searchParams.get('autostart') === 'true');
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
@@ -29,7 +33,6 @@ export default function MechanicDashboardStandalone() {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [ocrError, setOcrError] = useState(null);
 
-    // Auto-audit on mount if parameters exist
     useEffect(() => {
         const tail = searchParams.get('tail');
         const autostart = searchParams.get('autostart');
@@ -43,16 +46,13 @@ export default function MechanicDashboardStandalone() {
     const handleAudit = async (overrideTail) => {
         const targetTail = overrideTail || tailNumber;
         if (!targetTail?.trim()) return;
-
         setLoading(true);
         setError(null);
-
         try {
             const module = await import('../services/scraperService');
             const data = await module.scraperService.scanTailNumber(targetTail.toUpperCase());
             setResult(data);
         } catch (err) {
-            console.error('Audit failed:', err);
             setError(err.message || 'Failed to fetch data');
         } finally {
             setLoading(false);
@@ -62,7 +62,6 @@ export default function MechanicDashboardStandalone() {
     const handleFileSelect = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         setSelectedFile(file);
         setPreviewUrl(URL.createObjectURL(file));
         setOcrResult(null);
@@ -71,36 +70,29 @@ export default function MechanicDashboardStandalone() {
 
     const runOCR = async () => {
         if (!selectedFile) return;
-
         setOcrLoading(true);
         setOcrProgress(0);
         setOcrError(null);
-
         try {
             const data = await logbookOCRService.processLogbookImage(selectedFile, (progress) => {
                 setOcrProgress(progress);
             });
             setOcrResult(data);
-
-            // If we found a tail number, auto-populate search
             if (data.findings.aircraft_id && !tailNumber) {
                 setTailNumber(data.findings.aircraft_id);
             }
         } catch (err) {
             setOcrError("Failed to process image. Ensure it is a clear logbook photo.");
-            console.error(err);
         } finally {
             setOcrLoading(false);
         }
     };
 
-    // Generate AD Compliance Checklist
     const getComplianceChecklist = () => {
         if (!result) return [];
         const aircraft = result.aircraft_details;
         const makeModel = aircraft?.make_model?.toUpperCase() || '';
         const checklist = [];
-
         if (makeModel.includes('CESSNA')) {
             checklist.push({ id: 'AD 2020-26-16', description: 'Wing Spar Inspection (SID)', status: 'PENDING', due: '100hr' });
             checklist.push({ id: 'AD 2021-12-05', description: 'Elevator Trim Tab Inspection', status: result.logbook_audit ? 'VERIFIED' : 'UNKNOWN', due: 'Annual' });
@@ -109,504 +101,259 @@ export default function MechanicDashboardStandalone() {
             checklist.push({ id: 'AD 2019-01-09', description: 'Wing Attachment Inspection', status: 'PENDING', due: '500hr' });
             checklist.push({ id: 'AD 2018-23-12', description: 'Fuel System Compliance', status: 'VERIFIED', due: '1000hr' });
         }
-        if (makeModel.includes('CIRRUS')) {
-            checklist.push({ id: 'AD 2015-08-09', description: 'Parachute Repack', status: result.aircraft_details.year < 2015 ? 'OVERDUE' : 'VERIFIED', due: '10yr' });
-        }
-
-        // Generic ADs
         checklist.push({ id: 'AD 2017-17-11', description: 'ELT Battery Replacement', status: result.infrastructure_audit?.elt_406mhz ? 'VERIFIED' : 'CHECK', due: 'Annual' });
         checklist.push({ id: 'AD 2022-05-01', description: 'ADS-B Out Compliance', status: 'VERIFIED', due: 'N/A' });
-
         return checklist;
     };
 
-    const getLogbookAnalysis = () => {
-        if (!result?.logbook_audit) return null;
-        return {
-            ocr_confidence: result.logbook_audit.ocr_confidence || 94,
-            pages_scanned: result.logbook_audit.pages_processed || 0,
-            gaps: result.logbook_audit.findings?.gaps || [],
-            red_flags: result.logbook_audit.findings?.red_flags || [],
-            continuity_score: result.logbook_audit.findings?.continuity_score || 0
-        };
-    };
-
-    // TELEMETRY: Generate mock TC AD Registry and OCR data for comparison
-    const getMockComparisonData = () => {
-        if (!result) return { tcData: [], ocrData: [] };
-
-        // Simulated TC AD Registry data
-        const tcData = [
-            { ad_number: 'AD 2020-26-16', compliance_date: '2023-05-15', description: 'Wing Spar Inspection (SID)' },
-            { ad_number: 'AD 2021-12-05', compliance_date: '2023-08-22', description: 'Elevator Trim Tab Inspection' },
-            { ad_number: 'AD 2019-01-09', compliance_date: '2022-11-10', description: 'Wing Attachment Inspection' },
-            { ad_number: 'AD 2017-17-11', compliance_date: '2024-01-05', description: 'ELT Battery Replacement' }
-        ];
-
-        // Simulated OCR Processed Logs (with intentional mismatches)
-        const ocrData = [
-            { ad_number: 'AD 2020-26-16', compliance_date: '2023-05-15', description: 'Wing Spar Inspection (SID)' }, // MATCH
-            { ad_number: 'AD 2021-12-05', compliance_date: '2023-09-01', description: 'Elevator Trim Tab Inspection' }, // MISMATCH (date)
-            { ad_number: 'AD 2019-01-09', compliance_date: '2022-11-10', description: 'Wing Attachment Inspection' }, // MATCH
-            // AD 2017-17-11 is MISSING from OCR (will show as NOT FOUND)
-        ];
-
-        return { tcData, ocrData };
-    };
-
-    const analysis = getLogbookAnalysis();
     const checklist = getComplianceChecklist();
 
-    const internalCardClass = "internal-card p-7 relative overflow-hidden transition-all duration-300";
-    const internalCardAmberClass = `${internalCardClass} internal-card-amber`;
-    const cardStyle = {}; // Prevent ReferenceError
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'VERIFIED': return { bg: 'rgba(16, 185, 129, 0.1)', border: '#10b981', text: '#10b981' };
-            case 'PENDING': return { bg: 'rgba(234, 179, 8, 0.1)', border: '#eab308', text: '#eab308' };
-            case 'OVERDUE': return { bg: 'rgba(239, 68, 68, 0.1)', border: '#ef4444', text: '#ef4444' };
-            case 'CHECK': return { bg: 'rgba(249, 115, 22, 0.1)', border: '#f97316', text: '#f97316' };
-            default: return { bg: 'rgba(107, 114, 128, 0.1)', border: '#6b7280', text: '#6b7280' };
-        }
+    const G3000 = {
+        WARNING: "#ef4444", CAUTION: "#f59e0b", ADVISORY: "#06b6d4", NORMAL: "#ffffff", BG: "#0b0f19", BEZEL: "#1e293b", GRID: "rgba(255, 255, 255, 0.05)"
     };
 
+    const sidebarStyle = {
+        position: "fixed",
+        left: "0px",
+        top: "0px",
+        bottom: "0px",
+        width: "80px",
+        background: "#0f172a",
+        borderRight: "2px solid #334155",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "20px 0",
+        zIndex: 100
+    };
+    const g3000ButtonStyle = (isActive) => ({
+        width: "56px",
+        height: "56px",
+        borderRadius: "8px",
+        background: isActive ? "rgba(245, 158, 11, 0.2)" : "rgba(255, 255, 255, 0.05)",
+        border: `1px solid ${isActive ? "#f59e0b" : "rgba(255, 255, 255, 0.1)"}`,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        color: isActive ? "#f59e0b" : "#94a3b8",
+        cursor: "pointer",
+        marginBottom: "16px",
+        transition: "all 0.2s ease",
+        gap: "4px"
+    });
+    const g3000LabelStyle = { fontSize: "8px", fontWeight: "900", textTransform: "uppercase", letterSpacing: "0.5px" };
+
+    const BottomNav = () => (
+        <div className="bottom-nav">
+            <button onClick={() => setActiveTab("AUDIT")} className={activeTab === "AUDIT" ? "active" : ""}><LayoutGrid size={24} /><span>Audit</span></button>
+            <button onClick={() => setActiveTab("OCR")} className={activeTab === "OCR" ? "active" : ""}><Scan size={24} /><span>Forensic</span></button>
+            <button onClick={() => setActiveTab("COMPLIANCE")} className={activeTab === "COMPLIANCE" ? "active" : ""}><ShieldCheck size={24} /><span>Cert</span></button>
+            <button onClick={() => setActiveTab("COMPARISON")} className={activeTab === "COMPARISON" ? "active" : ""}><TrendingUp size={24} /><span>Compare</span></button>
+        </div>
+    );
+
     return (
-        <div className="cockpit-container">
-            {/* Header - Industrial Style */}
-            <div style={{ borderBottom: '2px solid rgba(249, 115, 22, 0.3)', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 50 }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <button onClick={() => navigate('/')} style={{ background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}>
-                            ← EXIT
-                        </button>
-                        <div style={{ borderLeft: '2px solid rgba(249, 115, 22, 0.3)', paddingLeft: '12px' }}>
-                            <div style={{ fontSize: '9px', color: '#f97316', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>A&P MODE</div>
-                            <h1 className="font-registration" style={{ fontSize: '18px', color: 'white', textTransform: 'uppercase', margin: 0, letterSpacing: '1px' }}>LOGBOOK AUDIT CONSOLE</h1>
-                        </div>
-                    </div>
-                    <div style={{ padding: '4px 12px', background: 'rgba(249, 115, 22, 0.2)', border: '1px solid rgba(249, 115, 22, 0.4)', borderRadius: '4px', fontSize: '10px', color: '#f97316', fontWeight: 'bold' }}>
-                        IAR CERTIFIED
+        <div className="cockpit-container" style={{ height: "100vh", width: "100vw", background: G3000.BG, color: G3000.NORMAL, display: "flex", flexDirection: "column", fontFamily: "'Rajdhani', sans-serif" }}>
+            <div className="desktop-sidebar" style={sidebarStyle}>
+                <div onClick={() => navigate("/")} style={{ marginBottom: "32px", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", cursor: "pointer" }}>
+                    <svg viewBox="0 0 24 24" fill="none" style={{ width: "28px", height: "28px", filter: "drop-shadow(0 0 4px rgba(0, 160, 226, 0.4))" }}>
+                        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" fill="#00a0e2" />
+                    </svg>
+                    <div style={{ fontFamily: "'Roboto', sans-serif", fontSize: "10px", textAlign: "center" }}>
+                        <div style={{ fontWeight: "900", color: "#ffffff", lineHeight: "1" }}>goTail</div>
+                        <div style={{ fontWeight: "300", color: "#00a0e2", lineHeight: "1" }}>Scan</div>
                     </div>
                 </div>
+                <button onClick={() => setActiveTab("AUDIT")} style={g3000ButtonStyle(activeTab === "AUDIT")}><LayoutGrid size={20} /><span style={g3000LabelStyle}>Audit</span></button>
+                <button onClick={() => setActiveTab("OCR")} style={g3000ButtonStyle(activeTab === "OCR")}><Scan size={20} /><span style={g3000LabelStyle}>Forensic</span></button>
+                <button onClick={() => setActiveTab("COMPLIANCE")} style={g3000ButtonStyle(activeTab === "COMPLIANCE")}><ShieldCheck size={20} /><span style={g3000LabelStyle}>Cert</span></button>
+                <button onClick={() => setActiveTab("COMPARISON")} style={g3000ButtonStyle(activeTab === "COMPARISON")}><TrendingUp size={20} /><span style={g3000LabelStyle}>Compare</span></button>
+                <div style={{ marginTop: "auto" }}><button onClick={() => navigate("/")} style={g3000ButtonStyle(false)}><Compass size={20} /><span style={g3000LabelStyle}>Exit</span></button></div>
             </div>
 
-            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    {/* Search Panel */}
-                    <div className={`${internalCardClass} lg:col-span-1`}>
-                        <label style={{ fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Aircraft Tail Number</label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <input
-                                placeholder="N12345"
-                                value={tailNumber}
-                                onChange={(e) => setTailNumber(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleAudit()}
-                                style={{ flex: 1, background: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 255, 255, 0.3)', borderRadius: '6px', padding: '12px', color: 'white', fontSize: '16px', fontWeight: 'bold' }}
-                            />
-                            <button
-                                onClick={handleAudit}
-                                disabled={loading}
-                                style={{ background: loading ? '#6b7280' : '#f97316', color: 'black', padding: '12px 24px', borderRadius: '6px', border: 'none', fontWeight: '900', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px' }}
-                            >
-                                {loading ? <Loader2 className="animate-spin" size={18} /> : 'AUDIT'}
-                            </button>
-                        </div>
-                        {error && <div style={{ marginTop: '12px', color: '#ef4444', fontSize: '12px' }}>{error}</div>}
+            <div className="main-viewport" style={{ flex: 1, display: "flex", flexDirection: "column", background: "black", margin: "10px", marginLeft: "90px", borderRadius: "4px", border: "4px solid #1e293b", boxShadow: "inset 0 0 40px rgba(0,0,0,0.8)", position: "relative", overflowX: "hidden", overflowY: "auto" }}>
+                {/* STICKY TOP STATUS BAR */}
+                <div className="status-bar" style={{ height: "40px", background: "#1e293b", display: "flex", alignItems: "center", padding: "0 20px", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", fontFamily: "'Roboto Mono', monospace", position: "sticky", top: 0, zIndex: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                        <div style={{ fontSize: "12px", fontWeight: "900", color: "#f59e0b" }} className="status-title">MAINTENANCE CONSOLE ACTIVE</div>
+                        <div style={{ fontSize: "14px", fontWeight: "bold", color: "white" }}>{tailNumber || "---"}</div>
                     </div>
-
-                    {/* OCR Upload Panel */}
-                    <div className={`${internalCardClass} lg:col-span-2 internal-card-amber`}>
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <Scan size={18} className="text-amber-500" />
-                                <h3 className="text-xs font-black text-white uppercase tracking-wider">Logbook Forensic Scan</h3>
-                            </div>
-                            {ocrResult && <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[9px]">OCR VERIFIED</Badge>}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ display: "flex", gap: "10px" }} className="status-meta">
+                            <div style={{ background: "#f59e0b", color: "black", fontSize: "10px", fontWeight: "900", padding: "2px 8px", borderRadius: "2px" }}>A&P CERTIFIED</div>
+                            <div style={{ fontSize: "12px", opacity: 0.5 }}>121.50 MHz</div>
                         </div>
-
-                        <div className="flex gap-6 h-32">
-                            {/* Upload Area */}
-                            <label className="flex-1 border-2 border-dashed border-white/10 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden group">
-                                <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
-
-                                {previewUrl ? (
-                                    <div className="absolute inset-0">
-                                        <img src={previewUrl} className="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-all" />
-                                        {ocrLoading && (
-                                            <div className="absolute inset-0 bg-amber-500/20 flex flex-col items-center justify-center">
-                                                <div className="w-full max-w-[80%] h-1 bg-white/20 rounded-full mb-2 overflow-hidden">
-                                                    <motion.div
-                                                        className="h-full bg-amber-500"
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${ocrProgress}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-[9px] font-bold text-white uppercase tracking-widest">{ocrProgress}% SCANNING</span>
-                                                <div className="absolute inset-x-0 h-0.5 bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,1)] animate-scanline"></div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <>
-                                        <Upload size={24} className="text-gray-500 mb-2" />
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase">Drop Page Photo</span>
-                                    </>
-                                )}
-                            </label>
-
-                            {/* Extract Button */}
-                            <div className="flex flex-col justify-center gap-2 w-32">
-                                <button
-                                    onClick={runOCR}
-                                    disabled={!selectedFile || ocrLoading}
-                                    className={`w-full py-3 rounded-md font-black text-[10px] uppercase tracking-widest transition-all ${selectedFile && !ocrLoading
-                                        ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.4)]'
-                                        : 'bg-white/5 text-gray-500'
-                                        }`}
-                                >
-                                    {ocrLoading ? 'EXTRACTING...' : 'RUN FORENSIC'}
-                                </button>
-                                {ocrResult && (
-                                    <div className="text-center">
-                                        <div className="text-[9px] text-emerald-400 font-bold uppercase flex items-center justify-center gap-1">
-                                            <CheckCircle size={10} /> Intelligence Extracted
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Result Sneak Peek */}
-                            {ocrResult && (
-                                <div className="flex-1 bg-black/40 rounded-lg p-3 border border-white/5 overflow-y-auto custom-scrollbar">
-                                    <h4 className="text-[8px] text-gray-500 font-bold uppercase mb-2">Metadata Found</h4>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div className="text-[10px]"><span className="text-gray-600">ID:</span> <span className="text-white font-mono">{ocrResult.findings.aircraft_id || 'NOT FOUND'}</span></div>
-                                        <div className="text-[10px]"><span className="text-gray-600">TT:</span> <span className="text-white font-mono">{ocrResult.findings.total_time || '--'}</span></div>
-                                        <div className="text-[10px]"><span className="text-gray-600">AD:</span> <span className="text-amber-500 font-mono">{ocrResult.findings.ad_compliance.length} items</span></div>
-                                    </div>
-                                </div>
-                            )}
+                        <div style={{ display: "flex", gap: "8px" }}>
+                            <button onClick={() => navigate("/")} className="mobile-auth-btn" style={{ display: "none" }}><Compass size={18} color="#f59e0b" /></button>
                         </div>
-                        {ocrError && <div className="mt-2 text-[10px] text-red-500 font-bold uppercase">⚠ {ocrError}</div>}
                     </div>
                 </div>
 
-                <AnimatePresence>
-                    {ocrResult && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6"
-                        >
-                            {/* REGULATORY INTELLIGENCE (Automated Audit) */}
-                            <div className={`${internalCardClass} internal-card-amber`}>
-                                <div className="flex items-center gap-2 mb-6">
-                                    <FileText className="text-amber-500" size={20} />
-                                    <h3 className="text-lg font-registration text-white uppercase">Regulatory Intelligence</h3>
-                                </div>
+                {loading && <div style={{ position: "absolute", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.9)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}><Loader2 size={48} className="animate-spin text-amber-500 mb-4" /><div style={{ fontSize: "24px", fontWeight: "bold", color: "white", letterSpacing: "4px", textAlign: "center" }}>RETRIEVING ASSET TELEMETRY</div></div>}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                    <div className="bg-black/40 p-4 rounded-lg border border-white/5 flex flex-col items-center">
-                                        <div className="text-[10px] text-gray-500 font-bold uppercase mb-2">Audit Health Score</div>
-                                        <div className="text-4xl font-registration text-amber-500">{ocrResult.findings.audit_score}%</div>
-                                        <div className="w-full h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
-                                            <div className="h-full bg-amber-500" style={{ width: `${ocrResult.findings.audit_score}%` }} />
-                                        </div>
-                                    </div>
-                                    <div className="bg-black/40 p-4 rounded-lg border border-white/5">
-                                        <div className="text-[10px] text-gray-500 font-bold uppercase mb-2 text-center">Compliance Markers</div>
-                                        <div className="flex flex-wrap gap-2 justify-center">
-                                            {ocrResult.findings.ad_compliance.length > 0 ? (
-                                                ocrResult.findings.ad_compliance.map((ad, i) => (
-                                                    <Badge key={i} className="bg-amber-500/10 text-amber-500 border border-amber-500/20">{ad}</Badge>
-                                                ))
-                                            ) : (
-                                                <span className="text-[10px] text-gray-600 font-mono italic">No ADs found in scan</span>
+                <div style={{ flex: 1, padding: "24px" }}>
+                    {!result && !loading ? (
+                        <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+                            <div className="ghost-icon-wrap" style={{ position: "relative" }}>
+                                <Zap size={80} color="rgba(255,255,255,0.03)" style={{ marginBottom: "20px" }} />
+                            </div>
+                            <h2 style={{ fontSize: "32px", fontWeight: "900", color: "white", letterSpacing: "2px", margin: "0 10px" }} className="awaiting-text">READY FOR INSPECTION</h2>
+                            <p style={{ color: "#94a3b8", marginBottom: "32px", fontSize: "14px" }}>Connect to Aircraft Transponder for Forensic Audit</p>
+                            <div className="search-box-wrap" style={{ width: "100%", maxWidth: "440px", display: "flex", gap: "10px" }}>
+                                <input placeholder="ENTER TAIL NUMBER" value={tailNumber} onChange={(e) => setTailNumber(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: "1px solid #334155", padding: "16px", borderRadius: "4px", color: "white", fontSize: "16px", fontWeight: "bold", textAlign: "center" }} />
+                                <button className="scan-btn" onClick={() => handleAudit()} style={{ background: "#f59e0b", color: "black", border: "none", padding: "0 24px", minWidth: "120px", borderRadius: "4px", fontWeight: "950", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                                    <DirectToIcon size={16} color="black" />
+                                    AUDIT
+                                </button>
+                            </div>
+                        </div>
+                    ) : result && (
+                        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+                            <div className="dashboard-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                                    {activeTab === "AUDIT" && (
+                                        <>
+                                            <AircraftIdentityCard aircraftDetails={result.aircraft_details} />
+                                            <div style={{ background: "#0f172a", border: "1px solid #78350f", padding: "20px", borderRadius: "4px", borderLeft: "6px solid #f59e0b" }}>
+                                                <div style={{ color: "#f59e0b", fontSize: "10px", fontWeight: "900", marginBottom: "16px" }}>C3 AI PREDICTIVE PAG</div>
+                                                <div style={{ display: "flex", alignItems: "center", gap: "24px", flexWrap: "wrap" }}>
+                                                    <div style={{ fontSize: "48px", fontWeight: "900", color: result?.predictive_maintenance?.pag_score > 70 ? "#ef4444" : "#f59e0b" }}>{result?.predictive_maintenance?.pag_score || 0}%</div>
+                                                    <div>
+                                                        <div style={{ fontSize: "14px", fontWeight: "bold" }}>PROBABILITY OF GROUNDING</div>
+                                                        <div style={{ fontSize: "11px", opacity: 0.6 }}>Based on fleet lifecycle telemetry</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {activeTab === "OCR" && (
+                                        <div style={{ background: "#0f172a", border: "1px solid #334155", padding: "24px", borderRadius: "4px" }}>
+                                            <div style={{ fontSize: "10px", color: "#f59e0b", fontWeight: "900", marginBottom: "20px" }}>LOGBOOK FORENSIC SCAN</div>
+                                            <label style={{ display: "block", border: "2px dashed rgba(255,255,255,0.1)", borderRadius: "8px", padding: "40px", textAlign: "center", cursor: "pointer", background: "rgba(0,0,0,0.3)" }}>
+                                                <input type="file" className="hidden" accept="image/*" onChange={handleFileSelect} />
+                                                {previewUrl ? <img src={previewUrl} style={{ maxWidth: "100%", maxHeight: "200px", margin: "0 auto" }} /> : <><Upload size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} /><div style={{ fontSize: "12px", fontWeight: "bold" }}>UPLOAD LOGBOOK PAGE</div></>}
+                                            </label>
+                                            <button onClick={runOCR} disabled={!selectedFile || ocrLoading} style={{ width: "100%", marginTop: "20px", padding: "16px", background: "#f59e0b", color: "black", border: "none", borderRadius: "4px", fontWeight: "900" }}>{ocrLoading ? "EXTRACTING..." : "RUN FORENSIC SCAN"}</button>
+
+                                            {ocrResult && (
+                                                <div style={{ marginTop: "24px", background: "rgba(0,0,0,0.5)", padding: "16px", borderRadius: "4px", border: "1px solid #f59e0b" }}>
+                                                    <div style={{ fontSize: "10px", color: "#10b981", fontWeight: "900", marginBottom: "12px" }}>✓ INTELLIGENCE EXTRACTED</div>
+                                                    <div style={{ fontSize: "14px", fontWeight: "bold" }}>Audit Score: {ocrResult.findings.audit_score}%</div>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest border-b border-white/5 pb-2">Forensic Discrepancies</h4>
-                                    {ocrResult.findings.anomalies.length > 0 ? (
-                                        ocrResult.findings.anomalies.map((anom, i) => (
-                                            <div key={i} className={`p-3 rounded-md border-l-2 flex items-start gap-3 ${anom.severity === 'CRITICAL' ? 'bg-red-500/10 border-red-500' : 'bg-amber-500/5 border-amber-500'}`}>
-                                                <AlertTriangle size={14} className={anom.severity === 'CRITICAL' ? 'text-red-500' : 'text-amber-500'} />
-                                                <div>
-                                                    <div className={`text-[10px] font-bold ${anom.severity === 'CRITICAL' ? 'text-red-400' : 'text-amber-400'}`}>{anom.type}</div>
-                                                    <div className="text-[11px] text-gray-300 leading-relaxed mt-0.5">{anom.message}</div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="p-4 text-center bg-white/5 rounded-md italic text-gray-500 text-xs">No forensic anomalies detected in high-confidence scan.</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* PREDICTIVE MAINTENANCE PROJECTION */}
-                            <div className={`${internalCardClass}`}>
-                                <div className="flex items-center gap-2 mb-6">
-                                    <TrendingUp className="text-amber-500" size={20} />
-                                    <h3 className="text-lg font-registration text-white uppercase">Predictive Maintenance Projection</h3>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {ocrResult.findings.predictive_alerts.length > 0 ? (
-                                        ocrResult.findings.predictive_alerts.map((alert, i) => (
-                                            <div key={i} className="bg-black/40 rounded-lg p-4 border border-white/5 transition-all hover:border-amber-500/30">
-                                                <div className="flex justify-between items-start mb-3">
-                                                    <div>
-                                                        <div className="text-[9px] text-gray-600 font-bold uppercase">{alert.component}</div>
-                                                        <div className="text-sm font-bold text-white uppercase">{alert.task}</div>
-                                                    </div>
-                                                    <Badge className={alert.status === 'CRITICAL' ? 'bg-red-500/20 text-red-500' : 'bg-blue-500/20 text-blue-400'}>
-                                                        {alert.status}
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex justify-between items-center text-[10px]">
-                                                    <div className="flex items-center gap-1.5 text-gray-400">
-                                                        <Clock size={12} className="text-amber-500" />
-                                                        Due: <span className="text-white font-mono">{alert.window}</span>
-                                                    </div>
-                                                    <div className={`font-black tracking-tighter ${alert.priority === 'MANDATORY' ? 'text-red-500' : 'text-amber-500'}`}>
-                                                        {alert.priority} PRIORITY
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="bg-white/5 p-8 rounded-lg text-center border-2 border-dashed border-white/5">
-                                            <Loader2 size={24} className="text-gray-700 mx-auto mb-3" />
-                                            <div className="text-[10px] text-gray-500 uppercase font-black">Waiting for Logbook Metadata</div>
-                                        </div>
                                     )}
 
-                                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-md">
-                                        <div className="text-[9px] text-amber-500 font-bold uppercase mb-1">A&P Advisory</div>
-                                        <p className="text-[11px] text-gray-400 leading-relaxed font-mono">
-                                            Projections are based on mathematical extrapolation of hours per day.
-                                            Cross-verify with Title Search for major repairs not logged.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {result && (
-                    <>
-                        <AircraftIdentityCard aircraftDetails={result.aircraft_details} cardStyle={cardStyle} />
-
-                        {/* C3 AI / PAG PREDICTIVE ANALYTICS */}
-                        {result.predictive_maintenance && (
-                            <div className={`${internalCardClass} mb-6 border-l-4 ${result.predictive_maintenance.pag_score > 80 ? 'border-red-500' : result.predictive_maintenance.pag_score > 50 ? 'border-amber-500' : 'border-emerald-500'}`}>
-                                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-                                    <div className="flex items-center gap-3">
-                                        <TrendingUp className={result.predictive_maintenance.pag_score > 80 ? 'text-red-500' : 'text-amber-500'} size={24} />
-                                        <div>
-                                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">C3 AI / PAG MODULE</div>
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tight">PREDICTIVE ANALYTICS</h3>
-                                        </div>
-                                    </div>
-                                    <Badge className="bg-white/10 text-white border border-white/20">
-                                        {result.predictive_maintenance.model_version || 'v2.0'}
-                                    </Badge>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                    {/* Score Column */}
-                                    <div className="flex flex-col items-center justify-center p-4 bg-black/40 rounded-lg border border-white/5">
-                                        <div className="text-[10px] text-gray-500 font-bold uppercase mb-2">prob. aircraft grounding</div>
-                                        <div className={`text-6xl font-black mb-1 ${result.predictive_maintenance.pag_score > 80 ? 'text-red-500' : result.predictive_maintenance.pag_score > 50 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                                            {result.predictive_maintenance.pag_score}%
-                                        </div>
-                                        <div className="text-[11px] font-bold text-white uppercase tracking-widest bg-white/10 px-3 py-1 rounded">PAG SCORE</div>
-                                    </div>
-
-                                    {/* Advisory Column */}
-                                    <div className="md:col-span-2 space-y-4">
-                                        <div className={`p-4 rounded-md border ${result.predictive_maintenance.pag_score > 80 ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
-                                            <div className="text-[10px] font-bold opacity-70 uppercase mb-1">System Advisory</div>
-                                            <div className="text-lg font-black text-white">{result.predictive_maintenance.advisory}</div>
-                                            <div className="text-[11px] mt-1 opacity-80 font-mono">
-                                                {result.predictive_maintenance.system_type} • {result.predictive_maintenance.forecast?.length || 0} Components Monitored
-                                            </div>
-                                        </div>
-
-                                        {/* Component Timeline */}
-                                        <div className="space-y-2">
-                                            {result.predictive_maintenance.forecast?.slice(0, 3).map((item, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded hover:bg-white/10 transition-colors">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'URGENT' ? 'bg-red-500 animate-pulse' : 'bg-amber-500'}`}></div>
-                                                        <div>
-                                                            <div className="text-[11px] font-bold text-gray-200 uppercase">{item.part}</div>
-                                                            <div className="text-[9px] text-gray-500">{item.label}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-[11px] font-mono text-white">
-                                                            {item.est_hours_remaining} hrs
-                                                        </div>
-                                                        <div className="w-16 h-1 bg-gray-700 rounded-full mt-1 overflow-hidden">
-                                                            <div
-                                                                className={`h-full ${item.health_pct < 20 ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                                                style={{ width: `${item.health_pct}%` }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                            {/* Logbook OCR Analysis */}
-                            <div className={internalCardClass}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
-                                    <div style={{ fontSize: '24px' }}>📄</div>
-                                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>LOGBOOK ANALYSIS</h3>
-                                </div>
-
-                                {analysis ? (
-                                    <div style={{ display: 'grid', gap: '16px' }}>
-                                        {/* OCR Stats */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                                <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>OCR CONFIDENCE</div>
-                                                <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>{analysis.ocr_confidence.toFixed(1)}%</div>
-                                            </div>
-                                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                                <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase', marginBottom: '4px', fontWeight: 'bold' }}>PAGES SCANNED</div>
-                                                <div style={{ fontSize: '24px', fontWeight: '900', color: 'white' }}>{analysis.pages_scanned}</div>
-                                            </div>
-                                        </div>
-
-                                        {/* Continuity Score */}
-                                        <div style={{ background: 'linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent)', padding: '16px', borderRadius: '6px', border: '1px solid rgba(249, 115, 22, 0.3)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#f97316', textTransform: 'uppercase' }}>RECORD CONTINUITY</div>
-                                                <div style={{ fontSize: '28px', fontWeight: '900', color: 'white' }}>{analysis.continuity_score}</div>
-                                            </div>
-                                            <div style={{ width: '100%', background: 'rgba(0,0,0,0.4)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                                                <div
-                                                    style={{ height: '100%', background: analysis.continuity_score > 90 ? '#10b981' : analysis.continuity_score > 70 ? '#eab308' : '#ef4444', width: `${analysis.continuity_score}%`, transition: 'width 0.3s' }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Gaps */}
-                                        {analysis.gaps.length > 0 && (
-                                            <div>
-                                                <div style={{ fontSize: '10px', color: '#ef4444', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>⚠ CRITICAL GAPS</div>
-                                                {analysis.gaps.slice(0, 3).map((gap, i) => (
-                                                    <div key={i} style={{ background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid #ef4444', padding: '12px', marginBottom: '8px' }}>
-                                                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#ef4444' }}>{gap.flag}</div>
-                                                        <div style={{ fontSize: '10px', color: '#9ca3af', fontFamily: 'monospace', marginTop: '4px' }}>{gap.period}</div>
+                                    {activeTab === "COMPLIANCE" && (
+                                        <div style={{ background: "#0f172a", border: "1px solid #334155", padding: "20px", borderRadius: "4px" }}>
+                                            <div style={{ fontSize: "10px", color: "#f59e0b", fontWeight: "900", marginBottom: "20px" }}>AD COMPLIANCE REGISTRY</div>
+                                            <div style={{ display: "grid", gap: "12px" }}>
+                                                {checklist.map((ad, i) => (
+                                                    <div key={i} style={{ padding: "12px", background: "rgba(255,255,255,0.02)", borderLeft: `4px solid ${ad.status === 'VERIFIED' ? '#10b981' : '#f59e0b'}`, borderRadius: "4px" }}>
+                                                        <div style={{ fontSize: "11px", fontWeight: "bold" }}>{ad.id}</div>
+                                                        <div style={{ fontSize: "10px", opacity: 0.6 }}>{ad.description}</div>
+                                                        <div style={{ marginTop: "4px", fontSize: "10px", color: ad.status === 'VERIFIED' ? "#10b981" : "#f59e0b", fontWeight: "bold" }}>{ad.status}</div>
                                                     </div>
                                                 ))}
                                             </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
-                                        <div style={{ fontSize: '48px', marginBottom: '8px', opacity: 0.3 }}>📄</div>
-                                        <div style={{ fontSize: '12px' }}>No logbook data available</div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* AD Compliance Checklist */}
-                            <div className={internalCardClass}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
-                                    <div style={{ fontSize: '24px' }}>⚙️</div>
-                                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>AD COMPLIANCE</h3>
-                                </div>
-
-                                <div style={{ display: 'grid', gap: '12px', marginBottom: '20px' }}>
-                                    {checklist.length === 0 ? (
-                                        <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b7280' }}>
-                                            <div style={{ fontSize: '12px' }}>No checklist generated</div>
                                         </div>
-                                    ) : (
-                                        checklist.map((ad, i) => {
-                                            const colors = getStatusColor(ad.status);
-                                            return (
-                                                <div key={i} style={{ padding: '12px', borderRadius: '6px', borderLeft: `4px solid ${colors.border}`, background: colors.bg }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '12px' }}>
-                                                        <div style={{ flex: 1 }}>
-                                                            <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'white', textTransform: 'uppercase', marginBottom: '4px' }}>{ad.id}</div>
-                                                            <div style={{ fontSize: '11px', color: '#9ca3af' }}>{ad.description}</div>
-                                                            <div style={{ fontSize: '9px', color: '#6b7280', marginTop: '4px' }}>Due: {ad.due}</div>
-                                                        </div>
-                                                        <div style={{ padding: '2px 8px', borderRadius: '3px', background: colors.border, color: 'black', fontSize: '9px', fontWeight: '900' }}>
-                                                            {ad.status}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
                                     )}
                                 </div>
 
-                                {/* Quick Stats */}
-                                <div style={{ paddingTop: '16px', borderTop: '2px solid rgba(255,255,255,0.1)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>
-                                            {checklist.filter(ad => ad.status === 'VERIFIED').length}
+                                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                                    {(activeTab === "AUDIT" || activeTab === "COMPARISON") && (
+                                        <div style={{ background: "rgba(0,0,0,0.3)", padding: "24px", borderRadius: "4px", border: "1px solid #334155" }}>
+                                            <div style={{ fontSize: "10px", color: "#f59e0b", fontWeight: "900", marginBottom: "20px" }}>ANOMALY DETECTION</div>
+                                            {result?.logbook_audit?.findings?.gaps?.length > 0 ? (
+                                                result.logbook_audit.findings.gaps.map((gap, i) => (
+                                                    <div key={i} style={{ padding: "12px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid #ef4444", borderRadius: "4px", marginBottom: "12px" }}>
+                                                        <div style={{ fontSize: "12px", fontWeight: "bold", color: "#ef4444" }}>{gap.flag}</div>
+                                                        <div style={{ fontSize: "11px", opacity: 0.8 }}>{gap.period}</div>
+                                                    </div>
+                                                ))
+                                            ) : <div style={{ opacity: 0.5, fontSize: "12px" }}>No critical gaps detected in registry.</div>}
                                         </div>
-                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>VERIFIED</div>
-                                    </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: '900', color: '#eab308' }}>
-                                            {checklist.filter(ad => ad.status === 'PENDING' || ad.status === 'CHECK').length}
+                                    )}
+
+                                    {activeTab === "AUDIT" && (
+                                        <div style={{ background: "rgba(245, 158, 11, 0.05)", padding: "20px", borderRadius: "4px", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                                            <div style={{ fontSize: "10px", color: "#f59e0b", fontWeight: "900", marginBottom: "12px" }}>TECHNICAL ADVISORY</div>
+                                            <p style={{ fontSize: "14px", lineHeight: "1.6", color: "#d1d5db", fontStyle: "italic" }}>
+                                                "{result.ai_intelligence?.technical_advisory || "Asset appears to follow standard maintenance cycles. High confidence in AD compliance based on recent registry entries."}"
+                                            </p>
                                         </div>
-                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>PENDING</div>
-                                    </div>
-                                    <div style={{ textAlign: 'center' }}>
-                                        <div style={{ fontSize: '24px', fontWeight: '900', color: '#ef4444' }}>
-                                            {checklist.filter(ad => ad.status === 'OVERDUE').length}
+                                    )}
+
+                                    {activeTab === "COMPARISON" && (
+                                        <div style={{ maxHeight: "600px", overflow: "auto" }}>
+                                            <SplitScreenComparison
+                                                tcAdData={[
+                                                    { ad_number: 'AD 2020-26-16', compliance_date: '2023-05-15', description: 'Wing Spar Inspection (SID)' },
+                                                    { ad_number: 'AD 2021-12-05', compliance_date: '2023-08-22', description: 'Elevator Trim Tab Inspection' }
+                                                ]}
+                                                ocrData={[
+                                                    { ad_number: 'AD 2020-26-16', compliance_date: '2023-05-15', description: 'Wing Spar Inspection (SID)' },
+                                                    { ad_number: 'AD 2021-12-05', compliance_date: '2023-09-01', description: 'Elevator Trim Tab Inspection' }
+                                                ]}
+                                            />
                                         </div>
-                                        <div style={{ fontSize: '9px', color: '#9ca3af', textTransform: 'uppercase' }}>OVERDUE</div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
-                    </>
-                )}
-
-                {/* TELEMETRY: Split-Screen Comparison */}
-                {result && (() => {
-                    const comparisonData = getMockComparisonData();
-                    return (
-                        <div style={{ marginTop: '24px' }}>
-                            <SplitScreenComparison
-                                tcAdData={comparisonData.tcData}
-                                ocrData={comparisonData.ocrData}
-                            />
-                        </div>
-                    );
-                })()}
-
-                {/* Sign-Off Recommendation */}
-                {result && (
-                    <div className={internalCardClass} style={{ marginTop: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', paddingBottom: '12px', borderBottom: '2px solid rgba(249, 115, 22, 0.2)' }}>
-                            <div style={{ fontSize: '20px' }}>✓</div>
-                            <h3 style={{ fontSize: '16px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>SIGN-OFF RECOMMENDATION</h3>
-                        </div>
-                        <div style={{ fontSize: '13px', color: '#d1d5db', fontFamily: 'monospace', lineHeight: '1.6' }}>
-                            {result.ai_intelligence?.technical_advisory || 'Generating advisory...'}
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
+                <div style={{ padding: "40px 0" }}>
+                    <Footer />
+                </div>
+                <BottomNav />
             </div>
+
+            <style>{`
+                ::-webkit-scrollbar { width: 8px; }
+                ::-webkit-scrollbar-track { background: #0b101c; }
+                ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+                ::-webkit-scrollbar-thumb:hover { background: #475569; }
+                .hidden { display: none; }
+                .bottom-nav { display: none; }
+                @media (max-width: 900px) {
+                    .desktop-sidebar { display: none !important; }
+                    .main-viewport { margin: 0 !important; border: none !important; border-radius: 0 !important; }
+                    .status-title { display: none; }
+                    .status-meta { font-size: 10px !important; }
+                    .mobile-auth-btn { display: block !important; padding: 0; background: none; border: none; cursor: pointer; }
+                    .awaiting-text { font-size: 24px !important; }
+                    .search-box-wrap { flex-direction: column; align-items: stretch; }
+                    .scan-btn { height: 56px; width: 100% !important; margin-top: 8px; }
+                    .dashboard-grid { grid-template-columns: 1fr !important; }
+                    .bottom-nav { 
+                        display: flex; 
+                        justify-content: space-around; 
+                        align-items: center; 
+                        background: #0f172a; 
+                        border-top: 1px solid #1e293b; 
+                        padding: 10px 0; 
+                        position: sticky; 
+                        bottom: 0; 
+                        z-index: 100;
+                    }
+                    .bottom-nav button { 
+                        background: none; 
+                        border: none; 
+                        color: #94a3b8; 
+                        display: flex; 
+                        flex-direction: column; 
+                        align-items: center; 
+                        gap: 4px; 
+                        font-size: 10px; 
+                        font-weight: bold; 
+                        text-transform: uppercase;
+                    }
+                    .bottom-nav button.active { color: #f59e0b; }
+                }
+            `}</style>
         </div>
     );
 }

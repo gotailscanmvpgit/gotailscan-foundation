@@ -2,11 +2,21 @@ import React from 'react';
 import { Calendar, AlertTriangle, ShieldCheck, Ban, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function AircraftAssetCard({ search, onClick }) {
-    const { tail_number, searched_at, search_data } = search;
-    const data = search_data || {};
-    const details = data.aircraft_details || {};
-    const metrics = data.metrics || {};
+export default function AircraftAssetCard({ search, onClick, aircraftDetails }) {
+    // Defensive check: if 'search' is undefined, try to wrap 'aircraftDetails' or return null
+    if (!search && !aircraftDetails) return null;
+
+    // Handle both database search records and raw scan results
+    const tail_number = search?.tail_number || aircraftDetails?.tail_number || aircraftDetails?.registration || "---";
+    const searched_at = search?.searched_at || search?.generated_at || new Date().toISOString();
+    const data = search?.search_data || search || {};
+
+    const details = data.aircraft_details || aircraftDetails || {};
+    const metrics = {
+        ...(data.metrics || {}),
+        ...(data.forensic_records || {}),
+        risk_score: data.risk_score ?? data.forensic_records?.risk_score ?? (data.confidence_score !== undefined ? (100 - data.confidence_score) : data.metrics?.risk_score)
+    };
 
     // Determine Status & Metrics based on Mode
     const isSellerMode = data.mode === 'seller';
