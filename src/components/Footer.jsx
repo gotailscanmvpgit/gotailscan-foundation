@@ -52,11 +52,17 @@ const Footer = () => {
                 {/* COLUMN 1: BRAND & ROOTS */}
                 <div className="space-y-6">
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 focus-ring rounded p-1 -m-1">
-                            <div className="text-white font-registration tracking-widest text-xl">
-                                goTailScan
+                        <div className="flex items-center gap-2 group cursor-default">
+                            <div style={{ position: "relative", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <svg viewBox="0 0 24 24" fill="none" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 0 8px rgba(0, 160, 226, 0.4))" }}>
+                                    <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" fill="#00a0e2" />
+                                    <path d="M12 18V2" stroke="#ffffff20" strokeWidth="0.5" />
+                                </svg>
                             </div>
-                            <div className="w-2 h-5 bg-accent animate-pulse shadow-[0_0_15px_rgba(255,0,255,0.8)]"></div>
+                            <div className="flex items-baseline" style={{ fontFamily: "'Roboto', sans-serif", fontSize: "18px", letterSpacing: "-0.5px" }}>
+                                <span style={{ fontWeight: "900", color: "#ffffff" }}>goTail</span>
+                                <span style={{ fontWeight: "300", color: "#00a0e2", marginLeft: "1px" }}>Scan</span>
+                            </div>
                         </div>
                     </div>
 
