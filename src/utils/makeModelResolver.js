@@ -289,7 +289,7 @@ async function lookupByManufacturerCode(rawString) {
             .from('manufacturer_codes')
             .select('make_model, manufacturer')
             .eq('code', code)
-            .single();
+            .maybeSingle();
 
         if (data && !error) {
             return data;

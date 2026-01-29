@@ -5,7 +5,7 @@ import { motion, useSpring, useTransform, animate } from 'framer-motion';
  * Premium Circular Gauge Component
  * Animated SVG gauge with framer-motion and multi-mode support
  */
-export default function CircularGauge({ score, size = 120, strokeWidth = 12, mode = 'fit' }) {
+export default function CircularGauge({ score, size = 120, strokeWidth = 12, mode = 'fit', label }) {
     const [displayScore, setDisplayScore] = useState(0);
 
     useEffect(() => {
@@ -37,6 +37,8 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12, mod
 
     const colors = getColor();
     const center = size / 2;
+
+    const displayLabel = label || (mode === 'risk' ? 'SCORE' : 'FIT');
 
     return (
         <motion.div
@@ -111,14 +113,18 @@ export default function CircularGauge({ score, size = 120, strokeWidth = 12, mod
                     {displayScore}
                 </motion.div>
                 <div style={{
-                    fontSize: `${size * 0.1}px`,
+                    fontSize: label ? `${size * 0.08}px` : `${size * 0.1}px`,
                     color: '#9ca3af',
                     marginTop: '4px',
                     textTransform: 'uppercase',
                     letterSpacing: '2px',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    maxWidth: size * 0.7,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
                 }}>
-                    {mode === 'risk' ? 'SCORE' : 'FIT'}
+                    {displayLabel}
                 </div>
             </div>
 

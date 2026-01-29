@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import scraperService from '../services/scraperService';
 
@@ -176,6 +177,67 @@ export default function StandaloneBuyerDashboard() {
                                 </div>
                             </div>
                         </div>
+
+
+                        {/* C3 AI / PAG PREDICTIVE ANALYTICS */}
+                        {result.predictive_maintenance && (
+                            <div style={{ ...cardStyle }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <TrendingUp size={24} color={result.predictive_maintenance.pag_score > 80 ? '#ef4444' : result.predictive_maintenance.pag_score > 50 ? '#eab308' : '#10b981'} />
+                                        <div>
+                                            <div style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>C3 AI / PAG MODULE</div>
+                                            <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'white', textTransform: 'uppercase', margin: 0 }}>Predictive Analytics</h3>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px', fontSize: '10px', color: 'white', fontWeight: 'bold' }}>
+                                        {result.predictive_maintenance.model_version || 'v2.0'}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
+                                    {/* Score Column */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(0,0,0,0.4)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <div style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>Prob. Aircraft Grounding</div>
+                                        <div style={{ fontSize: '60px', fontWeight: '900', lineHeight: 1, marginBottom: '4px', color: result.predictive_maintenance.pag_score > 80 ? '#ef4444' : result.predictive_maintenance.pag_score > 50 ? '#eab308' : '#10b981' }}>
+                                            {result.predictive_maintenance.pag_score}%
+                                        </div>
+                                        <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'white', textTransform: 'uppercase', letterSpacing: '1px', background: 'rgba(255,255,255,0.1)', padding: '4px 12px', borderRadius: '4px' }}>PAG SCORE</div>
+                                    </div>
+
+                                    {/* Advisory & Timeline */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div style={{ padding: '16px', borderRadius: '8px', border: `1px solid ${result.predictive_maintenance.pag_score > 80 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(234, 179, 8, 0.3)'}`, background: result.predictive_maintenance.pag_score > 80 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(234, 179, 8, 0.1)' }}>
+                                            <div style={{ fontSize: '10px', fontWeight: 'bold', opacity: 0.7, textTransform: 'uppercase', marginBottom: '4px' }}>System Advisory</div>
+                                            <div style={{ fontSize: '18px', fontWeight: '900', color: 'white' }}>{result.predictive_maintenance.advisory}</div>
+                                            <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.8, fontFamily: 'monospace' }}>
+                                                {result.predictive_maintenance.system_type} • {result.predictive_maintenance.forecast?.length || 0} Components Monitored
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'grid', gap: '8px' }}>
+                                            {result.predictive_maintenance.forecast?.slice(0, 3).map((item, idx) => (
+                                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.status === 'URGENT' ? '#ef4444' : '#eab308' }}></div>
+                                                        <div>
+                                                            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#e5e7eb', textTransform: 'uppercase' }}>{item.part}</div>
+                                                            <div style={{ fontSize: '9px', color: '#9ca3af' }}>{item.label}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'white' }}>{item.est_hours_remaining} hrs</div>
+                                                        <div style={{ width: '64px', height: '4px', background: '#374151', borderRadius: '2px', marginTop: '4px', overflow: 'hidden' }}>
+                                                            <div style={{ height: '100%', background: item.health_pct < 20 ? '#ef4444' : '#10b981', width: `${item.health_pct}%` }}></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* AI Advisory */}
                         <div style={cardStyle}>

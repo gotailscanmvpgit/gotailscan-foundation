@@ -213,10 +213,7 @@ export default function RoleGateway() {
 
                     {/* Command Input */}
                     <div className="mb-6 relative z-10">
-                        <div className="flex items-end justify-between mb-2">
-                            <label className="text-[10px] font-mono cyan-glow uppercase tracking-widest flex items-center gap-2">
-                                <Terminal className="w-3 h-3 text-cyan-400" /> FLIGHT_MANAGEMENT_SYSTEM (FMS)
-                            </label>
+                        <div className="flex items-end justify-end mb-2">
                             <div className="flex gap-1">
                                 {lenses.map((l) => (
                                     <button
@@ -248,8 +245,9 @@ export default function RoleGateway() {
                                     className="w-full bg-transparent border-none text-cyan-100 font-mono text-xl lg:text-3xl p-4 focus:outline-none uppercase placeholder:text-cyan-900/50"
                                     autoFocus
                                 />
-                                <Button type="submit" className="bg-cyan-600/90 hover:bg-cyan-500 text-black font-black font-mono uppercase tracking-widest h-auto py-3 px-6 rounded-md border-l border-cyan-500/50 min-w-[140px]">
-                                    INITIALIZE {activeLens.label.split(' ')[0]}
+                                <Button type="submit" className="bg-cyan-600/90 hover:bg-cyan-500 text-black font-black font-mono uppercase tracking-widest h-auto py-3 px-4 md:px-6 rounded-md border-l border-cyan-500/50 min-w-fit whitespace-nowrap">
+                                    <span className="md:hidden">SCAN</span>
+                                    <span className="hidden md:inline">INITIALIZE {activeLens.label.split(' ')[0]}</span>
                                 </Button>
                             </div>
                         </form>
@@ -326,7 +324,8 @@ export default function RoleGateway() {
                             />
 
                             {/* Scanning Effect */}
-                            <div className="absolute top-0 left-0 w-full h-px bg-cyan-500 shadow-[0_0_20px_cyan-500] z-20 animate-scanline"></div>
+                            {/* Scanning Effect Removed as per request */}
+                            {/* <div className="absolute top-0 left-0 w-full h-px bg-cyan-500 shadow-[0_0_20px_cyan-500] z-20 animate-scanline"></div> */}
 
                             {/* Tech Data Overlays */}
                             <div className="absolute inset-0 z-30 pointer-events-none">
@@ -389,7 +388,7 @@ export default function RoleGateway() {
                                 See how each feature benefits different roles:
                             </p>
                         </div>
-                        <div className="flex justify-center gap-2 md:gap-4">
+                        <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-4">
                             {lenses.map((l) => (
                                 <button
                                     key={l.id}

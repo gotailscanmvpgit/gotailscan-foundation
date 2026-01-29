@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Shield, Loader2, Search } from "lucide-react";
+import { Shield, Loader2, Search, Users, Plane } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resolveMakeModel, isCleanMakeModel } from "../utils/makeModelResolver";
@@ -752,7 +752,7 @@ export default function MinimalBuyerTest() {
               }}
             />
             <button
-              onClick={handleScan}
+              onClick={() => handleScan()}
               disabled={loading}
               style={{
                 background: loading ? "#6b7280" : "#10b981",
@@ -801,6 +801,7 @@ export default function MinimalBuyerTest() {
                   }
                   strokeWidth={16}
                   mode="risk"
+                  label={result.tail_number || tailNumber.toUpperCase()}
                 />
               </div>
 
@@ -829,6 +830,81 @@ export default function MinimalBuyerTest() {
                   >
                     {derivedRiskLevel} RISK PROFILE
                   </h2>
+
+                  {/* Why and Action Sections */}
+                  <div style={{ marginTop: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                    {/* CONTEXT COLUMN */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      {/* WHY SECTION */}
+                      <div style={{ background: "rgba(255,255,255,0.03)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                        <div style={{ fontSize: "10px", fontWeight: "900", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Why this score?</div>
+                        <div style={{ fontSize: "12px", color: "#cbd5e1", lineHeight: "1.4" }}>
+                          {derivedRiskScore > 70 ? (
+                            "Critical safety or financial flags were identified in historical archives that present significant immediate risk."
+                          ) : derivedRiskScore > 30 ? (
+                            "Operational anomalies or maintenance gaps detected. Asset requires nuanced inspection of specific mechanical lifecycles."
+                          ) : (
+                            "Clean chain of custody and stable mechanical history with no record of major incidents or regulatory infractions."
+                          )}
+                        </div>
+                      </div>
+
+                      {/* FINANCIAL SHIELD SUMMARY */}
+                      <div style={{ background: "rgba(34, 197, 94, 0.05)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(34, 197, 94, 0.2)" }}>
+                        <div style={{ fontSize: "10px", fontWeight: "900", color: "#10b981", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }}>Financial Shield Summary</div>
+                        <div style={{ fontSize: "14px", color: "white", fontWeight: "bold", marginBottom: "4px" }}>
+                          {derivedRiskScore > 70 ? (
+                            <span style={{ color: "#10b981" }}>Est. Savings: $42,500</span>
+                          ) : derivedRiskScore > 30 ? (
+                            <span style={{ color: "#fbbf24" }}>Est. Savings: $12,500</span>
+                          ) : (
+                            <span style={{ color: "#94a3b8" }}>Est. Savings: $0</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#94a3b8", lineHeight: "1.4" }}>
+                          {derivedRiskScore > 70 ? (
+                            "Savings identified by avoiding undisclosed major repair cycles and forensic audit fees by not buying this plane."
+                          ) : derivedRiskScore > 30 ? (
+                            "Savings via negotiation leverage on identified maintenance anomalies."
+                          ) : (
+                            "Asset value appears stable with no immediate financial risk identified."
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ACTION SECTION */}
+                    <div style={{ background: "rgba(255,255,255,0.03)", padding: "16px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ fontSize: "10px", fontWeight: "900", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        Action Plan
+                        <motion.div
+                          animate={{ opacity: [1, 0.4, 1] }}
+                          transition={{ duration: 0.8, repeat: Infinity }}
+                          style={{
+                            width: "8px",
+                            height: "8px",
+                            borderRadius: "50%",
+                            background: derivedRiskLevel === "HIGH" ? "#ef4444" : derivedRiskLevel === "MEDIUM" ? "#eab308" : "#22c55e",
+                            boxShadow: `0 0 10px ${derivedRiskLevel === "HIGH" ? "#ef4444" : derivedRiskLevel === "MEDIUM" ? "#eab308" : "#22c55e"}`
+                          }}
+                        />
+                      </div>
+                      <div style={{ fontSize: "14px", color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        {derivedRiskLevel === "HIGH" ? (
+                          <span style={{ color: "#f87171", fontWeight: "900", fontSize: "15px" }}>NO GO - Forensic Audit Mandatory</span>
+                        ) : derivedRiskLevel === "MEDIUM" ? (
+                          <span style={{ color: "#fbbf24" }}>CAUTION - Detailed Pre-Buy Recommended</span>
+                        ) : (
+                          <span style={{ color: "#4ade80" }}>GO - Standard Verification Routine</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>
+                        {derivedRiskLevel === "HIGH" ? "Do not proceed with transaction without legal and structural clearance." :
+                          derivedRiskLevel === "MEDIUM" ? "Escalate inspection of engine and logbook continuity gaps." :
+                            "Proceed to performance validation and final contract drafting."}
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Aircraft Details Mini-Badge */}
                   <div
@@ -878,20 +954,7 @@ export default function MinimalBuyerTest() {
                   </div>
                 </div>
 
-                <motion.div
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  style={{
-                    fontSize: "16px",
-                    color: "#d1d5db",
-                    lineHeight: "1.6",
-                    maxWidth: "600px",
-                  }}
-                >
-                  {result.ai_intelligence?.technical_advisory ||
-                    "Genealogical forensic analysis complete. High-confidence data correlation achieved."}
-                </motion.div>
+
 
                 <div
                   style={{ marginTop: "20px", display: "flex", gap: "10px" }}
@@ -1025,86 +1088,7 @@ export default function MinimalBuyerTest() {
                 )}
               </div>
 
-              {/* TELEMETRY: Dormancy/Utilization Monitor */}
-              {dormancyAlert && (
-                <div
-                  className={`${internalCardClass} ${dormancyAlert.status === "WARNING" ? (dormancyAlert.severity === "CRITICAL" ? "internal-card-destructive" : "internal-card-amber") : "internal-card-emerald"}`}
-                  style={{
-                    borderWidth: "2px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "16px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <div style={{ fontSize: "48px" }}>
-                      {dormancyAlert.status === "WARNING" ? "⏸️" : "✈️"}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <h3
-                        style={{
-                          fontSize: "20px",
-                          fontWeight: "900",
-                          color:
-                            dormancyAlert.status === "WARNING"
-                              ? dormancyAlert.severity === "CRITICAL"
-                                ? "#ef4444"
-                                : "#eab308"
-                              : "#10b981",
-                          textTransform: "uppercase",
-                          margin: 0,
-                        }}
-                      >
-                        {dormancyAlert.status === "WARNING"
-                          ? "DORMANCY CAUTION"
-                          : "ACTIVE UTILIZATION"}
-                      </h3>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "#9ca3af",
-                          marginTop: "4px",
-                        }}
-                      >
-                        {dormancyAlert.days} days since last flight
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        padding: "8px 16px",
-                        borderRadius: "6px",
-                        background:
-                          dormancyAlert.status === "WARNING"
-                            ? dormancyAlert.severity === "CRITICAL"
-                              ? "#ef4444"
-                              : "#eab308"
-                            : "#10b981",
-                        color: "black",
-                        fontSize: "11px",
-                        fontWeight: "900",
-                      }}
-                    >
-                      {dormancyAlert.severity}
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      padding: "16px",
-                      background: "rgba(0,0,0,0.3)",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      color: "white",
-                      lineHeight: "1.6",
-                    }}
-                  >
-                    {dormancyAlert.message}
-                  </div>
-                </div>
-              )}
+
 
               {/* [FORENSIC] Predictive Maintenance - Financial Shield */}
               {result.predictive_maintenance && (
@@ -1177,6 +1161,7 @@ export default function MinimalBuyerTest() {
                       const probability = alert.health_pct ? (100 - alert.health_pct) : alert.probability;
                       const advisoryText = alert.label || alert.advisory;
                       const limitText = alert.est_hours_remaining ? `${alert.est_hours_remaining} hrs` : alert.timeframe;
+                      const estRepairCost = componentName.toLowerCase().includes("fuel servo") ? "$2,500" : null;
 
                       // NEW: Age-Specific Reliability Context
                       const cohortText = alert.avg_age ? `Avg Failure Age: ${alert.avg_age} yrs` : null;
@@ -1210,32 +1195,66 @@ export default function MinimalBuyerTest() {
                               >
                                 {componentName}
                               </div>
-                              <div style={{ fontSize: "11px", color: "#9ca3af" }}>
-                                {alert.source || "FLEET_AGGREGATE"}
+                              <div style={{ fontSize: "11px", color: "#9ca3af", display: "flex", alignItems: "center", gap: "4px" }}>
+                                {alert.source === "FLEET_AGGREGATE" || !alert.source ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: "2px", opacity: 0.8 }}>
+                                    <Plane size={10} strokeWidth={3} />
+                                    <Plane size={10} strokeWidth={3} />
+                                    <Plane size={10} strokeWidth={3} />
+                                    <span style={{ fontSize: "8px", fontWeight: "900", letterSpacing: "1px", marginLeft: "4px" }}>FLEET DATA</span>
+                                  </div>
+                                ) : (
+                                  alert.source
+                                )}
                               </div>
                             </div>
                             <div style={{ textAlign: "right" }}>
-                              <div
-                                style={{
-                                  fontSize: "18px",
-                                  fontWeight: "900",
-                                  color:
-                                    riskLevel === "HIGH" ? "#ef4444" : "#a855f7",
-                                }}
-                              >
-                                {probability}%
+                              <div style={{ width: "120px", height: "8px", background: "rgba(255,255,255,0.05)", borderRadius: "10px", overflow: "hidden", marginBottom: "6px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                                <div
+                                  style={{
+                                    width: `${probability}%`,
+                                    height: "100%",
+                                    background: probability > 80 ? "linear-gradient(90deg, #ef4444, #f87171)" : "linear-gradient(90deg, #a855f7, #c084fc)",
+                                    boxShadow: `0 0 15px ${probability > 80 ? "rgba(239, 68, 68, 0.5)" : "rgba(168, 85, 247, 0.5)"}`
+                                  }}
+                                />
                               </div>
                               <div
                                 style={{
                                   fontSize: "9px",
-                                  color: "#6b7280",
+                                  color: probability > 80 ? "#ef4444" : "#94a3b8",
                                   textTransform: "uppercase",
+                                  fontWeight: "900",
+                                  letterSpacing: "1px"
                                 }}
                               >
-                                Failure Risk
+                                {probability}% FAILURE RISK
                               </div>
                             </div>
                           </div>
+
+                          {estRepairCost && (
+                            <div style={{
+                              background: "rgba(239, 68, 68, 0.15)",
+                              padding: "10px 14px",
+                              borderRadius: "8px",
+                              border: "1px solid rgba(239, 68, 68, 0.3)",
+                              marginBottom: "16px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              boxShadow: "inset 0 0 20px rgba(239, 68, 68, 0.1)"
+                            }}>
+                              <div>
+                                <div style={{ fontSize: "10px", color: "#f87171", fontWeight: "900", textTransform: "uppercase", letterSpacing: "1px" }}>Negotiation Impact</div>
+                                <div style={{ fontSize: "11px", color: "#9ca3af" }}>Estimated cost delta for buyer</div>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                <div style={{ fontSize: "16px", color: "white", fontWeight: "950" }}>Est. Repair: {estRepairCost}</div>
+                                <div style={{ fontSize: "9px", color: "#ef4444", fontWeight: "bold" }}>PURCHASE LEVERAGE</div>
+                              </div>
+                            </div>
+                          )}
                           <div
                             style={{
                               fontSize: "12px",
@@ -1255,9 +1274,9 @@ export default function MinimalBuyerTest() {
                             }}
                           >
                             <span
-                              style={{ color: "#a855f7", fontWeight: "bold" }}
+                              style={{ color: "#a855f7", fontWeight: "900", fontSize: "13px", letterSpacing: "0.5px" }}
                             >
-                              Est. Life: {limitText} {cohortText && `| ${cohortText}`}
+                              Est. Life: <span style={{ color: "white", fontSize: "18px", fontWeight: "950" }}>{limitText}</span> {cohortText && `| ${cohortText}`}
                             </span>
                             <span
                               style={{
@@ -1711,111 +1730,140 @@ export default function MinimalBuyerTest() {
                       </div>
                     )}
 
-                    {/* Corrosion Risk Box */}
-                    {result.climate_exposure && (
+                    {/* Environmental & Usage Box */}
+                    {(result.climate_exposure || dormancyAlert) && (
                       <div
                         style={{
                           padding: "16px",
                           background:
-                            result.climate_exposure.salinity === "HIGH"
+                            (result.climate_exposure?.salinity === "HIGH" || dormancyAlert?.status === "WARNING")
                               ? "rgba(245, 158, 11, 0.1)"
                               : "rgba(59, 130, 246, 0.1)",
-                          border: `1px solid ${result.climate_exposure.salinity === "HIGH" ? "rgba(245, 158, 11, 0.2)" : "rgba(59, 130, 246, 0.2)"}`,
+                          border: `1px solid ${(result.climate_exposure?.salinity === "HIGH" || dormancyAlert?.status === "WARNING") ? "rgba(245, 158, 11, 0.2)" : "rgba(59, 130, 246, 0.2)"}`,
                           borderRadius: "8px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "12px"
                         }}
                       >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color:
-                              result.climate_exposure.salinity === "HIGH"
-                                ? "#fbbf24"
-                                : "#3b82f6",
-                            fontWeight: "bold",
-                            marginBottom: "4px",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Corrosion Risk
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "14px",
-                            color: "white",
-                            fontWeight: "bold",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px",
-                          }}
-                        >
-                          <div style={{ position: "relative", width: "48px", height: "24px", flexShrink: 0 }}>
-                            <svg viewBox="0 0 100 50" style={{ width: "100%", height: "100%" }}>
-                              <path
-                                d="M 10 45 A 40 40 0 0 1 90 45"
-                                fill="none"
-                                stroke="rgba(255,255,255,0.1)"
-                                strokeWidth="8"
-                                strokeLinecap="round"
-                              />
-                              <path
-                                d="M 10 45 A 40 40 0 0 1 90 45"
-                                fill="none"
-                                stroke={result.climate_exposure.salinity === "HIGH" ? "#f59e0b" : "#10b981"}
-                                strokeWidth="8"
-                                strokeLinecap="round"
-                                strokeDasharray="126"
-                                strokeDashoffset={result.climate_exposure.salinity === "HIGH" ? "30" : "95"}
-                                style={{
-                                  transition: "all 1s ease-out",
-                                  filter: result.climate_exposure.salinity === "HIGH"
-                                    ? "drop-shadow(0 0 4px rgba(245, 158, 11, 0.6))"
-                                    : "drop-shadow(0 0 4px rgba(16, 185, 129, 0.4))"
-                                }}
-                              />
-                              <line
-                                x1="50"
-                                y1="45"
-                                x2="50"
-                                y2="15"
-                                stroke={result.climate_exposure.salinity === "HIGH" ? "#fbbf24" : "#34d399"}
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                style={{
-                                  transformOrigin: "50px 45px",
-                                  transform: result.climate_exposure.salinity === "HIGH"
-                                    ? "rotate(60deg)"
-                                    : "rotate(-60deg)",
-                                  transition: "all 1s ease-out"
-                                }}
-                              />
-                              <circle
-                                cx="50"
-                                cy="45"
-                                r="3"
-                                fill={result.climate_exposure.salinity === "HIGH" ? "#f59e0b" : "#10b981"}
-                                style={{
-                                  animation: result.climate_exposure.salinity === "HIGH" ? "pulse 2s infinite" : "none"
-                                }}
-                              />
-                            </svg>
-                          </div>
+                        {/* Corrosion Segment */}
+                        {result.climate_exposure && (
                           <div>
-                            {result.climate_exposure.salinity === "HIGH"
-                              ? "HIGH RISK"
-                              : "NOMINAL"}
+                            <div
+                              style={{
+                                fontSize: "10px",
+                                color:
+                                  result.climate_exposure.salinity === "HIGH"
+                                    ? "#fbbf24"
+                                    : "#3b82f6",
+                                fontWeight: "bold",
+                                marginBottom: "4px",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              Corrosion Risk
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "14px",
+                                color: "white",
+                                fontWeight: "bold",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "12px",
+                              }}
+                            >
+                              <div style={{ position: "relative", width: "48px", height: "24px", flexShrink: 0 }}>
+                                <svg viewBox="0 0 100 50" style={{ width: "100%", height: "100%" }}>
+                                  <path
+                                    d="M 10 45 A 40 40 0 0 1 90 45"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.1)"
+                                    strokeWidth="8"
+                                    strokeLinecap="round"
+                                  />
+                                  <path
+                                    d="M 10 45 A 40 40 0 0 1 90 45"
+                                    fill="none"
+                                    stroke={result.climate_exposure.salinity === "HIGH" ? "#f59e0b" : "#10b981"}
+                                    strokeWidth="8"
+                                    strokeLinecap="round"
+                                    strokeDasharray="126"
+                                    strokeDashoffset={result.climate_exposure.salinity === "HIGH" ? "30" : "95"}
+                                    style={{
+                                      transition: "all 1s ease-out",
+                                      filter: result.climate_exposure.salinity === "HIGH"
+                                        ? "drop-shadow(0 0 4px rgba(245, 158, 11, 0.6))"
+                                        : "drop-shadow(0 0 4px rgba(16, 185, 129, 0.4))"
+                                    }}
+                                  />
+                                  <line
+                                    x1="50"
+                                    y1="45"
+                                    x2="50"
+                                    y2="15"
+                                    stroke={result.climate_exposure.salinity === "HIGH" ? "#fbbf24" : "#34d399"}
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    style={{
+                                      transformOrigin: "50px 45px",
+                                      transform: result.climate_exposure.salinity === "HIGH"
+                                        ? "rotate(60deg)"
+                                        : "rotate(-60deg)",
+                                      transition: "all 1s ease-out"
+                                    }}
+                                  />
+                                  <circle
+                                    cx="50"
+                                    cy="45"
+                                    r="3"
+                                    fill={result.climate_exposure.salinity === "HIGH" ? "#f59e0b" : "#10b981"}
+                                    style={{
+                                      animation: result.climate_exposure.salinity === "HIGH" ? "pulse 2s infinite" : "none"
+                                    }}
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                {result.climate_exposure.salinity === "HIGH"
+                                  ? "HIGH RISK"
+                                  : "NOMINAL"}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "#9ca3af",
-                            marginTop: "4px",
-                          }}
-                        >
-                          {result.climate_exposure.salinity === "HIGH"
-                            ? "High-salinity zone"
-                            : "Protected environment"}
-                        </div>
+                        )}
+
+                        {result.climate_exposure && dormancyAlert && (
+                          <div style={{ height: "1px", background: "rgba(255,255,255,0.1)" }} />
+                        )}
+
+                        {/* Dormancy Segment */}
+                        {dormancyAlert && (
+                          <div>
+                            <div
+                              style={{
+                                fontSize: "10px",
+                                color: dormancyAlert.status === "WARNING" ? "#fbbf24" : "#10b981",
+                                fontWeight: "bold",
+                                marginBottom: "4px",
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              {dormancyAlert.status === "WARNING" ? "Dormancy Caution" : "Active Utilization"}
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <div style={{ fontSize: "14px", color: "white", fontWeight: "bold" }}>
+                                {dormancyAlert.days} Days Inactive
+                              </div>
+                              <div style={{ fontSize: "10px", color: dormancyAlert.status === "WARNING" ? "#fbbf24" : "#10b981", fontWeight: "black" }}>
+                                {dormancyAlert.severity}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: "11px", color: "#9ca3af", marginTop: "4px", fontStyle: "italic" }}>
+                              {dormancyAlert.message}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

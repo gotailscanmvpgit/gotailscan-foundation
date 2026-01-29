@@ -228,57 +228,70 @@ const PageTwo = ({ data }) => (
     </Page>
 );
 
-const PageThree = ({ data }) => (
-    <Page size="A4" style={tw('p-12 bg-white relative')}>
-        <Header id="FED-RECORDS" tail={data.tail_number} />
+const PageThree = ({ data }) => {
+    // Helper to normalize data sources (Backend v2 vs Legacy)
+    const ntsbData = data.forensic_records?.real_ntsb || data.source_data?.ntsb || [];
+    const cadorsData = data.forensic_records?.real_cadors || data.source_data?.cadors || [];
+    const sdrData = data.forensic_records?.real_sdr || data.source_data?.sdr || [];
 
-        <SectionTitle title="Technical Forensic Vault" subtitle="Government database record audit" />
+    return (
+        <Page size="A4" style={tw('p-12 bg-white relative')}>
+            <Header id="FED-RECORDS" tail={data.tail_number} />
 
-        {/* RECORDS BOARD */}
-        <View style={tw('flex flex-row bg-gray-100 p-2 mb-2 font-bold')}>
-            <Text style={tw('text-[7px] uppercase text-gray-500 flex-1')}>Record ID</Text>
-            <Text style={tw('text-[7px] uppercase text-gray-500 w-24 text-center')}>Type</Text>
-            <Text style={tw('text-[7px] uppercase text-gray-500 w-24 text-right')}>Date</Text>
-        </View>
+            <SectionTitle title="Technical Forensic Vault" subtitle="Government database record audit" />
 
-        {/* NTSB Records */}
-        {(data.source_data?.ntsb || []).map((r, i) => (
-            <View key={`ntsb-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
-                <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.id || `NTSB-EVENT-${i}`}</Text>
-                <Text style={tw('text-[8px] text-red-600 font-bold w-24 text-center')}>ACCIDENT</Text>
-                <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.date}</Text>
+            {/* RECORDS BOARD */}
+            <View style={tw('flex flex-row bg-gray-100 p-2 mb-2 font-bold')}>
+                <Text style={tw('text-[7px] uppercase text-gray-500 flex-1')}>Record ID</Text>
+                <Text style={tw('text-[7px] uppercase text-gray-500 w-24 text-center')}>Type</Text>
+                <Text style={tw('text-[7px] uppercase text-gray-500 w-24 text-right')}>Date</Text>
             </View>
-        ))}
 
-        {/* CADORS Records */}
-        {(data.source_data?.cadors || []).map((r, i) => (
-            <View key={`cadors-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
-                <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.id || `CADORS-S-${i}`}</Text>
-                <Text style={tw('text-[8px] text-warn font-bold w-24 text-center')}>INCIDENT (CA)</Text>
-                <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.date}</Text>
+            {/* NTSB Records */}
+            {ntsbData.map((r, i) => (
+                <View key={`ntsb-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
+                    <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.event_id || r.id || `NTSB-${i}`}</Text>
+                    <Text style={tw('text-[8px] text-red-600 font-bold w-24 text-center')}>ACCIDENT</Text>
+                    <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.event_date || r.date || 'N/A'}</Text>
+                </View>
+            ))}
+
+            {/* CADORS Records */}
+            {cadorsData.map((r, i) => (
+                <View key={`cadors-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
+                    <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.cadors_number || r.id || `CADORS-${i}`}</Text>
+                    <Text style={tw('text-[8px] text-warn font-bold w-24 text-center')}>INCIDENT (CA)</Text>
+                    <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.occurrence_date || r.date || 'N/A'}</Text>
+                </View>
+            ))}
+
+            {/* SDR Records */}
+            {sdrData.slice(0, 15).map((r, i) => (
+                <View key={`sdr-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
+                    <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.control_number || r.id || `SDR-${i}`}</Text>
+                    <Text style={tw('text-[8px] text-gray-500 w-24 text-center')}>MAINTENANCE</Text>
+                    <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.report_date || r.date || 'N/A'}</Text>
+                </View>
+            ))}
+
+            {(ntsbData.length === 0 && cadorsData.length === 0 && sdrData.length === 0) && (
+                <View style={tw('p-4 items-center justify-center')}>
+                    <Text style={tw('text-[8px] text-gray-400 italic')}>No government records found for this registration.</Text>
+                </View>
+            )}
+
+            {/* LEGEND/DISCLAIMER */}
+            <View style={tw('mt-auto p-6 bg-gray-50 rounded border border-gray-100')}>
+                <Text style={tw('text-[8px] font-black text-black uppercase mb-1')}>Legal Disclosure</Text>
+                <Text style={tw('text-[7px] text-gray-400 leading-relaxed font-medium')}>
+                    This report is an automated intelligence summary. It is not an official government transcript. Records are matched by Registration (N-Number/C-Mark) and serial block. goTailScan does not guarantee the 100% accuracy of third-party government feeds. Always verify with a certified A&P mechanic and professional Title Search broker.
+                </Text>
             </View>
-        ))}
 
-        {/* SDR Records */}
-        {(data.source_data?.sdr || []).slice(0, 15).map((r, i) => (
-            <View key={`sdr-${i}`} style={tw('flex flex-row border-b border-gray-50 p-2')}>
-                <Text style={tw('text-[8px] font-bold text-black flex-1')}>{r.id || `SDR-MAINT-${i}`}</Text>
-                <Text style={tw('text-[8px] text-gray-500 w-24 text-center')}>MAINTENANCE</Text>
-                <Text style={tw('text-[8px] text-gray-400 w-24 text-right')}>{r.date}</Text>
-            </View>
-        ))}
-
-        {/* LEGEND/DISCLAIMER */}
-        <View style={tw('mt-auto p-6 bg-gray-50 rounded border border-gray-100')}>
-            <Text style={tw('text-[8px] font-black text-black uppercase mb-1')}>Legal Disclosure</Text>
-            <Text style={tw('text-[7px] text-gray-400 leading-relaxed font-medium')}>
-                This report is an automated intelligence summary. It is not an official government transcript. Records are matched by Registration (N-Number/C-Mark) and serial block. goTailScan does not guarantee the 100% accuracy of third-party government feeds. Always verify with a certified A&P mechanic and professional Title Search broker.
-            </Text>
-        </View>
-
-        <Footer page={3} total={3} />
-    </Page>
-);
+            <Footer page={3} total={3} />
+        </Page>
+    );
+};
 
 const DiligenceReportDocument = ({ data }) => (
     <Document>

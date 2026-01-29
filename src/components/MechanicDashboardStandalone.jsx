@@ -400,6 +400,72 @@ export default function MechanicDashboardStandalone() {
                 {result && (
                     <>
                         <AircraftIdentityCard aircraftDetails={result.aircraft_details} cardStyle={cardStyle} />
+
+                        {/* C3 AI / PAG PREDICTIVE ANALYTICS */}
+                        {result.predictive_maintenance && (
+                            <div className={`${internalCardClass} mb-6 border-l-4 ${result.predictive_maintenance.pag_score > 80 ? 'border-red-500' : result.predictive_maintenance.pag_score > 50 ? 'border-amber-500' : 'border-emerald-500'}`}>
+                                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <TrendingUp className={result.predictive_maintenance.pag_score > 80 ? 'text-red-500' : 'text-amber-500'} size={24} />
+                                        <div>
+                                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">C3 AI / PAG MODULE</div>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight">PREDICTIVE ANALYTICS</h3>
+                                        </div>
+                                    </div>
+                                    <Badge className="bg-white/10 text-white border border-white/20">
+                                        {result.predictive_maintenance.model_version || 'v2.0'}
+                                    </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    {/* Score Column */}
+                                    <div className="flex flex-col items-center justify-center p-4 bg-black/40 rounded-lg border border-white/5">
+                                        <div className="text-[10px] text-gray-500 font-bold uppercase mb-2">prob. aircraft grounding</div>
+                                        <div className={`text-6xl font-black mb-1 ${result.predictive_maintenance.pag_score > 80 ? 'text-red-500' : result.predictive_maintenance.pag_score > 50 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                            {result.predictive_maintenance.pag_score}%
+                                        </div>
+                                        <div className="text-[11px] font-bold text-white uppercase tracking-widest bg-white/10 px-3 py-1 rounded">PAG SCORE</div>
+                                    </div>
+
+                                    {/* Advisory Column */}
+                                    <div className="md:col-span-2 space-y-4">
+                                        <div className={`p-4 rounded-md border ${result.predictive_maintenance.pag_score > 80 ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+                                            <div className="text-[10px] font-bold opacity-70 uppercase mb-1">System Advisory</div>
+                                            <div className="text-lg font-black text-white">{result.predictive_maintenance.advisory}</div>
+                                            <div className="text-[11px] mt-1 opacity-80 font-mono">
+                                                {result.predictive_maintenance.system_type} • {result.predictive_maintenance.forecast?.length || 0} Components Monitored
+                                            </div>
+                                        </div>
+
+                                        {/* Component Timeline */}
+                                        <div className="space-y-2">
+                                            {result.predictive_maintenance.forecast?.slice(0, 3).map((item, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded hover:bg-white/10 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'URGENT' ? 'bg-red-500 animate-pulse' : 'bg-amber-500'}`}></div>
+                                                        <div>
+                                                            <div className="text-[11px] font-bold text-gray-200 uppercase">{item.part}</div>
+                                                            <div className="text-[9px] text-gray-500">{item.label}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-[11px] font-mono text-white">
+                                                            {item.est_hours_remaining} hrs
+                                                        </div>
+                                                        <div className="w-16 h-1 bg-gray-700 rounded-full mt-1 overflow-hidden">
+                                                            <div
+                                                                className={`h-full ${item.health_pct < 20 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                                                style={{ width: `${item.health_pct}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                             {/* Logbook OCR Analysis */}
                             <div className={internalCardClass}>
