@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle, TrendingUp, Clock, Shield, LayoutGrid, ShieldCheck, Compass, Settings, Zap, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Footer from './Footer';
+
 import SplitScreenComparison from './SplitScreenComparison';
 import AircraftIdentityCard from './AircraftIdentityCard';
 import { logbookOCRService } from '../services/logbookOCRService';
@@ -306,9 +306,7 @@ export default function MechanicDashboardStandalone() {
                         </div>
                     )}
                 </div>
-                <div style={{ padding: "40px 0" }}>
-                    <Footer />
-                </div>
+
                 <BottomNav />
             </div>
 

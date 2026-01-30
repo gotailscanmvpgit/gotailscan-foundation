@@ -4,7 +4,7 @@ import { resolveMakeModel, isCleanMakeModel } from "../utils/makeModelResolver";
 import { supabase } from "../lib/supabaseClient";
 import { Shield, Clock, Loader2, TrendingUp, ShieldCheck, LayoutGrid, Activity, BarChart3, Settings, Zap, Compass, AlertTriangle, Plane, DollarSign, ListChecks } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Footer from "./Footer";
+
 import CircularGauge from "./CircularGauge";
 import AircraftAssetCard from "./AircraftAssetCard";
 import HangarDoorModal from "./HangarDoorModal";
@@ -408,9 +408,7 @@ export default function SellerDashboardStandalone() {
             </div>
           )}
         </div>
-        <div style={{ padding: "40px 0" }}>
-          <Footer />
-        </div>
+
         <BottomNav />
       </div>
       <HangarDoorModal isOpen={isModalOpen} searchHistory={guestHistory} onClose={() => setIsModalOpen(false)} />

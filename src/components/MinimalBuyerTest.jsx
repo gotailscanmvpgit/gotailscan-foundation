@@ -3,7 +3,7 @@ import { Shield, Loader2, Search, Users, Plane, LayoutGrid, Activity, FileText, 
 import ForensicScanner from "./ForensicScanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Footer from "./Footer";
+
 import { resolveMakeModel, isCleanMakeModel } from "../utils/makeModelResolver";
 import CircularGauge from "./CircularGauge";
 import PillarBar from "./PillarBar";
@@ -311,9 +311,7 @@ export default function MinimalBuyerTest() {
             </div>
           )}
         </div>
-        <div style={{ padding: "24px 0" }}>
-          <Footer />
-        </div>
+
         <BottomNav />
       </div>
       <HangarDoorModal isOpen={isModalOpen} searchHistory={guestHistory} onClose={() => setIsModalOpen(false)} />

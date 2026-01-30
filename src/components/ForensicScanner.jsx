@@ -59,18 +59,18 @@ export default function ForensicScanner({ color = "cyan" }) {
             fontFamily: "'Share Tech Mono', monospace"
         }}>
             {/* Radar Container */}
-            <div style={{ position: "relative", width: "260px", height: "260px", marginBottom: "40px" }}>
+            <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "32px" }}>
                 {/* Outer Ring */}
                 <div style={{
                     position: "absolute", inset: 0,
                     border: `2px solid ${theme.bg}`,
                     borderRadius: "50%",
-                    boxShadow: `0 0 30px ${theme.bg}`
+                    boxShadow: `0 0 20px ${theme.bg}`
                 }} />
 
                 {/* Inner Grid */}
                 <div style={{
-                    position: "absolute", inset: "20px",
+                    position: "absolute", inset: "10px",
                     border: `1px solid ${theme.bg}`,
                     borderRadius: "50%",
                     opacity: 0.5
@@ -93,7 +93,7 @@ export default function ForensicScanner({ color = "cyan" }) {
                         inset: 0,
                         borderRadius: "50%",
                         background: `conic-gradient(from 0deg, transparent 70%, ${theme.hex} 100%)`,
-                        mask: "radial-gradient(circle, transparent 60%, white 100%)", // Only show edge sweep? No, want full sector
+                        mask: "radial-gradient(circle, transparent 60%, white 100%)",
                         WebkitMask: "radial-gradient(circle, transparent 5%, black 100%)",
                         opacity: 0.6
                     }}
@@ -106,7 +106,7 @@ export default function ForensicScanner({ color = "cyan" }) {
                         position: "absolute", top: "50%", left: "50%", width: "50%", height: "2px",
                         background: theme.hex,
                         transformOrigin: "left center",
-                        boxShadow: `0 0 15px ${theme.hex}`
+                        boxShadow: `0 0 10px ${theme.hex}`
                     }}
                 />
 
@@ -118,8 +118,8 @@ export default function ForensicScanner({ color = "cyan" }) {
                         animate={{
                             opacity: [0, 1, 0],
                             scale: [0, 1.5, 0],
-                            x: Math.random() * 100 - 50,
-                            y: Math.random() * 100 - 50
+                            x: Math.random() * 60 - 30,
+                            y: Math.random() * 60 - 30
                         }}
                         transition={{
                             duration: 2,
@@ -129,10 +129,10 @@ export default function ForensicScanner({ color = "cyan" }) {
                         }}
                         style={{
                             position: "absolute", top: "50%", left: "50%",
-                            width: "6px", height: "6px",
+                            width: "4px", height: "4px",
                             borderRadius: "50%",
                             background: theme.hex,
-                            boxShadow: `0 0 8px ${theme.hex}`
+                            boxShadow: `0 0 6px ${theme.hex}`
                         }}
                     />
                 ))}
@@ -140,8 +140,8 @@ export default function ForensicScanner({ color = "cyan" }) {
                 {/* Center Target */}
                 <div style={{
                     position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-                    width: "10px", height: "10px", background: theme.hex, borderRadius: "50%",
-                    border: "2px solid white"
+                    width: "6px", height: "6px", background: theme.hex, borderRadius: "50%",
+                    border: "1px solid white"
                 }} />
             </div>
 
