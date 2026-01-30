@@ -317,31 +317,7 @@ export default function MechanicDashboardStandalone() {
                 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
                 ::-webkit-scrollbar-thumb:hover { background: #475569; }
                 .hidden { display: none; }
-                .bottom-nav { 
-                    display: flex; 
-                    justify-content: space-around; 
-                    align-items: center; 
-                    background: #0f172a; 
-                    border-top: 1px solid #1e293b; 
-                    padding: 10px 0; 
-                    position: sticky; 
-                    bottom: 0; 
-                    z-index: 100;
-                }
-                .bottom-nav button { 
-                    background: none; 
-                    border: none; 
-                    color: #94a3b8; 
-                    display: flex; 
-                    flex-direction: column; 
-                    align-items: center; 
-                    gap: 4px; 
-                    font-size: 10px; 
-                    font-weight: bold; 
-                    text-transform: uppercase;
-                    cursor: pointer;
-                }
-                .bottom-nav button.active { color: #f59e0b; }
+                .bottom-nav { display: none; }
 
                 @media (max-width: 900px) {
                     .desktop-sidebar { display: none !important; }
@@ -353,6 +329,31 @@ export default function MechanicDashboardStandalone() {
                     .search-box-wrap { flex-direction: column; align-items: stretch; }
                     .scan-btn { height: 56px; width: 100% !important; margin-top: 8px; }
                     .dashboard-grid { grid-template-columns: 1fr !important; }
+                    .bottom-nav { 
+                        display: flex; 
+                        justify-content: space-around; 
+                        align-items: center; 
+                        background: #0f172a; 
+                        border-top: 1px solid #1e293b; 
+                        padding: 10px 0; 
+                        position: sticky; 
+                        bottom: 0; 
+                        z-index: 100;
+                    }
+                    .bottom-nav button { 
+                        background: none; 
+                        border: none; 
+                        color: #94a3b8; 
+                        display: flex; 
+                        flex-direction: column; 
+                        align-items: center; 
+                        gap: 4px; 
+                        font-size: 10px; 
+                        font-weight: bold; 
+                        text-transform: uppercase;
+                        cursor: pointer;
+                    }
+                    .bottom-nav button.active { color: #f59e0b; }
                 }
             `}</style>
         </div>
