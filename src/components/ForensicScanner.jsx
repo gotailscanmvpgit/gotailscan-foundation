@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 
 const radarColors = {
     cyan: { hex: "#06b6d4", bg: "rgba(6, 182, 212, 0.2)" }, // Buyer
-    blue: { hex: "#3b82f6", bg: "rgba(59, 130, 246, 0.2)" }, // Seller
+    blue: { hex: "#3b82f6", bg: "rgba(59, 130, 246, 0.2)" }, // Seller (Legacy)
+    purple: { hex: "#a855f7", bg: "rgba(168, 85, 247, 0.2)" }, // Seller (New)
     amber: { hex: "#f59e0b", bg: "rgba(245, 158, 11, 0.2)" }, // Mechanic
     red: { hex: "#ef4444", bg: "rgba(239, 68, 68, 0.2)" }     // Danger
 };

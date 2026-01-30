@@ -202,7 +202,7 @@ export default function MechanicDashboardStandalone() {
                             <h2 style={{ fontSize: "32px", fontWeight: "900", color: "white", letterSpacing: "2px", margin: "0 10px" }} className="awaiting-text">READY FOR INSPECTION</h2>
                             <p style={{ color: "#94a3b8", marginBottom: "32px", fontSize: "14px" }}>Connect to Aircraft Transponder for Forensic Audit</p>
                             <div className="search-box-wrap" style={{ width: "100%", maxWidth: "440px", display: "flex", gap: "10px" }}>
-                                <input placeholder="ENTER TAIL NUMBER" value={tailNumber} onChange={(e) => setTailNumber(e.target.value)} style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: "1px solid #334155", padding: "16px", borderRadius: "4px", color: "white", fontSize: "16px", fontWeight: "bold", textAlign: "center" }} />
+                                <input placeholder="ENTER TAIL NUMBER" value={tailNumber} onChange={(e) => setTailNumber(e.target.value.toUpperCase())} style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: "1px solid #334155", padding: "16px", borderRadius: "4px", color: "white", fontSize: "16px", fontWeight: "bold", textAlign: "center" }} />
                                 <button className="scan-btn" onClick={() => handleAudit()} style={{ background: "#f59e0b", color: "black", border: "none", padding: "0 24px", minWidth: "120px", borderRadius: "4px", fontWeight: "950", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                                     <DirectToIcon size={16} color="black" />
                                     AUDIT

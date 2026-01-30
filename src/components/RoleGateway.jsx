@@ -50,7 +50,7 @@ export default function RoleGateway() {
             title: 'BUYER AUDIT',
             subtitle: 'RISK RADAR & FORENSIC HISTORY',
             icon: Radar,
-            color: G3000.ADVISORY,
+            color: "#06b6d4",
             desc: 'Analyze aircraft risk profiles and maintenance continuity before purchase.',
             sources: 'FAA / NTSB / TRANSPORT CANADA (TC) / SDR',
             path: '/buyer'
@@ -60,7 +60,7 @@ export default function RoleGateway() {
             title: 'SELLER VAULT',
             subtitle: 'MARKET ALPHA & EQUITY SHIELDS',
             icon: TrendingUp,
-            color: G3000.ADVISORY,
+            color: "#a855f7",
             desc: 'Maximize asset valuation with verified forensic quality markers.',
             sources: 'MARKET VELOCITY / PROPRIETARY AI PRICING ALPHA',
             path: '/seller'
@@ -70,7 +70,7 @@ export default function RoleGateway() {
             title: 'MECHANIC CONSOLE',
             subtitle: 'LOGBOOK FORENSICS & COMPLIANCE',
             icon: Wrench,
-            color: G3000.ADVISORY,
+            color: "#f59e0b",
             desc: 'A&P grade tools for logbook OCR, AD compliance, and predictive maintenance.',
             sources: 'LOGBOOK OCR / AD COMPLIANCE REGISTRY / C3 AI',
             path: '/mechanic'

@@ -203,13 +203,13 @@ export default function SellerDashboardStandalone() {
     width: "56px",
     height: "56px",
     borderRadius: "8px",
-    background: isActive ? "rgba(59, 130, 246, 0.2)" : "rgba(255, 255, 255, 0.05)",
-    border: `1px solid ${isActive ? "#3b82f6" : "rgba(255, 255, 255, 0.1)"}`,
+    background: isActive ? "rgba(168, 85, 247, 0.2)" : "rgba(255, 255, 255, 0.05)",
+    border: `1px solid ${isActive ? "#a855f7" : "rgba(255, 255, 255, 0.1)"}`,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    color: isActive ? "#3b82f6" : "#94a3b8",
+    color: isActive ? "#a855f7" : "#94a3b8",
     cursor: "pointer",
     marginBottom: "16px",
     transition: "all 0.2s ease",
@@ -252,22 +252,22 @@ export default function SellerDashboardStandalone() {
         {/* STICKY TOP STATUS BAR */}
         <div className="status-bar" style={{ height: "40px", background: "#1e293b", display: "flex", alignItems: "center", padding: "0 20px", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", fontFamily: "'Roboto Mono', monospace", position: "sticky", top: 0, zIndex: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <div style={{ fontSize: "12px", fontWeight: "900", color: "#3b82f6" }} className="status-title">VALUATION ENGINE READY</div>
+            <div style={{ fontSize: "12px", fontWeight: "900", color: "#a855f7" }} className="status-title">VALUATION ENGINE READY</div>
             <div style={{ fontSize: "14px", fontWeight: "bold", color: "white" }}>{tailNumber || "---"}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ display: "flex", gap: "10px" }} className="status-meta">
-              {result && <div style={{ background: "#3b82f6", color: "white", fontSize: "10px", fontWeight: "900", padding: "2px 8px", borderRadius: "2px" }}>{alpha.label}</div>}
+              {result && <div style={{ background: "#a855f7", color: "white", fontSize: "10px", fontWeight: "900", padding: "2px 8px", borderRadius: "2px" }}>{alpha.label}</div>}
               <div style={{ fontSize: "12px", opacity: 0.5 }}>118.70 MHz</div>
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => navigate("/")} className="mobile-auth-btn" style={{ display: "none" }}><Compass size={18} color="#3b82f6" /></button>
-              <button onClick={() => setIsModalOpen(true)} className="mobile-auth-btn" style={{ display: "none" }}><Settings size={18} color="#3b82f6" /></button>
+              <button onClick={() => navigate("/")} className="mobile-auth-btn" style={{ display: "none" }}><Compass size={18} color="#a855f7" /></button>
+              <button onClick={() => setIsModalOpen(true)} className="mobile-auth-btn" style={{ display: "none" }}><Settings size={18} color="#a855f7" /></button>
             </div>
           </div>
         </div>
 
-        {loading && <ForensicScanner color="blue" />}
+        {loading && <ForensicScanner color="purple" />}
 
         <div style={{ flex: 1, padding: "24px" }}>
           {!result && !loading ? (
@@ -278,15 +278,15 @@ export default function SellerDashboardStandalone() {
               <h2 style={{ fontSize: "32px", fontWeight: "900", color: "white", letterSpacing: "2px", margin: "0 10px" }} className="awaiting-text">AWAITING ASSET</h2>
               <p style={{ color: "#94a3b8", marginBottom: "32px", fontSize: "14px" }}>Input Aircraft Registration for Value Mapping</p>
               <div className="search-box-wrap" style={{ width: "100%", maxWidth: "440px", display: "flex", gap: "10px" }}>
-                <input placeholder="ENTER TAIL NUMBER" value={tailNumber} onChange={(e) => setTailNumber(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleScan()} style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: "1px solid #334155", padding: "16px", borderRadius: "4px", color: "white", fontSize: "16px", fontWeight: "bold", textAlign: "center" }} />
-                <button className="scan-btn" onClick={() => handleScan()} style={{ background: "#3b82f6", color: "white", border: "none", padding: "0 24px", minWidth: "120px", borderRadius: "4px", fontWeight: "950", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <input placeholder="ENTER TAIL NUMBER" value={tailNumber} onChange={(e) => setTailNumber(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === "Enter" && handleScan()} style={{ flex: 1, background: "rgba(0,0,0,0.5)", border: "1px solid #334155", padding: "16px", borderRadius: "4px", color: "white", fontSize: "16px", fontWeight: "bold", textAlign: "center" }} />
+                <button className="scan-btn" onClick={() => handleScan()} style={{ background: "#a855f7", color: "white", border: "none", padding: "0 24px", minWidth: "120px", borderRadius: "4px", fontWeight: "950", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                   <DirectToIcon size={16} color="white" />
                   REVEAL
                 </button>
               </div>
               {userHistory.length > 0 && (
                 <div style={{ marginTop: "48px", width: "100%", maxWidth: "800px" }}>
-                  <div style={{ fontSize: "10px", color: "#3b82f6", fontWeight: "900", marginBottom: "16px", letterSpacing: "2px" }}>MY HANGAR / RECENT ANALYSES</div>
+                  <div style={{ fontSize: "10px", color: "#a855f7", fontWeight: "900", marginBottom: "16px", letterSpacing: "2px" }}>MY HANGAR / RECENT ANALYSES</div>
                   <div className="history-grid">
                     {userHistory.slice(0, 4).map((card) => (
                       <div key={card.id} onClick={() => { setTailNumber(card.tail_number); handleScan(card.tail_number); }} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: "12px", borderRadius: "4px", cursor: "pointer" }}>
@@ -304,8 +304,8 @@ export default function SellerDashboardStandalone() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                   {(activeTab === "SUMMARY" || activeTab === "MARKET") && (
                     <>
-                      <div style={{ background: "#0f172a", border: "1px solid #1e3a8a", padding: "20px", borderRadius: "4px", borderLeft: "6px solid #3b82f6" }}>
-                        <div style={{ color: "#3b82f6", fontSize: "12px", fontWeight: "900", marginBottom: "16px", display: "flex", justifyContent: "space-between" }}>
+                      <div style={{ background: "#0f172a", border: "1px solid #5b21b6", padding: "20px", borderRadius: "4px", borderLeft: "6px solid #a855f7" }}>
+                        <div style={{ color: "#a855f7", fontSize: "12px", fontWeight: "900", marginBottom: "16px", display: "flex", justifyContent: "space-between" }}>
                           <span>MARKET ALPHA INDEX</span><TrendingUp size={16} />
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "32px", flexWrap: "wrap" }}>
@@ -361,8 +361,8 @@ export default function SellerDashboardStandalone() {
                           </div>
                         </div>
                       </div>
-                      <div style={{ background: "rgba(59, 130, 246, 0.05)", padding: "20px", borderRadius: "4px", border: "1px solid rgba(59, 130, 246, 0.2)" }}>
-                        <div style={{ fontSize: "10px", fontWeight: "900", color: "#3b82f6", marginBottom: "12px" }}>MARKET VELOCITY</div>
+                      <div style={{ background: "rgba(168, 85, 247, 0.05)", padding: "20px", borderRadius: "4px", border: "1px solid rgba(168, 85, 247, 0.2)" }}>
+                        <div style={{ fontSize: "10px", fontWeight: "900", color: "#a855f7", marginBottom: "12px" }}>MARKET VELOCITY</div>
                         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
                           <div>
                             <div style={{ fontSize: "18px", fontWeight: "bold" }}>{demand?.activeBuyers} ACTIVE BUYERS</div>
@@ -378,7 +378,7 @@ export default function SellerDashboardStandalone() {
                   )}
                   {activeTab === "MARKET" && (
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: "20px", borderRadius: "4px", border: "1px solid #334155" }}>
-                      <div style={{ fontSize: "10px", color: "#3b82f6", fontWeight: "900", marginBottom: "20px" }}>VALUATION BREAKDOWN</div>
+                      <div style={{ fontSize: "10px", color: "#a855f7", fontWeight: "900", marginBottom: "20px" }}>VALUATION BREAKDOWN</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                           <span style={{ opacity: 0.6 }}>REGISTRY VALUE</span>
@@ -391,7 +391,7 @@ export default function SellerDashboardStandalone() {
                         <div style={{ height: "1px", background: "rgba(255,255,255,0.1)" }} />
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px" }}>
                           <span style={{ fontWeight: "900" }}>TOTAL ALPHA VALUE</span>
-                          <span style={{ fontWeight: "900", color: "#3b82f6" }}>${((result.valuation?.estimated_value || 0) + (alpha.score * 100)).toLocaleString()}</span>
+                          <span style={{ fontWeight: "900", color: "#a855f7" }}>${((result.valuation?.estimated_value || 0) + (alpha.score * 100)).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -400,7 +400,7 @@ export default function SellerDashboardStandalone() {
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: "20px", borderRadius: "4px", border: "1px solid #334155" }}>
                       <div style={{ fontSize: "10px", color: G3000.ADVISORY, fontWeight: "900", marginBottom: "20px" }}>AI LISTING OPTIMIZER</div>
                       <p style={{ fontSize: "14px", color: "white", fontStyle: "italic", lineHeight: "1.6" }}>"Impeccably maintained {getCleanMakeModel()} with a clean NTSB profile and verified maintenance alpha. This asset ranks in the top {100 - alpha.score}% of the global fleet for forensic continuity."</p>
-                      <button style={{ marginTop: "20px", width: "100%", padding: "12px", background: "#3b82f6", border: "none", borderRadius: "4px", fontWeight: "bold", color: "white" }}>COPY OPTIMIZED DESCRIPTION</button>
+                      <button style={{ marginTop: "20px", width: "100%", padding: "12px", background: "#a855f7", border: "none", borderRadius: "4px", fontWeight: "bold", color: "white" }}>COPY OPTIMIZED DESCRIPTION</button>
                     </div>
                   )}
                 </div>
@@ -457,7 +457,7 @@ export default function SellerDashboardStandalone() {
             text-transform: uppercase;
             cursor: pointer;
           }
-          .bottom-nav button.active { color: #3b82f6; }
+          .bottom-nav button.active { color: #a855f7; }
         }
       `}</style>
     </div>
