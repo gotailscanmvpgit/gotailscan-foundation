@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Shield, Loader2, Search, Users, Plane, LayoutGrid, Activity, FileText, BarChart3, Settings, Zap, Compass, AlertTriangle, ShieldCheck, TrendingUp, DollarSign } from "lucide-react";
+import ForensicScanner from "./ForensicScanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Footer from "./Footer";
@@ -183,7 +184,7 @@ export default function MinimalBuyerTest() {
           </div>
         </div>
 
-        {loading && <div style={{ position: "absolute", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.9)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}><Loader2 size={48} className="animate-spin text-cyan-500 mb-4" /><div style={{ fontSize: "24px", fontWeight: "bold", color: "white", letterSpacing: "4px", textAlign: "center" }}>SCANNING FORENSIC DATABASES</div></div>}
+        {loading && <ForensicScanner color="cyan" />}
 
         <div style={{ flex: 1, padding: "24px" }}>
           {!result && !loading ? (

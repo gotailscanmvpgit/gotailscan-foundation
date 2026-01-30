@@ -8,6 +8,7 @@ import Footer from "./Footer";
 import CircularGauge from "./CircularGauge";
 import AircraftAssetCard from "./AircraftAssetCard";
 import HangarDoorModal from "./HangarDoorModal";
+import ForensicScanner from "./ForensicScanner";
 
 const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -266,7 +267,7 @@ export default function SellerDashboardStandalone() {
           </div>
         </div>
 
-        {loading && <div style={{ position: "absolute", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.9)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}><Loader2 size={48} className="animate-spin text-blue-500 mb-4" /><div style={{ fontSize: "24px", fontWeight: "bold", color: "white", letterSpacing: "4px", textAlign: "center" }}>CALCULATING ATTRIBUTE ALPHA</div><div style={{ fontSize: "10px", color: "#3b82f6" }}>SYNCING WITH MARKET VELOCITY DATA...</div></div>}
+        {loading && <ForensicScanner color="blue" />}
 
         <div style={{ flex: 1, padding: "24px" }}>
           {!result && !loading ? (
