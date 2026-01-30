@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, TrendingUp, ArrowLeft, Users, Award, CheckCircle } from 'lucide-react';
+import { Shield, TrendingUp, ArrowLeft, Users, Award, CheckCircle, Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +75,19 @@ export default function SellerDashboard() {
                         </Button>
                         <div className="border-l border-white/10 pl-4">
                             <div className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Seller Mode</div>
-                            <h1 className="text-xl font-black text-white uppercase">The Value Vault</h1>
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-xl font-black text-white uppercase hidden md:block">The Value Vault</h1>
+                                <div className="flex items-center bg-black/40 border border-white/10 rounded px-2 py-1">
+                                    <Search className="w-3 h-3 text-gray-500 mr-2" />
+                                    <input
+                                        placeholder="QUICK AUDIT..."
+                                        value={tailNumber}
+                                        onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleScan()}
+                                        className="bg-transparent border-none text-white text-xs font-bold w-32 outline-none uppercase placeholder:text-gray-600 font-mono tracking-wider"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
