@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resolveMakeModel, isCleanMakeModel } from "../utils/makeModelResolver";
 import { supabase } from "../lib/supabaseClient";
-import { Shield, Clock, Loader2, TrendingUp, ShieldCheck, LayoutGrid, Activity, BarChart3, Settings, Zap, Compass, AlertTriangle, Plane, DollarSign, ListChecks } from "lucide-react";
+import { Shield, Clock, Loader2, TrendingUp, ShieldCheck, LayoutGrid, Activity, BarChart3, Settings, Zap, Compass, AlertTriangle, Plane, DollarSign, ListChecks, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import CircularGauge from "./CircularGauge";
@@ -253,7 +253,16 @@ export default function SellerDashboardStandalone() {
         <div className="status-bar" style={{ height: "40px", background: "#1e293b", display: "flex", alignItems: "center", padding: "0 20px", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.1)", fontFamily: "'Roboto Mono', monospace", position: "sticky", top: 0, zIndex: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <div style={{ fontSize: "12px", fontWeight: "900", color: "#a855f7" }} className="status-title">VALUATION ENGINE READY</div>
-            <div style={{ fontSize: "14px", fontWeight: "bold", color: "white" }}>{tailNumber || "---"}</div>
+            <div style={{ display: "flex", alignItems: "center", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px", padding: "4px 8px" }}>
+              <Search size={12} color="#94a3b8" style={{ marginRight: "8px" }} />
+              <input
+                placeholder="ENTER TAIL #"
+                value={tailNumber}
+                onChange={(e) => setTailNumber(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleScan()}
+                style={{ background: "transparent", border: "none", color: "white", fontSize: "14px", fontFamily: "'Roboto Mono', monospace", width: "120px", outline: "none", fontWeight: "bold", letterSpacing: "1px" }}
+              />
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div style={{ display: "flex", gap: "10px" }} className="status-meta">
