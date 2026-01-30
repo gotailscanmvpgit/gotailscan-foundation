@@ -771,6 +771,7 @@ export const scraperService = {
             market_history: market_history,
             hangar_queen_index: hangar_queen_index,
             acquisition_signal: acquisition_signal,
+            live_telemetry: flightData || live_telemetry, // Prefer fresh parallel fetch data
             // [ROBUSTNESS PATCH] Recalculate Climate Exposure locally to ensure Florida/Coastal is correctly flagged
             climate_exposure: (() => {
                 try {

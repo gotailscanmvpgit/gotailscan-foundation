@@ -92,7 +92,7 @@ export default function AircraftAssetCard({ search, onClick, aircraftDetails }) 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
                 <div>
                     <div style={{ fontSize: '10px', color: '#9ca3af', fontWeight: 'bold', letterSpacing: '1px' }}>
-                        {details.year || '----'} {details.make || 'AIRCRAFT'}
+                        {details.year || '----'} {details.make || details.manufacturer || (details.make_model && details.make_model !== 'Unknown Aircraft' ? details.make_model.split(' ')[0] : 'AIRCRAFT')}
                     </div>
                     <div style={{ fontSize: '18px', fontWeight: '900', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {tail_number}

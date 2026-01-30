@@ -147,6 +147,10 @@ serve(async (req) => {
                     const mappedFlights = flights.slice(0, 10).map((f: any) => ({
                         origin: f.origin?.code || '---',
                         destination: f.destination?.code || '---',
+                        origin_lat: f.origin?.latitude,
+                        origin_lon: f.origin?.longitude,
+                        dest_lat: f.destination?.latitude,
+                        dest_lon: f.destination?.longitude,
                         filed_altitude: f.filed_altitude || 0,
                         filed_ete: Math.round((f.filed_ete || 0) / 60),
                         date: f.actual_off ? new Date(f.actual_off).toLocaleDateString() : 'Recent',

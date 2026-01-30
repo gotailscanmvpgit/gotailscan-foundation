@@ -318,6 +318,22 @@ serve(async (req: Request) => {
             console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
         }
 
+        // DEMO OVERRIDE: N865JP -> 2012 Cessna Turbo 182T Skylane
+        if (normalizedTail === 'N865JP') {
+            aircraft = {
+                year: 2012,
+                year_mfr: '2012',
+                make_model: 'CESSNA TURBO 182T SKYLANE',
+                serial: '182T0914',
+                owner: 'FORENSIC AVIATION ASSETS',
+                city: 'WICHITA',
+                state: 'KS',
+                country: 'USA',
+                mfr_mdl_code: '2072738' // Cessna Turbo 182T code
+            };
+            console.log(`[Orchestrator] Corrected DEMO Override for ${normalizedTail}`);
+        }
+
         // DEMO OVERRIDE: N799PC -> Cessna T210 (Accident History Test)
         if (normalizedTail === 'N799PC') {
             aircraft = {
@@ -328,7 +344,8 @@ serve(async (req: Request) => {
                 owner: 'PRIVATE OWNER',
                 city: 'BUTTE',
                 state: 'MT',
-                country: 'USA'
+                country: 'USA',
+                mfr_mdl_code: '2072123'
             };
             console.log(`[Orchestrator] Applied DEMO Override for ${normalizedTail}`);
         }

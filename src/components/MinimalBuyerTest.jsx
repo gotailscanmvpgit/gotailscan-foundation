@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { resolveMakeModel, isCleanMakeModel } from "../utils/makeModelResolver";
 import CircularGauge from "./CircularGauge";
 import PillarBar from "./PillarBar";
+import FlightMap from "./FlightMap";
 import HangarDoorModal from "./HangarDoorModal";
 import AircraftAssetCard from "./AircraftAssetCard";
 import { supabase } from "../lib/supabaseClient";
@@ -288,6 +289,10 @@ export default function MinimalBuyerTest() {
                       <PillarBar label="Safety" score={result.risk_metrics?.safety || 85} color="#10b981" />
                       <PillarBar label="Mechanical" score={result.risk_metrics?.mechanical || 65} color="#f59e0b" />
                       <PillarBar label="Compliance" score={result.risk_metrics?.financial || 95} color="#06b6d4" />
+
+                      <div style={{ marginTop: "24px" }}>
+                        <FlightMap flightData={result.live_telemetry} />
+                      </div>
                     </div>
                   )}
                 </div>
