@@ -19,11 +19,15 @@ export const calculateConfidenceScore = (data) => {
     }
 
     if (data.cadors_data && Array.isArray(data.cadors_data)) {
-        score -= data.cadors_data.length * 20;
+        data.cadors_data.forEach(item => {
+            score -= (typeof item.deduction === 'number' ? item.deduction : 10);
+        });
     }
 
     if (data.sdr_data && Array.isArray(data.sdr_data)) {
-        score -= data.sdr_data.length * 15;
+        data.sdr_data.forEach(item => {
+            score -= (typeof item.deduction === 'number' ? item.deduction : 5);
+        });
     }
 
     if (data.churn_data) {

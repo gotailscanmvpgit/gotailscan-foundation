@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
+
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -79,11 +81,31 @@ serve(async (req: Request) => {
             registryKey = normalizedTail.substring(1);
         }
 
-        // 0. PRIMARY SEARCH LAYER: Arla API (https://arla.njf.dev/api)
-        // We check this first for the freshest FAA data.
         let realData: any = null;
 
-        if (normalizedTail.startsWith('N')) {
+        // ---------------------------------------------------------
+        // LAYER 1: LOCAL DATABASE MIRROR (Fastest)
+        // ---------------------------------------------------------
+        // We ALWAYS check our local PostgreSQL mirror first.
+        // This avoids network latency and API rate limits.
+        const { data: localMirror } = await supabase
+            .from('mv_aircraft_summary')
+            .select('*')
+            .or(`n_number.eq.${registryKey},n_number.eq.${normalizedTail}`)
+            .limit(1)
+            .maybeSingle();
+
+        if (localMirror) {
+            console.log(`[Orchestrator] Local Mirror Hit for ${normalizedTail}`);
+            realData = localMirror;
+            isRealData = true;
+        }
+
+        // ---------------------------------------------------------
+        // LAYER 2: EXTERNAL DISCOVERY (Fallback / Freshness)
+        // ---------------------------------------------------------
+        // Only hit external APIs if not in local DB OR for specific refresh logic.
+        if (!realData && normalizedTail.startsWith('N')) {
             try {
                 // Determine API URL (using v0/faa/registration/{tail})
                 const arlaUrl = `https://arla.njf.dev/api/v0/faa/registration/${normalizedTail}`;
@@ -102,57 +124,92 @@ serve(async (req: Request) => {
 
                     if (res.ok) {
                         const arlaJson = await res.json();
-
-                        // Map Arla/FAA JSON to our internal schema
-                        // Helper to get case-insensitive property
                         const get = (k: string) => arlaJson[k] || arlaJson[k.toUpperCase()] || null;
 
-                        // Only accept if we got a valid N-number back
                         if (get('n_number') || get('N-NUMBER')) {
-                            console.log(`[Orchestrator] Arla API Hit for ${normalizedTail}`);
+                            console.log(`[Orchestrator] External Discovery Hit (Arla) for ${normalizedTail}`);
                             realData = {
                                 n_number: get('n_number') || normalizedTail,
                                 mfr_mdl_code: get('mfr_mdl_code') || get('mfr_mdl_code_cols'),
-                                year_mfr: parseInt(get('year_mfr') || get('year') || '0'),
+                                year_mfr: get('year_mfr') || get('year'),
                                 serial_number: get('serial_number') || get('serial'),
                                 owner_name: get('name') || get('owner'),
                                 city: get('city'),
                                 state: get('state'),
                                 zip_code: get('zip_code'),
-                                region: get('region'),
-                                county: get('county'),
                                 country: 'USA',
-                                kit_mfr: get('kit_mfr'),
-                                kit_model: get('kit_model'),
                                 eng_mfr_mdl: get('eng_mfr_mdl'),
-                                type_aircraft: get('type_aircraft'),
-                                type_engine: get('type_engine'),
                                 status_code: get('status_code')
                             };
                         }
-                    } else {
-                        // Silent fail for 404/500 to allow fallback
-                        console.log(`[Orchestrator] Arla API skipped (Status: ${res.status})`);
                     }
                 } catch (fetchErr) {
                     clearTimeout(timeoutId);
-                    // Ignore abort/network errors
+                }
+
+                // --- 0.5. SECONDARY HIGH-RELIABILITY LAYER: Official FAA Scraper ---
+                // If Arla failed, we try the official FAA site directly.
+                if (!realData) {
+                    try {
+                        console.log(`[Orchestrator] Arla missed. Initiating Official FAA Direct-Sync for ${normalizedTail}...`);
+                        const faaUrl = `https://registry.faa.gov/aircraftinquiry/Search/NNumberResult?nNumberTxt=${normalizedTail.substring(1)}`;
+
+                        const scraperResponse = await fetch(faaUrl, {
+                            headers: {
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                                "Accept": "text/html"
+                            }
+                        });
+
+                        if (scraperResponse.ok) {
+                            const html = await scraperResponse.text();
+                            const doc = new DOMParser().parseFromString(html, "text/html");
+
+                            if (doc) {
+                                const getText = (id: string) => doc.getElementById(id)?.textContent?.trim() || null;
+                                const mfr = getText('ctl00_content_lblMfrName');
+                                if (mfr) {
+                                    console.log(`[Orchestrator] Official FAA Scraper Success for ${normalizedTail}`);
+                                    realData = {
+                                        n_number: normalizedTail,
+                                        year_mfr: getText('ctl00_content_lblMfrYear'),
+                                        serial_number: getText('ctl00_content_lblSerialNo'),
+                                        owner_name: getText('ctl00_content_lblName'),
+                                        city: getText('ctl00_content_lblCity'),
+                                        state: getText('ctl00_content_lblState'),
+                                        country: 'USA',
+                                        status_code: getText('ctl00_content_lblStatus')
+                                    };
+                                }
+                            }
+                        }
+                    } catch (scrapeErr) {
+                        console.error(`[Orchestrator] Official Scraper Failed for ${normalizedTail}`);
+                    }
+                }
+
+                if (realData && !isRealData) {
+                    // SELF-CORRECTION: Cache newly discovered data locally
+                    console.log(`[Orchestrator] Synchronizing discovered data to local mirror...`);
+                    const nNumOnly = realData.n_number.startsWith('N') ? realData.n_number.substring(1) : realData.n_number;
+                    await supabase.from('aircraft_registry').upsert({
+                        n_number: nNumOnly,
+                        serial_number: realData.serial_number,
+                        mfr_mdl_code: realData.mfr_mdl_code,
+                        year_mfr: realData.year_mfr?.toString(),
+                        name: realData.owner_name,
+                        city: realData.city,
+                        state: realData.state,
+                        zip_code: realData.zip_code,
+                        country: realData.country,
+                        status_code: realData.status_code,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'n_number' });
+                    isRealData = true;
                 }
             } catch (err) {
                 // Global safety catch
             }
-        }
-
-        // 1. LOCAL DB FALLBACK (If Arla failed or tail not N-reg)
-        if (!realData) {
-            const { data } = await supabase
-                .from('mv_aircraft_summary')
-                .select('*')
-                .or(`n_number.eq.${registryKey},n_number.eq.${normalizedTail}`)
-                .limit(1)
-                .maybeSingle();
-
-            realData = data;
         }
 
 
@@ -862,6 +919,9 @@ serve(async (req: Request) => {
 
 
         // 9. MISSION FIT ANALYSIS (The "Performance Audit")
+        // Initialize performance profile for the scoring engine
+
+
         const calculateMissionFit = (acft: any, perf: any, val: any) => {
             const mm = (acft.make_model || '').toUpperCase();
 
@@ -881,6 +941,8 @@ serve(async (req: Request) => {
                 mission = { label: "Executive Coast-to-Coast", distance: 1500, pax: 4, runway: 5000, route: "LA -> Aspen" };
             } else if (mm.includes('PILATUS') || mm.includes('TBM')) {
                 mission = { label: "Ski Trip Express", distance: 600, pax: 6, runway: 2500, route: "Bay Area -> Truckee" };
+            } else if (mm.includes('KING AIR') || mm.includes('PC-12')) {
+                mission = { label: "Corporate Shuttle", distance: 1000, pax: 7, runway: 4000, route: "Chicago -> Dallas" };
             }
 
             // 2. Score Calculation
@@ -891,55 +953,44 @@ serve(async (req: Request) => {
             if (perf.max_range < mission.distance) {
                 score -= 40;
                 reasons.push({ type: "CRITICAL", text: `Range Shortfall: Needs fuel stop for ${mission.distance}nm mission.` });
-            } else if (perf.max_range > mission.distance * 2.5) {
-                score -= 10;
-                reasons.push({ type: "ADVISORY", text: `Over-capability: You are buying 2x the range you need.` });
+            } else if (perf.max_range < mission.distance * 1.25) {
+                score -= 10; // Tight margins
+                reasons.push({ type: "CAUTION", text: "Range Margin Tight: <25% Fuel Reserve." });
             }
 
-            // B. Payload Check (Simulated)
-            const pax_weight = mission.pax * 200; // 200lbs per person + bags
-            // Gross approximation: Piston uses 15gal/hr, Turbine 100gal/hr?
-            // Better: Use performace.useful_load vs (Fuel for Mission + Pax)
+            // B. Runway Check
+            // Rough runway requirement estimation (Jets need more)
+            let runwayReq = 2500;
+            if (mm.includes('CITATION') || mm.includes('JET')) runwayReq = 4500;
+            else if (mm.includes('KING AIR') || mm.includes('TBM') || mm.includes('PILATUS')) runwayReq = 3500;
 
-            let fuel_burn_lbs_hr = 100; // Default Piston
-            if (mm.includes('SR22') || mm.includes('BONANZA')) fuel_burn_lbs_hr = 100; // ~16gph
-            if (mm.includes('TURBO') || mm.includes('MOONEY')) fuel_burn_lbs_hr = 110;
-            if (mm.includes('KING AIR') || mm.includes('TBM')) fuel_burn_lbs_hr = 400; // ~60gph
-            if (mm.includes('JET') || mm.includes('CITATION')) fuel_burn_lbs_hr = 1200; // ~180gph
+            if (runwayReq > mission.runway) {
+                score -= 30;
+                reasons.push({ type: "CRITICAL", text: `Runway Limited: Requires >${runwayReq}ft (Mission: ${mission.runway}ft).` });
+            }
 
-            const flight_hours = mission.distance / (perf.cruise_speed || 150);
-            const mission_fuel_lbs = (flight_hours * fuel_burn_lbs_hr) * 1.2; // +20% Reserve
-
-            const payload_available_for_pax = perf.useful_load - mission_fuel_lbs;
-            const payload_margin = payload_available_for_pax - pax_weight;
+            // C. Payload Check
+            // Avg pax + bags = 220lbs
+            const missionPayload = mission.pax * 220;
+            const payload_margin = perf.useful_load - (missionPayload + 500); // 500lbs fuel buffer
 
             if (payload_margin < 0) {
-                // If margin is negative, we can't do the mission without bumping pax or fuel
-                score -= 30;
-                reasons.push({ type: "WARNING", text: `Payload Limitation: Cannot carry ${mission.pax} people + Legal Reserves. Overweight by ${Math.abs(Math.round(payload_margin))} lbs.` });
-            } else {
-                reasons.push({ type: "POSITIVE", text: `Payload Config: Can carry full mission load with ${Math.round(payload_margin)} lbs to spare.` });
+                score -= 25;
+                reasons.push({ type: "WARNING", text: `Payload Restricted: Cannot carry full ${mission.pax} pax + Legal Fuel.` });
             }
 
-            // C. Runway Check (Simulated Takeoff Roll)
-            const req_runway = mm.includes('JET') ? 3500 : (mm.includes('TURBOPROP') ? 2500 : 1500);
-            if (mission.runway < req_runway) {
-                score -= 50;
-                reasons.push({ type: "CRITICAL", text: `Runway Limit: ${mission.runway}ft is too short for safe continuous ops.` });
-            }
-
-            // 3. Pillars Construction
+            // 3. Generate Pillars
             const pillars = {
-                operational: {
-                    label: "Operational Efficiency",
-                    status: (score > 80) ? "OPTIMIZED" : "INEFFICIENT",
-                    metric: `Fuel Burn: ${Math.round(mission_fuel_lbs)} lbs / trip`,
-                    insight: `Burns $${Math.round((mission_fuel_lbs / 6.7) * 6)} in fuel for this trip.`
+                range: {
+                    label: "Range Envelope",
+                    status: score < 60 ? "FAIL" : (score < 90 ? "MARGINAL" : "OPTIMIZED"),
+                    metric: `${perf.max_range} NM`,
+                    insight: `Covers ${Math.round((perf.max_range / mission.distance) * 100)}% of primary mission leg.`
                 },
                 payload: {
-                    label: "Payload Reality Check",
-                    status: (payload_margin > 0) ? "PASS" : "FAIL",
-                    metric: `Margin: ${payload_margin > 0 ? '+' : ''}${Math.round(payload_margin)} lbs`,
+                    label: "Payload Utility",
+                    status: payload_margin < 0 ? "OVERLOAD" : "PASS",
+                    metric: `${perf.useful_load} LBS Useful`,
                     insight: (payload_margin > 0)
                         ? `Clears 45-min IFR Reserve with ${mission.pax} Pax.`
                         : `Must leave ${Math.ceil(Math.abs(payload_margin) / 200)} passenger(s) behind to make legal weight.`

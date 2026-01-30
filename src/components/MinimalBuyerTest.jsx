@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Shield, Loader2, Search, Users, Plane, LayoutGrid, Activity, FileText, BarChart3, Settings, Zap, Compass, AlertTriangle, ShieldCheck, TrendingUp, DollarSign } from "lucide-react";
 import ForensicScanner from "./ForensicScanner";
+import BuyerSummaryHUD from "./BuyerSummaryHUD";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -221,67 +222,7 @@ export default function MinimalBuyerTest() {
               <div className="dashboard-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "24px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                   {activeTab === "SUMMARY" && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                      {/* RISK INDEX */}
-                      <div style={{ background: "#0f172a", border: "1px solid #1e293b", padding: "24px", borderRadius: "8px", borderLeft: `6px solid ${(100 - (result.confidence_score || 0)) > 50 ? "#ef4444" : "#06b6d4"}`, boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}>
-                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "900", marginBottom: "20px", letterSpacing: "1px" }}>FORENSIC RISK INDEX</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "32px", flexWrap: "wrap" }}>
-                          <CircularGauge score={100 - (result.confidence_score || 0)} size={120} mode="risk" label="RISK" />
-                          <div>
-                            <div style={{ fontSize: "42px", fontWeight: "900", color: (100 - (result.confidence_score || 0)) > 50 ? "#ef4444" : "white" }}>
-                              {100 - (result.confidence_score || 0)}
-                            </div>
-                            <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: "bold", textTransform: "uppercase" }}>Aggregate Risk Score</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* WHY THIS SCORE */}
-                      <div style={{ background: "rgba(0,0,0,0.3)", padding: "24px", borderRadius: "8px", border: "1px solid #1e293b" }}>
-                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "900", marginBottom: "16px", letterSpacing: "1px" }}>WHY THIS SCORE?</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                          {result.audit_results?.map((audit, i) => (
-                            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                              <div style={{ fontSize: "13px", color: "#e2e8f0" }}>{audit.reason}</div>
-                              <div style={{ fontSize: "12px", fontWeight: "900", color: audit.status === "negative" ? "#ef4444" : audit.status === "caution" ? "#f59e0b" : "#10b981" }}>
-                                {audit.points}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* ACTION PLAN */}
-                      <div style={{ background: "rgba(6, 182, 212, 0.05)", padding: "24px", borderRadius: "8px", border: "1px solid rgba(6, 182, 212, 0.2)" }}>
-                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "900", marginBottom: "16px", letterSpacing: "1px" }}>MISSION ACTION PLAN</div>
-                        <div style={{ fontSize: "14px", color: "white", fontWeight: "bold", marginBottom: "8px", textTransform: "uppercase" }}>
-                          {result.ai_intelligence?.audit_verdict || "ADVISORY READY"}
-                        </div>
-                        <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "1.6", margin: 0 }}>
-                          {result.ai_intelligence?.technical_advisory || "System analysis complete. Refer to forensic telemetry for mission-critical deductions."}
-                        </p>
-                      </div>
-
-                      {/* FINANCIAL SHIELD */}
-                      <div style={{ background: "rgba(16, 185, 129, 0.05)", padding: "24px", borderRadius: "8px", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
-                        <div style={{ fontSize: "10px", color: "#10b981", fontWeight: "900", marginBottom: "16px", letterSpacing: "1px" }}>FINANCIAL SHIELD</div>
-                        <div style={{ display: "grid", gap: "12px" }}>
-                          {[
-                            { label: "TITLE CLEARANCE", status: result.forensic_records?.liens_found ? "CAUTION" : "VERIFIED" },
-                            { label: "ESCROW READY", status: "ACTIVE" },
-                            { label: "LIEN VERIFIED", status: result.forensic_records?.liens_found ? "WARNING" : "CLEAR" }
-                          ].map((s, i) => (
-                            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: "4px" }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <ShieldCheck size={14} color={s.status === "VERIFIED" || s.status === "ACTIVE" || s.status === "CLEAR" ? "#10b981" : "#ef4444"} />
-                                <span style={{ fontSize: "12px", fontWeight: "800", color: "white" }}>{s.label}</span>
-                              </div>
-                              <span style={{ fontSize: "10px", fontWeight: "900", color: s.status === "VERIFIED" || s.status === "ACTIVE" || s.status === "CLEAR" ? "#10b981" : "#ef4444" }}>{s.status}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                    <BuyerSummaryHUD result={result} />
                   )}
                   {activeTab === "RADAR" && (
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: "24px", borderRadius: "8px", border: "1px solid #334155" }}>

@@ -33,12 +33,29 @@ ps://www.faa.gov/data_research/aviation_data_statistics/service_difficulty_repor
 
 ---
 
-### 4. FAA Aircraft Registry (Master)
-*   **Description:** The "Phone book" of all US active aircraft. You likely already have this, but updating it monthly is good practice.
-*   **Download URL:** [FAA Releasable Aircraft Database](https://www.faa.gov/licenses_certificates/aircraft_certification/aircraft_registry/releasable_aircraft_download)
-*   **File:** `MASTER.txt` (This is a CSV-like file)
-*   **Rename to:** `database/MASTER.txt`
-*   **Run Script:** `node scripts/ingest_faa_master.cjs`
+### 4. FAA Aircraft Registry (Master & ACFTREF)
+*   **Description:** The complete US Aircraft Registry and Model Reference.
+*   **Method 1 (Automatic Efficiency):**
+    *   **Run Script:** `node scripts/extreme_delta_sync.cjs`
+    *   **What it does:** Downloads the latest FAA zip, extracts MASTER.txt and ACFTREF.txt, and syncs both to Supabase. It uses conditional caching (Header Check) to only sync if data has changed.
+*   **Method 2 (Manual):**
+    *   **Download:** [FAA Releasable Database](https://www.faa.gov/licenses_certificates/aircraft_certification/aircraft_registry/releasable_aircraft_download)
+    *   **Extract:** Place `MASTER.txt` and `ACFTREF.txt` in `database/`.
+    *   **Run:** `node scripts/ingest_faa_master.cjs`
 
 ---
+
+### 5. Transport Canada Civil Aircraft Register (CCAR)
+*   **Description:** The complete Canadian Civil Aircraft Register.
+*   **Run Script:** `node scripts/tc_delta_sync.cjs`
+*   **What it does:** Automatically fetches the Canadian database, joins aircraft specs with owner data, and standardizes them with the `C-` prefix in our local mirror.
+
+---
+
+## ⚡ Extreme Efficiency: Pre-Syncing
+To "warm the cache" for high-volume searches (like newest aircraft or popular models), use the pre-sync flag:
+```bash
+node scripts/extreme_delta_sync.cjs --pre-sync
+```
+
 **⚠️ Important:** These files can be large (hundreds of MBs). Ensure your database has enough storage space allocated.

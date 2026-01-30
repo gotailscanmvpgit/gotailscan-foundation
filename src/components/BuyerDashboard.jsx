@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import scraperService from '../services/scraperService';
 import MarketAlphaWidget from './MarketAlphaWidget';
+import BuyerSummaryHUD from './BuyerSummaryHUD';
 
 export default function BuyerDashboard() {
     const navigate = useNavigate();
@@ -107,58 +108,11 @@ export default function BuyerDashboard() {
 
                 {result && (
                     <div className="space-y-6">
-                        {/* Scores Grid: Risk & Market Value */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Hero Metric: Risk Score */}
-                            <Card className="lg:col-span-2 border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 overflow-hidden relative">
-                                <div className={
-                                    riskLevel === 'HIGH' ? 'absolute inset-0 bg-red-500/5' :
-                                        riskLevel === 'MEDIUM' ? 'absolute inset-0 bg-yellow-500/5' :
-                                            'absolute inset-0 bg-emerald-500/5'
-                                }></div>
-                                <CardContent className="p-8 relative z-10">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div>
-                                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Hero Metric</div>
-                                            <h2 className="text-3xl font-black text-white uppercase">Risk Assessment</h2>
-                                        </div>
-                                        <Target className={
-                                            riskLevel === 'HIGH' ? 'w-16 h-16 text-red-500 opacity-20' :
-                                                riskLevel === 'MEDIUM' ? 'w-16 h-16 text-yellow-500 opacity-20' :
-                                                    'w-16 h-16 text-emerald-500 opacity-20'
-                                        } />
-                                    </div>
-                                    <div className="flex items-baseline gap-4">
-                                        <div className={
-                                            riskLevel === 'HIGH' ? 'text-7xl font-black text-red-500' :
-                                                riskLevel === 'MEDIUM' ? 'text-7xl font-black text-yellow-500' :
-                                                    'text-7xl font-black text-emerald-500'
-                                        }>{riskScore}</div>
-                                        <div>
-                                            <div className="text-2xl font-bold text-gray-400">/100</div>
-                                            <Badge className={
-                                                riskLevel === 'HIGH' ? 'bg-red-500/20 text-red-400 border-red-500/30 mt-2' :
-                                                    riskLevel === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 mt-2' :
-                                                        'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 mt-2'
-                                            }>
-                                                {riskLevel} RISK
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 text-sm text-gray-400">
-                                        {result.ai_intelligence?.risk_profile || 'Calculating risk vectors based on forensic record data...'}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Market Alpha Widget */}
-                            <div className="lg:col-span-1">
-                                <MarketAlphaWidget tailNumber={tailNumber.toUpperCase()} />
-                            </div>
-                        </div>
+                        {/* THE NEW BUYER HUD */}
+                        <BuyerSummaryHUD result={result} />
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Red Flags Panel */}
+                            {/* Critical Alerts Panel */}
                             <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                                 <CardContent className="p-6">
                                     <div className="flex items-center gap-3 mb-6">
@@ -192,89 +146,27 @@ export default function BuyerDashboard() {
                                 </CardContent>
                             </Card>
 
-                            {/* Mission Fit HUD - UPGRADED */}
+                            {/* Full Intelligence Report */}
                             <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                                 <CardContent className="p-6">
-                                    <div className="flex items-center justify-between gap-3 mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <Activity className="w-5 h-5 text-blue-400" />
-                                            <div>
-                                                <h3 className="text-xl font-black text-white uppercase">Mission Fit</h3>
-                                                <div className="text-[10px] text-gray-400 uppercase tracking-widest">
-                                                    {result.mission_analysis?.mission_profile?.label || "Performance Audit"}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {result.mission_analysis && (
-                                            <div className="text-right">
-                                                <div className={`text-3xl font-black ${result.mission_analysis.score > 80 ? 'text-emerald-400' : (result.mission_analysis.score > 50 ? 'text-yellow-400' : 'text-red-400')}`}>
-                                                    {result.mission_analysis.score}%
-                                                </div>
-                                                <div className="text-[9px] font-bold text-gray-500 uppercase">Fit Score</div>
-                                            </div>
-                                        )}
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <TrendingUp className="w-5 h-5 text-purple-400" />
+                                        <h3 className="text-xl font-black text-white uppercase">AI Intelligence</h3>
                                     </div>
-
-                                    {result.mission_analysis ? (
-                                        <div className="space-y-4">
-                                            {/* Pillars */}
-                                            {Object.entries(result.mission_analysis.pillars).map(([key, pillar]) => (
-                                                <div key={key} className="bg-black/40 p-3 rounded border border-white/5 group hover:border-blue-500/30 transition-colors">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <div className="text-[10px] text-gray-400 uppercase font-black group-hover:text-gray-300">{pillar.label}</div>
-                                                        <Badge className={`text-[9px] font-black ${pillar.status === 'OPTIMIZED' || pillar.status === 'PASS' || pillar.status === 'TOP 10%' ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' :
-                                                            pillar.status === 'FAIL' || pillar.status === 'OVERLOAD' || pillar.status === 'INEFFICIENT' ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
-                                                            }`}>{pillar.status}</Badge>
-                                                    </div>
-                                                    <div className="text-xs text-gray-300 font-mono">{pillar.insight || pillar.metric}</div>
-                                                </div>
-                                            ))}
-
-                                            <div className="pt-3 border-t border-white/10">
-                                                <div className="text-[10px] text-blue-400 font-bold uppercase mb-1">Verdict</div>
-                                                <div className="text-sm text-white font-medium italic">"{result.mission_analysis.verdict}"</div>
+                                    <div className="space-y-4 text-sm text-gray-300 font-medium">
+                                        <div className="border-l-2 border-purple-500 pl-4 italic">
+                                            "{result.ai_intelligence?.technical_advisory || 'Generating advisory...'}"
+                                        </div>
+                                        <div className="bg-black/20 p-4 rounded border border-white/5">
+                                            <div className="text-[10px] text-gray-500 font-bold uppercase mb-2">Risk Vector Analysis</div>
+                                            <div className="text-xs text-gray-400 leading-relaxed font-mono">
+                                                {result.ai_intelligence?.risk_profile || "Analyzing aircraft history for latent defects and ownership patterns..."}
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-2 gap-4">
-                                            {/* Fallback to old simple view if no mission analysis */}
-                                            {Object.entries(getMissionFit() || {}).map(([key, value]) => (
-                                                <div key={key} className="bg-black/40 p-4 rounded-lg border border-white/5">
-                                                    <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-1">{key.replace('_', ' ')}</div>
-                                                    <div className="text-xl font-black text-white">{value}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Valuation Footer */}
-                                    <div className="mt-6 pt-6 border-t border-white/5">
-                                        <div className="text-[10px] text-gray-500 uppercase mb-2">Value Assessment</div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-3xl font-black text-white">${(result.valuation?.estimated_value / 1000).toFixed(0)}k</span>
-                                            {result.ai_intelligence?.tax_strategy && (
-                                                <div className="text-xs text-emerald-400">
-                                                    -{result.ai_intelligence.tax_strategy.bonus_depreciation_rate} Tax Write-off
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
                         </div>
-
-                        {/* Full Intelligence Report */}
-                        <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                            <CardContent className="p-6">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <TrendingUp className="w-5 h-5 text-purple-400" />
-                                    <h3 className="text-xl font-black text-white uppercase">AI Advisory</h3>
-                                </div>
-                                <div className="text-sm text-gray-300 font-mono leading-relaxed border-l-2 border-purple-500 pl-4">
-                                    {result.ai_intelligence?.technical_advisory || 'Generating recommendation...'}
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                 )}
             </div>
