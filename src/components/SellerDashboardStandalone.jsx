@@ -309,11 +309,7 @@ export default function SellerDashboardStandalone() {
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "32px", flexWrap: "wrap" }}>
                           <div style={{ position: "relative", width: "120px", height: "120px" }}>
-                            <CircularGauge score={alpha.score} size={120} />
-                            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                              <div style={{ fontSize: "28px", fontWeight: "900", color: "white" }}>{alpha.score}</div>
-                              <div style={{ fontSize: "10px", color: "#94a3b8" }}>ALPHA</div>
-                            </div>
+                            <CircularGauge score={alpha.score} size={120} label="ALPHA" />
                           </div>
                           <div style={{ flex: 1, minWidth: "200px" }}>
                             <h2 style={{ fontSize: "24px", fontWeight: "900", color: "white", textTransform: "uppercase" }}>{alpha.label} ASSET</h2>
