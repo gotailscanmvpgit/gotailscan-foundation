@@ -337,10 +337,13 @@ export default function MinimalBuyerTest() {
             background: #0f172a; 
             border-top: 1px solid #1e293b; 
             padding: 10px 0; 
-            position: sticky; 
+            position: fixed; 
             bottom: 0; 
-            z-index: 100;
+            left: 0;
+            width: 100%;
+            z-index: 9999;
           }
+          .main-viewport { margin: 0 !important; border: none !important; border-radius: 0 !important; padding-bottom: 80px !important; }
           .bottom-nav button { 
             background: none; 
             border: none; 
