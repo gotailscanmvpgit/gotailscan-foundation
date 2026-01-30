@@ -317,8 +317,32 @@ export default function MinimalBuyerTest() {
       </div>
       <HangarDoorModal isOpen={isModalOpen} searchHistory={guestHistory} onClose={() => setIsModalOpen(false)} />
       <style>{`
-        .history-grid { display: grid; gridTemplateColumns: 1fr 1fr; gap: 12px; }
-        .bottom-nav { display: none; }
+        .bottom-nav { 
+          display: flex; 
+          justify-content: space-around; 
+          align-items: center; 
+          background: #0f172a; 
+          border-top: 1px solid #1e293b; 
+          padding: 10px 0; 
+          position: sticky; 
+          bottom: 0; 
+          z-index: 100;
+        }
+        .bottom-nav button { 
+          background: none; 
+          border: none; 
+          color: #94a3b8; 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          gap: 4px; 
+          font-size: 10px; 
+          font-weight: bold; 
+          text-transform: uppercase;
+          cursor: pointer;
+        }
+        .bottom-nav button.active { color: #06b6d4; }
+
         @media (max-width: 900px) {
           .desktop-sidebar { display: none !important; }
           .main-viewport { margin: 0 !important; border: none !important; border-radius: 0 !important; }
@@ -330,30 +354,6 @@ export default function MinimalBuyerTest() {
           .scan-btn { height: 56px; width: 100% !important; margin-top: 8px; }
           .dashboard-grid { grid-template-columns: 1fr !important; }
           .history-grid { grid-template-columns: 1fr !important; }
-          .bottom-nav { 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            background: #0f172a; 
-            border-top: 1px solid #1e293b; 
-            padding: 10px 0; 
-            position: sticky; 
-            bottom: 0; 
-            z-index: 100;
-          }
-          .bottom-nav button { 
-            background: none; 
-            border: none; 
-            color: #94a3b8; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 4px; 
-            font-size: 10px; 
-            font-weight: bold; 
-            text-transform: uppercase;
-          }
-          .bottom-nav button.active { color: #06b6d4; }
         }
       `}</style>
     </div>
