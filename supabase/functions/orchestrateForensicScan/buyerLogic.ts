@@ -88,9 +88,16 @@ export const getOperatingCosts = (makeModel: string) => {
 
 export const getMarketVelocity = (model: string) => {
     const mm = model.toUpperCase();
-    if (mm.includes('172') || mm.includes('SR22')) return { days_on_market: 22, liquidity: 'HIGH' };
-    if (mm.includes('CITATION') || mm.includes('KING AIR')) return { days_on_market: 45, liquidity: 'MODERATE' };
-    return { days_on_market: 65, liquidity: 'STABLE' };
+    if (mm.includes('172') || mm.includes('SR22') || mm.includes('PHENOM') || mm.includes('PC-12')) {
+        return { days_on_market: 22, liquidity: 'HIGH', demand_index: 88 };
+    }
+    if (mm.includes('CITATION') || mm.includes('KING AIR') || mm.includes('TBM')) {
+        return { days_on_market: 45, liquidity: 'MODERATE', demand_index: 65 };
+    }
+    if (mm.includes('GULFSTREAM') || mm.includes('GLOBAL') || mm.includes('CHALLENGER')) {
+        return { days_on_market: 55, liquidity: 'STABLE', demand_index: 52 };
+    }
+    return { days_on_market: 75, liquidity: 'STABLE', demand_index: 45 };
 };
 
 export const getPerformanceProfile = (model: string) => {
