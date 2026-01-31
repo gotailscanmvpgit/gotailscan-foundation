@@ -1006,6 +1006,26 @@ export const scraperService = {
 
 
 
+        // [NEW] REAL-TIME SEARCH LOGGING (For Market Velocity)
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const logEntry = {
+                tail_number: nNumber,
+                searched_at: new Date().toISOString(),
+                user_id: session?.user?.id || null,
+                search_data: {
+                    aircraft_details: orchestrationData.aircraft_details,
+                    location: orchestrationData.climate_exposure?.coordinates || null,
+                    market_velocity: orchestrationData.market_velocity
+                }
+            };
+            supabase.from('user_searches').insert(logEntry).then(({ error }) => {
+                if (error) console.warn('[Analytics] Failed to log search:', error);
+            });
+        } catch (logErr) {
+            console.warn('[Analytics] Logging exception:', logErr);
+        }
+
         // NEW DEPTH: Global Deployment Matrix (Geofence Audit) - Pre-calculated for access in Climate Exposure
         const geofence_audit = {
             primary_hubs: ['Teterboro (KTEB)', 'Palm Beach (KPBI)', 'Van Nuys (KVNY)'],

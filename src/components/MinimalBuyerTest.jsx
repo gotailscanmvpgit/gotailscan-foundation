@@ -11,6 +11,7 @@ import PillarBar from "./PillarBar";
 import FlightMap from "./FlightMap";
 import HangarDoorModal from "./HangarDoorModal";
 import AircraftAssetCard from "./AircraftAssetCard";
+import PartsTraceabilityHUD from "./PartsTraceabilityHUD";
 import { supabase } from "../lib/supabaseClient";
 
 const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
@@ -244,6 +245,9 @@ export default function MinimalBuyerTest() {
                         <FlightMap flightData={result.live_telemetry} />
                       </div>
                     </div>
+                  )}
+                  {activeTab === "AUDIT" && (
+                    <PartsTraceabilityHUD tailNumber={tailNumber} role="buyer" aircraftData={result} />
                   )}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

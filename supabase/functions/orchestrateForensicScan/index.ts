@@ -502,6 +502,32 @@ serve(async (req: Request) => {
         // 4. MARKET VELOCITY & LIQUIDITY (NEW)
         const velocity = getMarketVelocity(aircraft.make_model);
 
+        // 4b. REAL PLATFORM DATA INGESTION (Proprietary Demand Signal)
+        try {
+            // Check for similar searches in the last 30 days
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const { count } = await supabase
+                .from('user_searches')
+                .select('*', { count: 'exact', head: true })
+                .ilike('search_data->aircraft_details->make_model', `%${aircraft.make_model}%`)
+                .gte('searched_at', thirtyDaysAgo.toISOString());
+
+            if (count !== null) {
+                // Boost the demand index if real interest is high
+                if (count > 0) {
+                    console.log(`[MarketVelocity] Found ${count} real searches for ${aircraft.make_model}`);
+                    const realImpact = Math.min(30, count * 4); // Each search adds ~4 points of demand heat
+                    velocity.demand_index = Math.min(98, (velocity.demand_index || 50) + realImpact);
+                    // @ts-ignore
+                    velocity.real_interest_count = count;
+                }
+            }
+        } catch (err) {
+            console.error('Market Velocity Real Data Error:', err);
+        }
+
         // 5. PERFORMANCE PROFILE (NEW for Mission Planner)
         const performance = getPerformanceProfile(aircraft.make_model);
 

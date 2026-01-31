@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle, TrendingUp, Clock, Shield, LayoutGrid, ShieldCheck, Compass, Settings, Zap, ListChecks } from 'lucide-react';
+import { Upload, FileText, Scan, Loader2, CheckCircle, AlertTriangle, TrendingUp, Clock, Shield, LayoutGrid, ShieldCheck, Compass, Settings, Zap, ListChecks, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import SplitScreenComparison from './SplitScreenComparison';
 import AircraftIdentityCard from './AircraftIdentityCard';
 import { logbookOCRService } from '../services/logbookOCRService';
 import ForensicScanner from "./ForensicScanner";
+import PartsTraceabilityHUD from "./PartsTraceabilityHUD";
 
 const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -149,6 +150,7 @@ export default function MechanicDashboardStandalone() {
         <div className="bottom-nav">
             <button onClick={() => setActiveTab("AUDIT")} className={activeTab === "AUDIT" ? "active" : ""}><LayoutGrid size={24} /><span>Audit</span></button>
             <button onClick={() => setActiveTab("OCR")} className={activeTab === "OCR" ? "active" : ""}><Scan size={24} /><span>Forensic</span></button>
+            <button onClick={() => setActiveTab("TRACE")} className={activeTab === "TRACE" ? "active" : ""}><Wrench size={24} /><span>Trace</span></button>
             <button onClick={() => setActiveTab("COMPLIANCE")} className={activeTab === "COMPLIANCE" ? "active" : ""}><ShieldCheck size={24} /><span>Cert</span></button>
             <button onClick={() => setActiveTab("COMPARISON")} className={activeTab === "COMPARISON" ? "active" : ""}><TrendingUp size={24} /><span>Compare</span></button>
         </div>
@@ -168,6 +170,7 @@ export default function MechanicDashboardStandalone() {
                 </div>
                 <button onClick={() => setActiveTab("AUDIT")} style={g3000ButtonStyle(activeTab === "AUDIT")}><LayoutGrid size={20} /><span style={g3000LabelStyle}>Audit</span></button>
                 <button onClick={() => setActiveTab("OCR")} style={g3000ButtonStyle(activeTab === "OCR")}><Scan size={20} /><span style={g3000LabelStyle}>Forensic</span></button>
+                <button onClick={() => setActiveTab("TRACE")} style={g3000ButtonStyle(activeTab === "TRACE")}><Wrench size={20} /><span style={g3000LabelStyle}>Trace</span></button>
                 <button onClick={() => setActiveTab("COMPLIANCE")} style={g3000ButtonStyle(activeTab === "COMPLIANCE")}><ShieldCheck size={20} /><span style={g3000LabelStyle}>Cert</span></button>
                 <button onClick={() => setActiveTab("COMPARISON")} style={g3000ButtonStyle(activeTab === "COMPARISON")}><TrendingUp size={20} /><span style={g3000LabelStyle}>Compare</span></button>
                 <div style={{ marginTop: "auto" }}><button onClick={() => navigate("/")} style={g3000ButtonStyle(false)}><Compass size={20} /><span style={g3000LabelStyle}>Exit</span></button></div>
@@ -299,6 +302,11 @@ export default function MechanicDashboardStandalone() {
                                                     { ad_number: 'AD 2021-12-05', compliance_date: '2023-09-01', description: 'Elevator Trim Tab Inspection' }
                                                 ]}
                                             />
+                                        </div>
+                                    )}
+                                    {activeTab === "TRACE" && (
+                                        <div style={{ marginTop: "24px" }}>
+                                            <PartsTraceabilityHUD tailNumber={tailNumber} role="mechanic" aircraftData={result} />
                                         </div>
                                     )}
                                 </div>

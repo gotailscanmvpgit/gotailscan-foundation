@@ -3,7 +3,7 @@
 -- e.g. mapping "17280123" -> "CESSNA 172S SKYHAWK"
 
 CREATE TABLE IF NOT EXISTS aircraft_reference (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     serial_number TEXT UNIQUE NOT NULL,
     make_model TEXT NOT NULL,
     manufacturer TEXT,

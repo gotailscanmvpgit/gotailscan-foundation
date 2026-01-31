@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resolveMakeModel, isCleanMakeModel } from "../utils/makeModelResolver";
 import { supabase } from "../lib/supabaseClient";
-import { Shield, Clock, Loader2, TrendingUp, ShieldCheck, LayoutGrid, Activity, BarChart3, Settings, Zap, Compass, AlertTriangle, Plane, DollarSign, ListChecks, Search, ExternalLink } from "lucide-react";
+import { Shield, Clock, Loader2, TrendingUp, ShieldCheck, LayoutGrid, Activity, BarChart3, Settings, Zap, Compass, AlertTriangle, Plane, DollarSign, ListChecks, Search, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import CircularGauge from "./CircularGauge";
 import AircraftAssetCard from "./AircraftAssetCard";
 import HangarDoorModal from "./HangarDoorModal";
 import ForensicScanner from "./ForensicScanner";
+import PartsTraceabilityHUD from "./PartsTraceabilityHUD";
 
 const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -181,16 +182,6 @@ export default function SellerDashboardStandalone() {
 
   const getCleanMakeModel = () => resolvedMakeModel ? resolvedMakeModel.make_model : "Loading...";
 
-  const generateMarketLinks = () => {
-    const mm = encodeURIComponent(getCleanMakeModel());
-    return [
-      { name: "Controller.com", url: `https://www.controller.com/listings/for-sale/search?Keywords=${mm}`, color: "#003b71" }, // Controller Blue
-      { name: "Trade-A-Plane", url: `https://www.trade-a-plane.com/search?s-type=aircraft&s-keywords=${mm}`, color: "#d32f2f" }, // TAP Red
-      { name: "AvBuyer", url: `https://www.avbuyer.com/aircraft-for-sale?keyword=${mm}`, color: "#f57c00" }, // AvBuyer Orange
-      { name: "PlaneCheck", url: `https://www.planecheck.com?ent=da&search=${mm}`, color: "#388e3c" } // PlaneCheck Green
-    ];
-  };
-
   const G3000 = {
     WARNING: "#ef4444", CAUTION: "#f59e0b", ADVISORY: "#06b6d4", NORMAL: "#ffffff", BG: "#0b0f19", BEZEL: "#1e293b", GRID: "rgba(255, 255, 255, 0.05)"
   };
@@ -232,6 +223,7 @@ export default function SellerDashboardStandalone() {
       <button onClick={() => setActiveTab("SUMMARY")} className={activeTab === "SUMMARY" ? "active" : ""}><LayoutGrid size={24} /><span>Summary</span></button>
       <button onClick={() => setActiveTab("MARKET")} className={activeTab === "MARKET" ? "active" : ""}><TrendingUp size={24} /><span>Market</span></button>
       <button onClick={() => setActiveTab("SHIELDS")} className={activeTab === "SHIELDS" ? "active" : ""}><ShieldCheck size={24} /><span>Shields</span></button>
+      <button onClick={() => setActiveTab("TRACE")} className={activeTab === "TRACE" ? "active" : ""}><Wrench size={24} /><span>Trace</span></button>
       <button onClick={() => setActiveTab("LISTING")} className={activeTab === "LISTING" ? "active" : ""}><ListChecks size={24} /><span>List</span></button>
     </div>
   );
@@ -251,6 +243,7 @@ export default function SellerDashboardStandalone() {
         <button onClick={() => setActiveTab("SUMMARY")} style={g3000ButtonStyle(activeTab === "SUMMARY")}><LayoutGrid size={20} /><span style={g3000LabelStyle}>Summary</span></button>
         <button onClick={() => setActiveTab("MARKET")} style={g3000ButtonStyle(activeTab === "MARKET")}><TrendingUp size={20} /><span style={g3000LabelStyle}>Market</span></button>
         <button onClick={() => setActiveTab("SHIELDS")} style={g3000ButtonStyle(activeTab === "SHIELDS")}><ShieldCheck size={20} /><span style={g3000LabelStyle}>Shields</span></button>
+        <button onClick={() => setActiveTab("TRACE")} style={g3000ButtonStyle(activeTab === "TRACE")}><Wrench size={20} /><span style={g3000LabelStyle}>Trace</span></button>
         <button onClick={() => setActiveTab("LISTING")} style={g3000ButtonStyle(activeTab === "LISTING")}><ListChecks size={20} /><span style={g3000LabelStyle}>List</span></button>
         <div style={{ marginTop: "auto" }}>
           <button onClick={() => navigate("/")} style={g3000ButtonStyle(false)}><Compass size={20} /><span style={g3000LabelStyle}>Exit</span></button>
@@ -396,65 +389,35 @@ export default function SellerDashboardStandalone() {
                     </>
                   )}
                   {activeTab === "MARKET" && (
-                    <>
-                      <div style={{ background: "rgba(0,0,0,0.3)", padding: "20px", borderRadius: "4px", border: "1px solid #334155" }}>
-                        <div style={{ fontSize: "10px", color: "#a855f7", fontWeight: "900", marginBottom: "20px" }}>VALUATION BREAKDOWN</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span style={{ opacity: 0.6 }}>REGISTRY VALUE</span>
-                            <span style={{ fontWeight: "bold" }}>${(result.valuation?.estimated_value || 0).toLocaleString()}</span>
-                          </div>
-                          <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span style={{ opacity: 0.6 }}>FORENSIC PREMIUM</span>
-                            <span style={{ fontWeight: "bold", color: "#10b981" }}>+${(alpha.score * 100).toLocaleString()}</span>
-                          </div>
-                          <div style={{ height: "1px", background: "rgba(255,255,255,0.1)" }} />
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px" }}>
-                            <span style={{ fontWeight: "900" }}>TOTAL ALPHA VALUE</span>
-                            <span style={{ fontWeight: "900", color: "#a855f7" }}>${((result.valuation?.estimated_value || 0) + (alpha.score * 100)).toLocaleString()}</span>
-                          </div>
+                    <div style={{ background: "rgba(0,0,0,0.3)", padding: "20px", borderRadius: "4px", border: "1px solid #334155" }}>
+                      <div style={{ fontSize: "10px", color: "#a855f7", fontWeight: "900", marginBottom: "20px" }}>VALUATION BREAKDOWN</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ opacity: 0.6 }}>REGISTRY VALUE</span>
+                          <span style={{ fontWeight: "bold" }}>${(result.valuation?.estimated_value || 0).toLocaleString()}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ opacity: 0.6 }}>FORENSIC PREMIUM</span>
+                          <span style={{ fontWeight: "bold", color: "#10b981" }}>+${(alpha.score * 100).toLocaleString()}</span>
+                        </div>
+                        <div style={{ height: "1px", background: "rgba(255,255,255,0.1)" }} />
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px" }}>
+                          <span style={{ fontWeight: "900" }}>TOTAL ALPHA VALUE</span>
+                          <span style={{ fontWeight: "900", color: "#a855f7" }}>${((result.valuation?.estimated_value || 0) + (alpha.score * 100)).toLocaleString()}</span>
                         </div>
                       </div>
-
-                      {/* NEW: LIVE MARKETPLACE FEED */}
-                      <div style={{ background: "rgba(0,0,0,0.3)", padding: "20px", borderRadius: "4px", border: "1px solid #334155", marginTop: "16px" }}>
-                        <div style={{ fontSize: "10px", color: "#60a5fa", fontWeight: "900", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span>LIVE MARKETPLACE FEED</span>
-                          <span style={{ fontSize: "9px", opacity: 0.7, color: "white" }}>REAL-TIME LINKAGE</span>
-                        </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                          {generateMarketLinks().map((link) => (
-                            <a
-                              key={link.name}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "10px 12px",
-                                background: "rgba(255,255,255,0.03)",
-                                border: "1px solid rgba(255,255,255,0.1)",
-                                borderRadius: "4px",
-                                textDecoration: "none",
-                                transition: "all 0.2s"
-                              }}
-                              className="hover:bg-white/5 hover:border-white/20"
-                            >
-                              <span style={{ fontSize: "12px", fontWeight: "bold", color: "white" }}>{link.name}</span>
-                              <ExternalLink size={12} color="#94a3b8" />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    </>
+                    </div>
                   )}
                   {activeTab === "LISTING" && (
                     <div style={{ background: "rgba(0,0,0,0.3)", padding: "20px", borderRadius: "4px", border: "1px solid #334155" }}>
                       <div style={{ fontSize: "10px", color: G3000.ADVISORY, fontWeight: "900", marginBottom: "20px" }}>AI LISTING OPTIMIZER</div>
                       <p style={{ fontSize: "14px", color: "white", fontStyle: "italic", lineHeight: "1.6" }}>"Impeccably maintained {getCleanMakeModel()} with a clean NTSB profile and verified maintenance alpha. This asset ranks in the top {100 - alpha.score}% of the global fleet for forensic continuity."</p>
                       <button style={{ marginTop: "20px", width: "100%", padding: "12px", background: "#a855f7", border: "none", borderRadius: "4px", fontWeight: "bold", color: "white" }}>COPY OPTIMIZED DESCRIPTION</button>
+                    </div>
+                  )}
+                  {activeTab === "TRACE" && (
+                    <div style={{ paddingTop: "24px" }}>
+                      <PartsTraceabilityHUD tailNumber={tailNumber} role="seller" aircraftData={result} />
                     </div>
                   )}
                 </div>
@@ -514,6 +477,6 @@ export default function SellerDashboardStandalone() {
           .bottom-nav button.active { color: #a855f7; }
         }
       `}</style>
-    </div >
+    </div>
   );
 }
