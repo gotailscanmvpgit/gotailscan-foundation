@@ -12,6 +12,7 @@ import FlightMap from "./FlightMap";
 import HangarDoorModal from "./HangarDoorModal";
 import AircraftAssetCard from "./AircraftAssetCard";
 import PartsTraceabilityHUD from "./PartsTraceabilityHUD";
+import MissionOracle from "./MissionOracle";
 import { supabase } from "../lib/supabaseClient";
 
 const DirectToIcon = ({ size = 20, color = "currentColor" }) => (
@@ -248,6 +249,13 @@ export default function MinimalBuyerTest() {
                   )}
                   {activeTab === "AUDIT" && (
                     <PartsTraceabilityHUD tailNumber={tailNumber} role="buyer" aircraftData={result} />
+                  )}
+                  {activeTab === "MISSION" && (
+                    <MissionOracle
+                      aircraftData={result.aircraft_details}
+                      riskScore={result.risk_metrics?.safety || 50}
+                      forensicData={result.forensic_records}
+                    />
                   )}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
